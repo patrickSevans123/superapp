@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
 import '../../data/models/models.dart';
 import 'fashion_providers.dart';
@@ -99,12 +99,10 @@ class TryonState {
 // ─── Tryon Notifier ────────────────────────────────────────────────────────
 
 class TryonNotifier extends StateNotifier<TryonState> {
-  TryonNotifier(this._api, {String? Function()? getToken})
-      : _getToken = getToken ?? (() => null),
-        super(const TryonState());
+  TryonNotifier(this._api, this._dio) : super(const TryonState());
 
   final FashionApiClient _api;
-  final String? Function() _getToken;
+  final Dio _dio;
   final _picker = ImagePicker();
 
   void setGarment(String itemId, String imageUrl) {
@@ -131,22 +129,12 @@ class TryonNotifier extends StateNotifier<TryonState> {
         phase: TryonPhase.uploading, statusMessage: 'Uploading person photo...');
 
     try {
-      // Upload person photo to Go API
-      final token = _getToken();
-      final uploadDio = Dio(BaseOptions(
-        baseUrl: 'http://100.110.59.78:8080/api/v1',
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-      ));
+      // Upload person photo via shared auth-aware Dio
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
             state.personFile!.path, filename: 'person.jpg'),
       });
-      final uploadResponse = await uploadDio.post('/upload/photo',
-          data: formData,
-          options: Options(headers: {
-            if (token != null) 'Authorization': 'Bearer $token',
-          }));
+      final uploadResponse = await _dio.post('/upload/photo', data: formData);
       final personUrl = uploadResponse.data['url'] as String;
 
       state = state.copyWith(
@@ -213,6 +201,6 @@ final tryonNotifierProvider =
     StateNotifierProvider<TryonNotifier, TryonState>((ref) {
   return TryonNotifier(
     ref.read(fashionApiClientProvider),
-    getToken: () => ref.read(authTokenProvider),
+    ref.read(authDioProvider),
   );
 });

@@ -82,12 +82,12 @@ func HandleGetWardrobe(c *fiber.Ctx) error {
 
 	// Get total count
 	var total int
-	if err := database.DB.QueryRow(countQuery, countArgs...).Scan(&total); err != nil {
+	if err := database.DB.QueryRowContext(c.Context(), countQuery, countArgs...).Scan(&total); err != nil {
 		total = 0
 	}
 
 	// Execute data query
-	rows, err := database.DB.Query(baseQuery+" ORDER BY created_at DESC LIMIT ? OFFSET ?", append(args, limit, offset)...)
+	rows, err := database.DB.QueryContext(c.Context(), baseQuery+" ORDER BY created_at DESC LIMIT ? OFFSET ?", append(args, limit, offset)...)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query wardrobe"})
 	}
@@ -142,7 +142,7 @@ func HandleCreateWardrobeItem(c *fiber.Ctx) error {
 		cost = *body.Cost
 	}
 
-	_, err = database.DB.Exec(
+	_, err = database.DB.ExecContext(c.Context(),
 		`INSERT INTO clothing_items (id, user_id, name, category, brand, cost, dominant_colors, season_tags, original_image_url, processed_image_url, created_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, userID, body.Name, body.Category, body.Brand, cost, body.DominantColors, body.SeasonTags,
@@ -153,7 +153,7 @@ func HandleCreateWardrobeItem(c *fiber.Ctx) error {
 	}
 
 	// Return the created item
-	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ?", id)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM clothing_items WHERE id = ?", id)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to read created item"})
 	}
@@ -176,7 +176,7 @@ func HandleGetWardrobeItem(c *fiber.Ctx) error {
 	}
 
 	id := c.Params("id")
-	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query item"})
 	}
@@ -205,7 +205,7 @@ func HandleUpdateWardrobeItem(c *fiber.Ctx) error {
 
 	// Verify ownership
 	var exists int
-	err = database.DB.QueryRow("SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
+	err = database.DB.QueryRowContext(c.Context(), "SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
 	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
@@ -229,16 +229,27 @@ func HandleUpdateWardrobeItem(c *fiber.Ctx) error {
 
 	body["updated_at"] = time.Now().UTC().Format("20060102T150405Z")
 
-	// Build SET clause
+	// Build SET clause with column whitelist
+	allowedWardrobeCols := map[string]bool{
+		"name": true, "category": true, "brand": true, "cost": true,
+		"dominant_colors": true, "season_tags": true,
+		"original_image_url": true, "processed_image_url": true,
+	}
 	var setClauses []string
 	var updateArgs []interface{}
 	for col, val := range body {
+		if !allowedWardrobeCols[col] {
+			continue
+		}
 		setClauses = append(setClauses, col+" = ?")
 		updateArgs = append(updateArgs, val)
 	}
+	if len(setClauses) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "no valid fields to update"})
+	}
 	updateArgs = append(updateArgs, id, userID)
 
-	_, err = database.DB.Exec(
+	_, err = database.DB.ExecContext(c.Context(),
 		"UPDATE clothing_items SET "+strings.Join(setClauses, ", ")+" WHERE id = ? AND user_id = ?",
 		updateArgs...,
 	)
@@ -247,7 +258,7 @@ func HandleUpdateWardrobeItem(c *fiber.Ctx) error {
 	}
 
 	// Return updated item
-	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ?", id)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM clothing_items WHERE id = ?", id)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to read updated item"})
 	}
@@ -273,7 +284,7 @@ func HandleDeleteWardrobeItem(c *fiber.Ctx) error {
 
 	// Verify ownership
 	var exists int
-	err = database.DB.QueryRow("SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
+	err = database.DB.QueryRowContext(c.Context(), "SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
 	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
@@ -281,7 +292,7 @@ func HandleDeleteWardrobeItem(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to verify ownership"})
 	}
 
-	_, err = database.DB.Exec("DELETE FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
+	_, err = database.DB.ExecContext(c.Context(), "DELETE FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to delete item"})
 	}
@@ -300,7 +311,7 @@ func HandleMarkWorn(c *fiber.Ctx) error {
 	id := c.Params("id")
 	now := time.Now().UTC().Format("20060102T150405Z")
 
-	result, err := database.DB.Exec(
+	result, err := database.DB.ExecContext(c.Context(),
 		"UPDATE clothing_items SET times_worn = times_worn + 1, last_worn_at = ? WHERE id = ? AND user_id = ?",
 		now, id, userID,
 	)
@@ -335,7 +346,7 @@ func HandleGetWardrobeInsights(c *fiber.Ctx) error {
 	}
 
 	// Fetch all items for the user (no pagination for insights)
-	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE user_id = ?", userID)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM clothing_items WHERE user_id = ?", userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query wardrobe"})
 	}
@@ -448,11 +459,11 @@ func HandleGetTryonHistory(c *fiber.Ctx) error {
 
 	// Get count
 	var total int
-	if err := database.DB.QueryRow("SELECT COUNT(*) FROM tryon_results WHERE user_id = ?", userID).Scan(&total); err != nil {
+	if err := database.DB.QueryRowContext(c.Context(), "SELECT COUNT(*) FROM tryon_results WHERE user_id = ?", userID).Scan(&total); err != nil {
 		total = 0
 	}
 
-	rows, err := database.DB.Query(
+	rows, err := database.DB.QueryContext(c.Context(),
 		`SELECT tr.*, ci.name as clothing_name, ci.category as clothing_category
 		 FROM tryon_results tr
 		 LEFT JOIN clothing_items ci ON tr.clothing_item_id = ci.id
@@ -499,7 +510,7 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 	id := randomID()
 	now := time.Now().UTC().Format("20060102T150405Z")
 
-	_, err = database.DB.Exec(
+	_, err = database.DB.ExecContext(c.Context(),
 		`INSERT INTO tryon_results (id, user_id, clothing_item_id, person_image_url, status, fashn_job_id, created_at)
 		 VALUES (?, ?, ?, ?, 'queued', ?, ?)`,
 		id, userID, body.ClothingItemID, *body.PersonImageURL, "pending-"+randomID(), now,
@@ -509,7 +520,7 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 	}
 
 	// Return created record
-	rows, err := database.DB.Query("SELECT * FROM tryon_results WHERE id = ?", id)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM tryon_results WHERE id = ?", id)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to read created try-on"})
 	}
@@ -535,11 +546,11 @@ func HandleGetOOTDLogs(c *fiber.Ctx) error {
 
 	// Get count
 	var total int
-	if err := database.DB.QueryRow("SELECT COUNT(*) FROM ootd_logs WHERE user_id = ?", userID).Scan(&total); err != nil {
+	if err := database.DB.QueryRowContext(c.Context(), "SELECT COUNT(*) FROM ootd_logs WHERE user_id = ?", userID).Scan(&total); err != nil {
 		total = 0
 	}
 
-	rows, err := database.DB.Query(
+	rows, err := database.DB.QueryContext(c.Context(),
 		"SELECT * FROM ootd_logs WHERE user_id = ? ORDER BY suggested_at DESC",
 		userID,
 	)

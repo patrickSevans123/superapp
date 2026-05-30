@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthApiClient {
   final Dio _dio;
@@ -6,7 +7,8 @@ class AuthApiClient {
   AuthApiClient({Dio? dio})
       : _dio = dio ??
             Dio(BaseOptions(
-              baseUrl: 'http://100.110.59.78:8080/api/v1',
+              baseUrl:
+                  dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1',
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 10),
               headers: {'Content-Type': 'application/json'},

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -174,23 +175,54 @@ func handleMarketQuotes(c *fiber.Ctx) error {
 	symbols := strings.Split(raw, ",")
 	quotes := make([]QuoteResponse, 0, len(symbols))
 
-	for _, sym := range symbols {
-		sym = strings.TrimSpace(strings.ToUpper(sym))
+	type quoteResult struct {
+		quote *QuoteResponse
+		err   error
+		sym   string
+	}
+
+	sem := make(chan struct{}, 5) // max 5 concurrent requests
+	results := make([]quoteResult, len(symbols))
+	var wg sync.WaitGroup
+
+	for i, raw := range symbols {
+		sym := strings.TrimSpace(strings.ToUpper(raw))
 		if sym == "" {
+			results[i] = quoteResult{sym: ""}
 			continue
 		}
 
-		quote, err := fetchQuote(sym)
-		if err != nil {
-			log.Printf("WARN skipping %s: %v", sym, err)
-			// Include a placeholder so the caller knows which symbols failed
-			quotes = append(quotes, QuoteResponse{
-				Symbol: sym,
-				Name:   sym,
-			})
+		wg.Add(1)
+		sem <- struct{}{} // acquire semaphore
+		go func(idx int, symbol string) {
+			defer wg.Done()
+			defer func() { <-sem }() // release semaphore
+
+			quote, err := fetchQuote(symbol)
+			if err != nil {
+				log.Printf("WARN skipping %s: %v", symbol, err)
+				results[idx] = quoteResult{
+					quote: &QuoteResponse{Symbol: symbol, Name: symbol},
+					err:   err,
+					sym:   symbol,
+				}
+				return
+			}
+			results[idx] = quoteResult{quote: quote, err: nil, sym: symbol}
+		}(i, sym)
+	}
+	wg.Wait()
+
+	// Build response from results in order
+	for _, r := range results {
+		if r.sym == "" {
 			continue
 		}
-		quotes = append(quotes, *quote)
+		if r.err != nil {
+			quotes = append(quotes, *r.quote)
+			continue
+		}
+		quotes = append(quotes, *r.quote)
 	}
 
 	if quotes == nil {

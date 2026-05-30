@@ -1,6 +1,6 @@
 module github.com/patrickSevans123/superapp-api
 
-go 1.26
+go 1.24
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.6

@@ -20,10 +20,27 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      // Token is invalid/expired — trigger logout
-      _ref.read(authStateProvider.notifier).logout();
+      // Try to refresh token before giving up
+      final notifier = _ref.read(authStateProvider.notifier);
+      final success = await notifier.tryRefresh();
+      if (success) {
+        // Retry the original request with the new token
+        final newToken = _ref.read(authTokenProvider);
+        if (newToken != null) {
+          final retryRequest = err.requestOptions;
+          retryRequest.headers['Authorization'] = 'Bearer $newToken';
+          try {
+            final response = await Dio().fetch(retryRequest);
+            handler.resolve(response);
+            return;
+          } catch (_) {
+            // fall through to logout
+          }
+        }
+      }
+      notifier.logout();
     }
     handler.next(err);
   }

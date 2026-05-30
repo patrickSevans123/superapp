@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -218,6 +221,7 @@ func main() {
 	v1.Post("/auth/register", handleRegister)
 	v1.Post("/auth/login", handleLogin)
 	v1.Post("/auth/refresh", handleRefresh)
+	v1.Post("/auth/logout", handleLogout)
 
 	// ─── Trade endpoints ───
 	trade := v1.Group("/market")
@@ -277,11 +281,55 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("🚀 API Gateway starting on :%s", port)
-	log.Fatal(app.Listen(":" + port))
+	// Graceful shutdown
+	go func() {
+		log.Printf("🚀 API Gateway starting on :%s", port)
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := app.ShutdownWithContext(shutdownCtx); err != nil {
+		log.Fatalf("server forced to shutdown: %v", err)
+	}
+	log.Println("Server stopped gracefully")
 }
 
 // ─── Handlers (skeletons — will be implemented in Phase 1-3) ───
+
+// buildScholarshipFilters builds the WHERE clause and args for scholarship queries.
+func buildScholarshipFilters(q, level, country, fundingType string) (string, []interface{}) {
+	var conditions []string
+	var args []interface{}
+	if q != "" {
+		conditions = append(conditions, `(title ILIKE ? OR provider ILIKE ? OR description ILIKE ?)`)
+		like := "%" + q + "%"
+		args = append(args, like, like, like)
+	}
+	if level != "" {
+		conditions = append(conditions, `? = ANY("level")`)
+		args = append(args, level)
+	}
+	if country != "" {
+		conditions = append(conditions, `country ILIKE ?`)
+		args = append(args, "%"+country+"%")
+	}
+	if fundingType != "" {
+		conditions = append(conditions, `funding_type ILIKE ?`)
+		args = append(args, fundingType)
+	}
+	filterClause := strings.Join(conditions, " AND ")
+	return filterClause, args
+}
 
 // handleListScholarships returns a paginated, filterable list of scholarships.
 // GET /api/v1/scholarships?q=&level=&country=&funding_type=&page=1&limit=20
@@ -305,7 +353,21 @@ func handleListScholarships(c *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
-	// ── Build dynamic query ─────────────────────────────────────────────
+	// ── Build filters once ──────────────────────────────────────────────
+	filterClause, filterArgs := buildScholarshipFilters(q, level, country, fundingType)
+
+	// ── Count query ─────────────────────────────────────────────────────
+	countQuery := `SELECT COUNT(*) FROM scholarships`
+	var total int
+	if filterClause != "" {
+		countQuery += " WHERE " + filterClause
+	}
+	if err := db.QueryRow(countQuery, filterArgs...).Scan(&total); err != nil {
+		log.Printf("ERROR counting scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to count scholarships"})
+	}
+
+	// ── Data query ──────────────────────────────────────────────────────
 	baseSelect := `SELECT id, title, provider, description, "level", destination, country,
 		coverage,
 		cd_tuition, cd_monthly_stipend, cd_currency, cd_travel,
@@ -313,61 +375,14 @@ func handleListScholarships(c *fiber.Ctx) error {
 		deadline, opening_date, url, source_url,
 		requirements, field_of_study, tags, funding_type, tips,
 		version, checksum, found_at, updated_at
-		FROM scholarships WHERE 1=1`
-
-	var args []interface{}
-
-	if q != "" {
-		baseSelect += ` AND (title ILIKE ? OR provider ILIKE ? OR description ILIKE ? OR country ILIKE ?)`
-		pattern := "%" + q + "%"
-		args = append(args, pattern, pattern, pattern, pattern)
+		FROM scholarships`
+	if filterClause != "" {
+		baseSelect += " WHERE " + filterClause
 	}
-	if level != "" {
-		baseSelect += ` AND ? = ANY("level")`
-		args = append(args, level)
-	}
-	if country != "" {
-		baseSelect += ` AND country ILIKE ?`
-		args = append(args, "%"+country+"%")
-	}
-	if fundingType != "" {
-		baseSelect += ` AND funding_type ILIKE ?`
-		args = append(args, "%"+fundingType+"%")
-	}
-
-	// ── Count query ─────────────────────────────────────────────────────
-	countQuery := `SELECT COUNT(*) FROM scholarships WHERE 1=1`
-	var countArgs []interface{}
-	// Replicate filter logic for the count query
-	if q != "" {
-		countQuery += ` AND (title ILIKE ? OR provider ILIKE ? OR description ILIKE ? OR country ILIKE ?)`
-		pattern := "%" + q + "%"
-		countArgs = append(countArgs, pattern, pattern, pattern, pattern)
-	}
-	if level != "" {
-		countQuery += ` AND ? = ANY("level")`
-		countArgs = append(countArgs, level)
-	}
-	if country != "" {
-		countQuery += ` AND country ILIKE ?`
-		countArgs = append(countArgs, "%"+country+"%")
-	}
-	if fundingType != "" {
-		countQuery += ` AND funding_type ILIKE ?`
-		countArgs = append(countArgs, "%"+fundingType+"%")
-	}
-
-	var total int
-	if err := db.QueryRow(countQuery, countArgs...).Scan(&total); err != nil {
-		log.Printf("ERROR counting scholarships: %v", err)
-		return c.Status(500).JSON(fiber.Map{"error": "failed to count scholarships"})
-	}
-
-	// ── Data query ──────────────────────────────────────────────────────
 	baseSelect += ` ORDER BY updated_at DESC, title ASC LIMIT ? OFFSET ?`
-	args = append(args, limit, offset)
 
-	rows, err := db.Query(baseSelect, args...)
+	dataArgs := append(filterArgs, limit, offset)
+	rows, err := db.Query(baseSelect, dataArgs...)
 	if err != nil {
 		log.Printf("ERROR querying scholarships: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query scholarships"})
@@ -449,13 +464,15 @@ func handleSaveScholarship(c *fiber.Ctx) error {
 		Status string `json:"status"`
 		Notes  string `json:"notes"`
 	}
-	_ = c.BodyParser(&body)
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
+	}
 	if body.Status == "" {
 		body.Status = "interested"
 	}
 
 	// Upsert based on (user_id, scholarship_id) uniqueness
-	_, err := database.DB.Exec(
+	_, err := database.DB.ExecContext(c.Context(),
 		`INSERT INTO saved_scholarships (id, user_id, scholarship_id, notes, status)
 		 VALUES (?, ?, ?, ?, ?)
 		 ON CONFLICT(user_id, scholarship_id) DO UPDATE SET status = ?, notes = ?`,
@@ -480,7 +497,7 @@ func handleGetSavedScholarships(c *fiber.Ctx) error {
 	}
 	uid := userID.(string)
 
-	rows, err := database.DB.Query("SELECT scholarship_id FROM saved_scholarships WHERE user_id = ?", uid)
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT scholarship_id FROM saved_scholarships WHERE user_id = ?", uid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query saved scholarships"})
 	}
@@ -514,7 +531,7 @@ func handleUnsaveScholarship(c *fiber.Ctx) error {
 	}
 	uid := userID.(string)
 
-	_, err := database.DB.Exec(
+	_, err := database.DB.ExecContext(c.Context(),
 		"DELETE FROM saved_scholarships WHERE scholarship_id = ? AND user_id = ?",
 		id, uid,
 	)
@@ -534,7 +551,7 @@ func handleGetProfile(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
 	}
 
-	rows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", userID.(string))
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM profiles WHERE id = ?", userID.(string))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
@@ -582,7 +599,7 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 	}
 
 	args = append(args, userID.(string))
-	_, err := database.DB.Exec(
+	_, err := database.DB.ExecContext(c.Context(),
 		"UPDATE profiles SET "+strings.Join(setClauses, ", ")+" WHERE id = ?",
 		args...,
 	)
@@ -591,7 +608,7 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 	}
 
 	// Return updated profile
-	rows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", userID.(string))
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM profiles WHERE id = ?", userID.(string))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query updated profile"})
 	}
@@ -634,7 +651,7 @@ func handleGetSettings(c *fiber.Ctx) error {
 	uid := userID.(string)
 
 	// Fetch profile from SQLite
-	profileRows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", uid)
+	profileRows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM profiles WHERE id = ?", uid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
@@ -646,7 +663,7 @@ func handleGetSettings(c *fiber.Ctx) error {
 	}
 
 	// Fetch preferences from SQLite
-	prefRows, err := database.DB.Query("SELECT * FROM user_preferences WHERE user_id = ?", uid)
+	prefRows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM user_preferences WHERE user_id = ?", uid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query preferences"})
 	}
@@ -674,8 +691,20 @@ func handleUploadPhoto(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "file field is required"})
 	}
 
+	// Validate file size (max 10MB)
+	if file.Size > 10*1024*1024 {
+		return c.Status(400).JSON(fiber.Map{"error": "file too large, max 10MB"})
+	}
+
+	// Validate file extension
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	allowedExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !allowedExts[ext] {
+		return c.Status(400).JSON(fiber.Map{"error": "only .jpg, .jpeg, .png, .webp files are allowed"})
+	}
+
 	// Save to data/uploads/
-	ext := filepath.Ext(file.Filename)
+	ext = filepath.Ext(file.Filename)
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 	uploadDir := filepath.Join("data", "uploads")
 	os.MkdirAll(uploadDir, 0755)
@@ -740,7 +769,7 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 			args = append(args, *body.AvatarURL)
 		}
 		args = append(args, uid)
-		_, err := database.DB.Exec(
+		_, err := database.DB.ExecContext(c.Context(),
 			"UPDATE profiles SET "+strings.Join(setClauses, ", ")+" WHERE id = ?",
 			args...,
 		)
@@ -761,7 +790,7 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 		if len(prefs) > 0 {
 			// Check if preferences row exists
 			var exists int
-			err := database.DB.QueryRow("SELECT 1 FROM user_preferences WHERE user_id = ?", uid).Scan(&exists)
+			err := database.DB.QueryRowContext(c.Context(), "SELECT 1 FROM user_preferences WHERE user_id = ?", uid).Scan(&exists)
 
 			if err == sql.ErrNoRows {
 				// Insert new preferences row
@@ -769,16 +798,24 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 				var vals []string
 				var args []interface{}
 				args = append(args, randomID(), uid)
-				for k, v := range prefs {
-					cols = append(cols, k)
-					vals = append(vals, "?")
-					args = append(args, v)
+			allowedPrefs := map[string]bool{
+				"tp_hit": true, "sl_hit": true, "price_alert": true,
+				"msci_announce": true, "ftse_notice": true, "new_report": true,
+				"plan_created": true, "scholarship_alert": true, "fashion_alert": true,
+			}
+			for k, v := range prefs {
+				if !allowedPrefs[k] {
+					continue
 				}
-				args = append(args, time.Now().UTC().Format("20060102T150405Z"))
-				cols = append(cols, "created_at")
+				cols = append(cols, k)
 				vals = append(vals, "?")
+				args = append(args, v)
+			}
+			args = append(args, time.Now().UTC().Format("20060102T150405Z"))
+			cols = append(cols, "created_at")
+			vals = append(vals, "?")
 
-				_, err = database.DB.Exec(
+				_, err = database.DB.ExecContext(c.Context(),
 					"INSERT INTO user_preferences (id, user_id, "+strings.Join(cols, ", ")+") VALUES (?, ?, "+strings.Join(vals, ", ")+")",
 					args...,
 				)
@@ -786,12 +823,20 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 				// Update existing preferences row
 				var setClauses []string
 				var args []interface{}
+				allowedPrefs := map[string]bool{
+					"tp_hit": true, "sl_hit": true, "price_alert": true,
+					"msci_announce": true, "ftse_notice": true, "new_report": true,
+					"plan_created": true, "scholarship_alert": true, "fashion_alert": true,
+				}
 				for k, v := range prefs {
+					if !allowedPrefs[k] {
+						continue
+					}
 					setClauses = append(setClauses, k+" = ?")
 					args = append(args, v)
 				}
 				args = append(args, uid)
-				_, err = database.DB.Exec(
+				_, err = database.DB.ExecContext(c.Context(),
 					"UPDATE user_preferences SET "+strings.Join(setClauses, ", ")+" WHERE user_id = ?",
 					args...,
 				)
@@ -808,7 +853,7 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 	}
 
 	// Return combined settings
-	profileRows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", uid)
+	profileRows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM profiles WHERE id = ?", uid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
@@ -819,7 +864,7 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 		profile = map[string]interface{}{}
 	}
 
-	prefRows, err := database.DB.Query("SELECT * FROM user_preferences WHERE user_id = ?", uid)
+	prefRows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM user_preferences WHERE user_id = ?", uid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to query preferences"})
 	}

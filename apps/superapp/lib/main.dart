@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'app.dart';
+import 'features/auth/presentation/providers/auth_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load();
 
-  // No Supabase initialization — auth is handled by the Go API with JWT.
+  // Pre-load SharedPreferences so token reads in AuthNotifier are synchronous
+  // (no microtask gap on cold start).
+  final prefs = await SharedPreferences.getInstance();
 
-  runApp(const ProviderScope(child: Superapp()));
+  runApp(ProviderScope(
+    overrides: [
+      sharedPrefsProvider.overrideWithValue(prefs),
+    ],
+    child: const Superapp(),
+  ));
 }

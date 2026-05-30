@@ -19,6 +19,9 @@ func Init(dbPath string) error {
 		return fmt.Errorf("open sqlite: %w", err)
 	}
 
+	DB.SetMaxOpenConns(1)
+	DB.SetMaxIdleConns(1)
+
 	// WAL mode for better concurrent reads
 	if _, err := DB.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		log.Printf("WARN: failed to set WAL mode: %v", err)
@@ -121,6 +124,13 @@ func RunMigrations() error {
 			status TEXT DEFAULT 'interested',
 			created_at TEXT DEFAULT (strftime('%Y%m%dT%H%M%SZ', 'now'))
 		)`,
+		// JWT token blacklist (revoked tokens before expiry)
+		`CREATE TABLE IF NOT EXISTS token_blacklist (
+			jti TEXT PRIMARY KEY,
+			expires_at TEXT NOT NULL,
+			revoked_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)`,
 		// Indexes
 		`CREATE INDEX IF NOT EXISTS idx_clothing_items_user ON clothing_items(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_clothing_items_category ON clothing_items(category)`,

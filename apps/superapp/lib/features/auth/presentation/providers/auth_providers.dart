@@ -2,12 +2,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/api/auth_api_client.dart';
+import '../../data/repository/auth_repository.dart';
 
-// ─── Token Provider ──────────────────────────────────────────────────────────
+// ─── Shared Prefs Provider ───────────────────────────────────────────────────
 
-/// Holds the current JWT token in memory. Updated by [AuthNotifier] on
-/// login/register/logout.
-final authTokenProvider = StateProvider<String?>((ref) => null);
+/// Injected in [main.dart] before [runApp] so that token reads are synchronous
+/// (no microtask gap on cold start).
+final sharedPrefsProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
+// ─── Auth Repository Provider ────────────────────────────────────────────────
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository(
+    ref.read(authApiClientProvider),
+    ref.read(sharedPrefsProvider),
+  );
+});
 
 // ─── API Client ──────────────────────────────────────────────────────────────
 
@@ -20,12 +32,14 @@ final authApiClientProvider = Provider<AuthApiClient>((ref) {
 class AuthState {
   final bool isLoading;
   final bool isLoggedIn;
+  final String? token;
   final Map<String, dynamic>? user;
   final String? error;
 
   const AuthState({
     this.isLoading = false,
     this.isLoggedIn = false,
+    this.token,
     this.user,
     this.error,
   });
@@ -33,6 +47,7 @@ class AuthState {
   AuthState copyWith({
     bool? isLoading,
     bool? isLoggedIn,
+    String? token,
     Map<String, dynamic>? user,
     String? error,
     bool clearError = false,
@@ -40,6 +55,7 @@ class AuthState {
       AuthState(
         isLoading: isLoading ?? this.isLoading,
         isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+        token: token ?? this.token,
         user: user ?? this.user,
         error: clearError ? null : (error ?? this.error),
       );
@@ -48,44 +64,30 @@ class AuthState {
 // ─── Auth Notifier ───────────────────────────────────────────────────────────
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthApiClient _api;
-  final Ref _ref;
-  SharedPreferences? _prefs;
+  final AuthRepository _repo;
 
-  AuthNotifier(this._api, this._ref) : super(const AuthState()) {
-    _init();
-  }
+  /// Loads the initial token synchronously from [SharedPreferences] (which was
+  /// pre-loaded in [main.dart]) – no microtask gap, no cold-start race.
+  AuthNotifier(this._repo, SharedPreferences prefs)
+      : super(_loadInitialState(prefs));
 
-  Future<void> _init() async {
-    _prefs = await SharedPreferences.getInstance();
-    await _checkAuth();
-  }
-
-  Future<void> _checkAuth() async {
-    final prefs = _prefs;
-    if (prefs == null) return;
+  static AuthState _loadInitialState(SharedPreferences prefs) {
     final token = prefs.getString('auth_token');
     if (token != null) {
-      _ref.read(authTokenProvider.notifier).state = token;
-      state = state.copyWith(isLoggedIn: true);
+      return AuthState(isLoggedIn: true, token: token);
     }
+    return const AuthState();
   }
 
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final api = _api;
-      final prefs = _prefs;
-      if (prefs == null) {
-        state = state.copyWith(
-            isLoading: false, error: 'Storage not initialized');
-        return;
-      }
-      final data = await api.login(email, password);
-      final token = data['token'] as String;
-      await prefs.setString('auth_token', token);
-      _ref.read(authTokenProvider.notifier).state = token;
-      state = AuthState(isLoggedIn: true, user: data['user'] as Map<String, dynamic>?);
+      final result = await _repo.login(email, password);
+      state = AuthState(
+        isLoggedIn: true,
+        token: result.token,
+        user: result.user,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -95,30 +97,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
       String email, String password, String displayName) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final api = _api;
-      final prefs = _prefs;
-      if (prefs == null) {
-        state = state.copyWith(
-            isLoading: false, error: 'Storage not initialized');
-        return;
-      }
-      final data = await api.register(email, password, displayName);
-      final token = data['token'] as String;
-      await prefs.setString('auth_token', token);
-      _ref.read(authTokenProvider.notifier).state = token;
-      state = AuthState(isLoggedIn: true, user: data['user'] as Map<String, dynamic>?);
+      final result = await _repo.register(email, password, displayName);
+      state = AuthState(
+        isLoggedIn: true,
+        token: result.token,
+        user: result.user,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   Future<void> logout() async {
-    final prefs = _prefs;
-    if (prefs != null) {
-      await prefs.remove('auth_token');
-    }
-    _ref.read(authTokenProvider.notifier).state = null;
+    await _repo.logout();
     state = const AuthState();
+  }
+
+  /// Attempts a token refresh. Returns `true` if a new token was obtained.
+  Future<bool> tryRefresh() async {
+    if (state.token == null) return false;
+    final newToken = await _repo.tryRefresh(state.token!);
+    if (newToken != null) {
+      state = state.copyWith(token: newToken);
+      return true;
+    }
+    return false;
   }
 
   void clearError() {
@@ -126,9 +129,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
+// ─── Auth Token Provider ─────────────────────────────────────────────────────
+
+/// Derives the current JWT from [authStateProvider] so that every state change
+/// automatically propagates — no manual sync needed.
+final authTokenProvider = Provider<String?>((ref) {
+  return ref.watch(authStateProvider).token;
+});
+
 // ─── Auth State Provider ─────────────────────────────────────────────────────
 
 final authStateProvider =
     StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(ref.read(authApiClientProvider), ref);
+  return AuthNotifier(
+    ref.read(authRepositoryProvider),
+    ref.read(sharedPrefsProvider),
+  );
 });

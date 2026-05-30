@@ -37,4 +37,17 @@ class AuthRepository {
   bool hasToken() {
     return _prefs.containsKey('auth_token');
   }
+
+  /// Attempts to refresh the JWT token. Returns the new token on success,
+  /// or `null` if the refresh fails (e.g. the refresh token is also expired).
+  Future<String?> tryRefresh(String token) async {
+    try {
+      final data = await _api.refresh(token);
+      final newToken = data['token'] as String;
+      await _saveToken(newToken);
+      return newToken;
+    } catch (_) {
+      return null;
+    }
+  }
 }
