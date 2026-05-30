@@ -312,13 +312,11 @@ func handleLogout(c *fiber.Ctx) error {
 	}
 
 	expiresAt := time.Unix(int64(exp), 0).UTC().Format(time.RFC3339)
-	log.Printf("DEBUG logout: jti=%s expires=%s", jti, expiresAt)
 	_, err = database.DB.Exec(
 		"INSERT OR IGNORE INTO token_blacklist (jti, expires_at) VALUES (?, ?)",
 		jti, expiresAt,
 	)
 	if err != nil {
-		log.Printf("ERROR logout insert: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to revoke token"})
 	}
 
