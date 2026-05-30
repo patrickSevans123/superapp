@@ -14,6 +14,8 @@ import '../../features/trade/presentation/screens/trade_plans_screen.dart';
 import '../../features/trade/presentation/screens/trade_news_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/notification_preferences_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/scholarship',
@@ -74,6 +76,20 @@ final appRouter = GoRouter(
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: EditProfileScreen(),
               ),
+            ),
+            GoRoute(
+              path: 'settings',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: SettingsScreen(),
+              ),
+              routes: [
+                GoRoute(
+                  path: 'notifications',
+                  pageBuilder: (context, state) => const NoTransitionPage(
+                    child: NotificationPreferencesScreen(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

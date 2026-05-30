@@ -159,11 +159,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ProfileMenuTile(
             icon: Icons.settings_outlined,
             title: 'Settings',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings — coming soon')),
-              );
-            },
+            onTap: () => context.push('/profile/settings'),
           ),
 
           ProfileMenuTile(

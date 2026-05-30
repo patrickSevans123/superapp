@@ -233,6 +233,10 @@ func main() {
 	v1.Get("/profile", handleGetProfile)
 	v1.Patch("/profile", handleUpdateProfile)
 
+	// ─── Settings endpoints ───
+	v1.Get("/settings", handleGetSettings)
+	v1.Patch("/settings", handleUpdateSettings)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -529,4 +533,212 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(profile)
+}
+
+// ─── Settings Handlers ─────────────────────────────────────────────────────
+
+// user_preferences table schema:
+//
+//	CREATE TABLE IF NOT EXISTS user_preferences (
+//	  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//	  user_id TEXT NOT NULL UNIQUE,
+//	  tp_hit BOOLEAN DEFAULT true,
+//	  sl_hit BOOLEAN DEFAULT true,
+//	  price_alert BOOLEAN DEFAULT true,
+//	  msci_announce BOOLEAN DEFAULT true,
+//	  ftse_notice BOOLEAN DEFAULT true,
+//	  new_report BOOLEAN DEFAULT true,
+//	  plan_created BOOLEAN DEFAULT true,
+//	  scholarship_alert BOOLEAN DEFAULT true,
+//	  fashion_alert BOOLEAN DEFAULT true,
+//	  created_at TIMESTAMPTZ DEFAULT now()
+//	);
+
+// handleGetSettings returns the combined account and preferences for a user.
+// GET /api/v1/settings?user_id=xxx
+func handleGetSettings(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	}
+
+	// Fetch profile from Supabase
+	path := "/rest/v1/profiles?select=*&id=eq." + userID
+	status, body, err := supabaseRequest("GET", path, nil, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+	if status >= 400 {
+		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
+	}
+
+	// Supabase returns an array; extract the first element
+	var profileItems []json.RawMessage
+	if err := json.Unmarshal(body, &profileItems); err != nil || len(profileItems) == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "profile not found"})
+	}
+
+	var profile map[string]interface{}
+	if err := json.Unmarshal(profileItems[0], &profile); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
+	}
+
+	// Fetch preferences from Supabase
+	prefsPath := "/rest/v1/user_preferences?select=*&user_id=eq." + userID
+	pStatus, pBody, err := supabaseRequest("GET", prefsPath, nil, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+
+	var prefs interface{}
+	// Return empty object if preferences table returns 404 or empty array
+	if pStatus == 404 || string(pBody) == "[]" || string(pBody) == "null" {
+		prefs = map[string]interface{}{}
+	} else if pStatus >= 400 {
+		return c.Status(pStatus).JSON(fiber.Map{"error": "upstream error", "detail": string(pBody)})
+	} else {
+		var prefItems []json.RawMessage
+		if err := json.Unmarshal(pBody, &prefItems); err != nil || len(prefItems) == 0 {
+			prefs = map[string]interface{}{}
+		} else {
+			var pref map[string]interface{}
+			if err := json.Unmarshal(prefItems[0], &pref); err != nil {
+				prefs = map[string]interface{}{}
+			} else {
+				prefs = pref
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"account":     profile,
+		"preferences": prefs,
+	})
+}
+
+// handleUpdateSettings updates account and/or preference fields for a user.
+// PATCH /api/v1/settings?user_id=xxx
+func handleUpdateSettings(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	}
+
+	var body struct {
+		DisplayName *string                `json:"display_name"`
+		AvatarURL   *string                `json:"avatar_url"`
+		Preferences *map[string]interface{} `json:"preferences"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
+	}
+
+	updated := false
+
+	// Update profile fields if provided
+	if body.DisplayName != nil || body.AvatarURL != nil {
+		payload := make(map[string]interface{})
+		if body.DisplayName != nil {
+			payload["display_name"] = *body.DisplayName
+		}
+		if body.AvatarURL != nil {
+			payload["avatar_url"] = *body.AvatarURL
+		}
+
+		profilePath := "/rest/v1/profiles?id=eq." + userID
+		pStatus, pBody, err := supabaseJSONRequest("PATCH", profilePath, payload, "")
+		if err != nil {
+			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		}
+		if pStatus >= 400 {
+			return c.Status(pStatus).JSON(fiber.Map{"error": "update failed", "detail": string(pBody)})
+		}
+		updated = true
+	}
+
+	// Update preferences if provided
+	if body.Preferences != nil {
+		prefsPayload := *body.Preferences
+		prefsPayload["user_id"] = userID
+
+		// Check if preferences row exists — POST to create, PATCH to update
+		getPath := "/rest/v1/user_preferences?user_id=eq." + userID
+		getStatus, getBody, err := supabaseRequest("GET", getPath, nil, "")
+		if err != nil {
+			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		}
+
+		var method, prefsPath string
+		if getStatus == 404 || string(getBody) == "[]" {
+			method = "POST"
+			prefsPath = "/rest/v1/user_preferences"
+		} else {
+			method = "PATCH"
+			prefsPath = "/rest/v1/user_preferences?user_id=eq." + userID
+		}
+
+		upStatus, upBody, err := supabaseJSONRequest(method, prefsPath, prefsPayload, "")
+		if err != nil {
+			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		}
+		if upStatus >= 400 {
+			return c.Status(upStatus).JSON(fiber.Map{"error": "preferences update failed", "detail": string(upBody)})
+		}
+		updated = true
+	}
+
+	if !updated {
+		return c.Status(400).JSON(fiber.Map{"error": "no fields to update"})
+	}
+
+	// Return combined settings (same format as handleGetSettings)
+	// Re-fetch the profile and preferences to build the full response
+	profilePath := "/rest/v1/profiles?select=*&id=eq." + userID
+	pStatus, pBody, err := supabaseRequest("GET", profilePath, nil, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+	if pStatus >= 400 {
+		return c.Status(pStatus).JSON(fiber.Map{"error": "upstream error", "detail": string(pBody)})
+	}
+
+	var profileItems []json.RawMessage
+	if err := json.Unmarshal(pBody, &profileItems); err != nil || len(profileItems) == 0 {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
+	}
+
+	var profile map[string]interface{}
+	if err := json.Unmarshal(profileItems[0], &profile); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
+	}
+
+	prefsPath := "/rest/v1/user_preferences?select=*&user_id=eq." + userID
+	prStatus, prBody, err := supabaseRequest("GET", prefsPath, nil, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+
+	var prefs interface{}
+	if prStatus == 404 || string(prBody) == "[]" || string(prBody) == "null" {
+		prefs = map[string]interface{}{}
+	} else if prStatus >= 400 {
+		prefs = map[string]interface{}{}
+	} else {
+		var prefItems []json.RawMessage
+		if err := json.Unmarshal(prBody, &prefItems); err != nil || len(prefItems) == 0 {
+			prefs = map[string]interface{}{}
+		} else {
+			var pref map[string]interface{}
+			if err := json.Unmarshal(prefItems[0], &pref); err != nil {
+				prefs = map[string]interface{}{}
+			} else {
+				prefs = pref
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"account":     profile,
+		"preferences": prefs,
+	})
 }
