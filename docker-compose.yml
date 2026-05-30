@@ -5,13 +5,12 @@ services:
     build: ./services/api_gateway
     ports: ["8080:8080"]
     environment:
-      - DUCKDB_PATH=/data/self-trade.duckdb
-      - SCHOLARSHIP_DB_PATH=/data/scholarships.duckdb
+      - DUCKDB_PATH=/app/data/scholarships.duckdb
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
     volumes:
-      - trade_data:/data
+      - ./services/beasiswa_crawler/data:/app/data
       - ~/Projects/self-trade/datasets:/datasets:ro
     restart: unless-stopped
 
