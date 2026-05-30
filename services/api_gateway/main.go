@@ -34,13 +34,15 @@ var db *sql.DB
 func main() {
 	_ = godotenv.Load()
 
-	// ── DuckDB initialisation (non-fatal — scholarship queries only) ──
+	// ── DuckDB initialisation (fully optional, zero coupling) ──
+	// Set DUCKDB_PATH env var if you want scholarship queries.
+	// This does NOT depend on any external project path.
 	var err error
 	dbPath := os.Getenv("DUCKDB_PATH")
 	if dbPath == "" {
-		dbPath = "services/beasiswa_crawler/data/scholarships.duckdb" // relative to repo root
-	}
-	db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4")
+		log.Println("INFO: DUCKDB_PATH not set — scholarship queries disabled (zero-coupling mode)")
+		db = nil
+	} else if db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4"); err != nil {
 	if err != nil {
 		log.Printf("WARN: DuckDB unavailable (scholarship queries disabled): %v", err)
 		db = nil
@@ -151,6 +153,23 @@ func main() {
 	uploadsDir := filepath.Join("data", "uploads")
 	os.MkdirAll(uploadsDir, 0755)
 	app.Static("/uploads", uploadsDir)
+
+	// ─── Beasiswa frontend (optional, zero-coupling) ───
+	// Set BEASISWA_DIR=/home/evans/Project/beasiswa to serve the scholarship SPA.
+	// This eliminates the need for a separate Python serve.py process.
+	if beasiswaDir := os.Getenv("BEASISWA_DIR"); beasiswaDir != "" {
+		app.Static("/beasiswa", beasiswaDir, fiber.Static{
+			Browse: false,
+			Index:  "docs/index.html",
+		})
+		// Also serve beasiswa root index at /beasiswa/
+		app.Get("/beasiswa", func(c *fiber.Ctx) error {
+			return c.Redirect("/beasiswa/")
+		})
+		log.Printf("Beasiswa frontend mounted at /beasiswa from %s", beasiswaDir)
+	} else {
+		log.Println("INFO: BEASISWA_DIR not set — beasiswa frontend not mounted (zero-coupling mode)")
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
