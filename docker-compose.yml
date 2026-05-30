@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: ./services/api_gateway
+    ports: ["8080:8080"]
+    environment:
+      - DUCKDB_PATH=/data/self-trade.duckdb
+      - SCHOLARSHIP_DB_PATH=/data/scholarships.duckdb
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+    volumes:
+      - trade_data:/data
+      - ~/Projects/self-trade/datasets:/datasets:ro
+    restart: unless-stopped
+
+  mcp-trade:
+    build: ./services/mcp_trade
+    environment:
+      - LLM_ENDPOINT=http://9router:20128/v1
+    volumes:
+      - trade_data:/data
+      - ~/Projects/self-trade/datasets:/datasets:ro
+    restart: unless-stopped
+
+  mcp-scholarship:
+    build: ./services/mcp_scholarship
+    environment:
+      - LLM_ENDPOINT=http://9router:20128/v1
+    volumes:
+      - beasiswa_data:/app/data
+    restart: unless-stopped
+
+  vton-proxy:
+    build: ./services/vton_proxy
+    ports: ["8001:8001"]
+    environment:
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - VTON_MODEL=tencentarc/mobile-vton:latest
+    restart: unless-stopped
+
+  beasiswa-scheduler:
+    build: ./services/beasiswa_crawler
+    environment:
+      - BEASISWA_LLM_ENDPOINT=http://9router:20128/v1
+    volumes:
+      - beasiswa_data:/app/data
+    restart: unless-stopped
+
+  trade-daemon:
+    build: ./services/trade_daemon
+    volumes:
+      - trade_data:/data
+      - ~/Projects/self-trade/datasets:/datasets:ro
+    restart: unless-stopped
+
+volumes:
+  trade_data:
+  beasiswa_data:
