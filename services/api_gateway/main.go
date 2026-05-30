@@ -42,18 +42,20 @@ func main() {
 	if dbPath == "" {
 		log.Println("INFO: DUCKDB_PATH not set — scholarship queries disabled (zero-coupling mode)")
 		db = nil
-	} else if db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4"); err != nil {
-	if err != nil {
-		log.Printf("WARN: DuckDB unavailable (scholarship queries disabled): %v", err)
-		db = nil
 	} else {
-		db.SetMaxOpenConns(1)
-		if err = db.Ping(); err != nil {
-			log.Printf("WARN: DuckDB ping failed (scholarship queries disabled): %v", err)
-			db.Close()
+		db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4")
+		if err != nil {
+			log.Printf("WARN: DuckDB unavailable (scholarship queries disabled): %v", err)
 			db = nil
 		} else {
-			log.Println("Connected to DuckDB (read-only)")
+			db.SetMaxOpenConns(1)
+			if err = db.Ping(); err != nil {
+				log.Printf("WARN: DuckDB ping failed (scholarship queries disabled): %v", err)
+				db.Close()
+				db = nil
+			} else {
+				log.Println("Connected to DuckDB (read-only)")
+			}
 		}
 	}
 

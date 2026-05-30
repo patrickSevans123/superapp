@@ -1,0 +1,33 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Vet
+        run: cd services/api_gateway && go vet ./...
+
+  deploy:
+    needs: vet
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 100.110.59.78
+          username: evans
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /home/evans/Project/superapp
+            git pull
+            cd services/api_gateway
+            go build -o api_gateway .
+            sudo systemctl restart superapp-api.service
