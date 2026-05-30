@@ -83,9 +83,10 @@ func authMiddleware(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid token claims"})
 	}
 
-	// Check if token is blacklisted
-	jti, _ := claims.Get("jti")
-	if jtiStr, ok := jti.(string); ok && jtiStr != "" {
+		// Check if token is blacklisted
+		jtiRaw, _ := claims["jti"]
+		jtiStr, _ := jtiRaw.(string)
+		if jtiStr != "" {
 		var count int
 		err := database.DB.QueryRow("SELECT COUNT(*) FROM token_blacklist WHERE jti = ?", jtiStr).Scan(&count)
 		if err == nil && count > 0 {
