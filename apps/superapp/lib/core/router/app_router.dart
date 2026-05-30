@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../features/scholarship/presentation/screens/browse_screen.dart';
+import '../../features/scholarship/presentation/screens/detail_screen.dart';
+
 // ─── Placeholder screens (will be replaced with real features) ───
-import 'package:flutter/material.dart';
 
 Widget _placeholder(String label) => GradientBackground(
       child: Center(child: GlassBadge(label, accent: true)),
@@ -11,7 +14,7 @@ Widget _placeholder(String label) => GradientBackground(
 final appRouter = GoRouter(
   initialLocation: '/scholarship',
   routes: [
-    // Scholarship tab (Phase 1 — first to implement)
+    // ─── Tab Shell (bottom navigation) ───────────────────────────
     ShellRoute(
       builder: (context, state, child) => GlassScaffold(
         body: child,
@@ -21,7 +24,7 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/scholarship',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: _ScholarshipPlaceholder(),
+            child: BrowseScreen(),
           ),
         ),
         GoRoute(
@@ -43,6 +46,25 @@ final appRouter = GoRouter(
           ),
         ),
       ],
+    ),
+
+    // ─── Detail route (outside ShellRoute so bottom nav is hidden) ──
+    GoRoute(
+      path: '/scholarship/:id',
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return CustomTransitionPage(
+          key: ValueKey(id),
+          child: DetailScreen(id: id),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 200),
+        );
+      },
     ),
   ],
 );
@@ -71,12 +93,6 @@ int _navIndex(String path) {
 const _navPaths = ['/scholarship', '/fashion', '/trade', '/profile'];
 
 // ─── Placeholder widgets ───
-
-class _ScholarshipPlaceholder extends StatelessWidget {
-  const _ScholarshipPlaceholder();
-  @override
-  Widget build(BuildContext context) => _placeholder('SCHOLARSHIP');
-}
 
 class _FashionPlaceholder extends StatelessWidget {
   const _FashionPlaceholder();
