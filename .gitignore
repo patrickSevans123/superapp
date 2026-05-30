@@ -1,0 +1,42 @@
+# ─── Flutter ──────────────────────────────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ─── Dart ─────────────────────────────────────────────────────────────────────
+.packages
+
+# ─── Environment / Secrets ────────────────────────────────────────────────────
+.env
+!.env.example
+*.pem
+secrets/
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# ─── Go ───────────────────────────────────────────────────────────────────────
+*.exe
+*.test
+*.out
+vendor/
+
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

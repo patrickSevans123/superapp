@@ -1,5 +1,6 @@
 name: shared_ui
 description: Glassmorphism design system — Midnight Zinc theme for the superapp.
+publish_to: none
 version: 0.1.0
 
 environment:

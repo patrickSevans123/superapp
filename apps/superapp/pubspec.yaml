@@ -1,5 +1,6 @@
 name: superapp
 description: Superapp combining trade, fashion, and scholarship.
+publish_to: none
 version: 0.1.0+1
 
 environment:
