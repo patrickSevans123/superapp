@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -14,6 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	_ "github.com/marcboeker/go-duckdb"
+
+	"github.com/patrickSevans123/superapp-api/database"
 )
 
 // ─── Globals ─────────────────────────────────────────────────────────────────
@@ -171,6 +173,20 @@ func main() {
 	}
 	log.Println("Connected to DuckDB (read-only)")
 
+	// ── SQLite initialisation (local auth + data store) ──────────────
+	sqlitePath := os.Getenv("SQLITE_PATH")
+	if sqlitePath == "" {
+		sqlitePath = "data/superapp.db"
+	}
+	if err := database.Init(sqlitePath); err != nil {
+		log.Fatalf("Failed to init SQLite: %v", err)
+	}
+	if err := database.RunMigrations(); err != nil {
+		log.Fatalf("Failed to run SQLite migrations: %v", err)
+	}
+	defer database.DB.Close()
+	log.Println("SQLite initialised and migrated")
+
 	// ── Fiber app ───────────────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
 		AppName: "superapp-api",
@@ -191,6 +207,14 @@ func main() {
 
 	// API v1
 	v1 := app.Group("/api/v1")
+
+	// ─── Auth middleware (applied to all v1 routes, skips auth paths) ──
+	v1.Use(authMiddleware)
+
+	// ─── Auth endpoints (no auth required, skipped by middleware) ──────
+	v1.Post("/auth/register", handleRegister)
+	v1.Post("/auth/login", handleLogin)
+	v1.Post("/auth/refresh", handleRefresh)
 
 	// ─── Trade endpoints ───
 	trade := v1.Group("/market")
@@ -404,17 +428,31 @@ func handleGetScholarship(c *fiber.Ctx) error {
 // POST /api/v1/scholarships/:id/save
 func handleSaveScholarship(c *fiber.Ctx) error {
 	id := c.Params("id")
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	uid := userID.(string)
 
 	var body struct {
-		UserID string `json:"user_id"`
 		Status string `json:"status"`
+		Notes  string `json:"notes"`
 	}
-	if err := c.BodyParser(&body); err != nil {
-		body.UserID = "" // ignore parse errors for now
+	_ = c.BodyParser(&body)
+	if body.Status == "" {
+		body.Status = "interested"
 	}
 
-	log.Printf("TODO: save scholarship %s for user %s (status=%s)", id, body.UserID, body.Status)
-	// TODO: wire to Supabase REST API — upsert into saved_scholarships table
+	// Upsert based on (user_id, scholarship_id) uniqueness
+	_, err := database.DB.Exec(
+		`INSERT INTO saved_scholarships (id, user_id, scholarship_id, notes, status)
+		 VALUES (?, ?, ?, ?, ?)
+		 ON CONFLICT(user_id, scholarship_id) DO UPDATE SET status = ?, notes = ?`,
+		randomID(), uid, id, body.Notes, body.Status, body.Status, body.Notes,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to save scholarship"})
+	}
 
 	return c.JSON(fiber.Map{
 		"saved": true,
@@ -423,15 +461,35 @@ func handleSaveScholarship(c *fiber.Ctx) error {
 }
 
 // handleGetSavedScholarships returns saved scholarship IDs for a user.
-// GET /api/v1/scholarships/saved?user_id=xxx
+// GET /api/v1/scholarships/saved
 func handleGetSavedScholarships(c *fiber.Ctx) error {
-	userID := c.Query("user_id")
-	log.Printf("TODO: fetch saved scholarships for user %s", userID)
-	// TODO: wire to Supabase REST API — SELECT id FROM saved_scholarships WHERE user_id = ?
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	uid := userID.(string)
+
+	rows, err := database.DB.Query("SELECT scholarship_id FROM saved_scholarships WHERE user_id = ?", uid)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query saved scholarships"})
+	}
+	defer rows.Close()
+
+	var savedIDs []string
+	for rows.Next() {
+		var sid string
+		if err := rows.Scan(&sid); err == nil {
+			savedIDs = append(savedIDs, sid)
+		}
+	}
+
+	if savedIDs == nil {
+		savedIDs = []string{}
+	}
 
 	return c.JSON(fiber.Map{
-		"data":  []string{},
-		"total": 0,
+		"data":  savedIDs,
+		"total": len(savedIDs),
 	})
 }
 
@@ -439,16 +497,19 @@ func handleGetSavedScholarships(c *fiber.Ctx) error {
 // DELETE /api/v1/scholarships/:id/save
 func handleUnsaveScholarship(c *fiber.Ctx) error {
 	id := c.Params("id")
-
-	var body struct {
-		UserID string `json:"user_id"`
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
 	}
-	if err := c.BodyParser(&body); err != nil {
-		body.UserID = ""
-	}
+	uid := userID.(string)
 
-	log.Printf("TODO: unsave scholarship %s for user %s", id, body.UserID)
-	// TODO: wire to Supabase REST API — DELETE FROM saved_scholarships WHERE id = ? AND user_id = ?
+	_, err := database.DB.Exec(
+		"DELETE FROM saved_scholarships WHERE scholarship_id = ? AND user_id = ?",
+		id, uid,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to unsave scholarship"})
+	}
 
 	return c.JSON(fiber.Map{
 		"saved": false,
@@ -457,28 +518,22 @@ func handleUnsaveScholarship(c *fiber.Ctx) error {
 }
 
 func handleGetProfile(c *fiber.Ctx) error {
-	userID := c.Query("user_id")
-	if userID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
 	}
 
-	path := "/rest/v1/profiles?select=*&id=eq." + userID
-	status, body, err := supabaseRequest("GET", path, nil, "")
+	rows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", userID.(string))
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
-	}
+	defer rows.Close()
 
-	// Supabase returns an array; extract the first element
-	var items []json.RawMessage
-	if err := json.Unmarshal(body, &items); err != nil || len(items) == 0 {
+	profile, err := scanOneRow(rows)
+	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "profile not found"})
 	}
-
-	var profile map[string]interface{}
-	if err := json.Unmarshal(items[0], &profile); err != nil {
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
 	}
 
@@ -486,9 +541,9 @@ func handleGetProfile(c *fiber.Ctx) error {
 }
 
 func handleUpdateProfile(c *fiber.Ctx) error {
-	userID := c.Query("user_id")
-	if userID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
 	}
 
 	var body struct {
@@ -499,37 +554,41 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
 	}
 
-	// Build update payload with only provided fields
-	payload := make(map[string]interface{})
+	// Build SET clause with only provided fields
+	var setClauses []string
+	var args []interface{}
 	if body.DisplayName != nil {
-		payload["display_name"] = *body.DisplayName
+		setClauses = append(setClauses, "display_name = ?")
+		args = append(args, *body.DisplayName)
 	}
 	if body.AvatarURL != nil {
-		payload["avatar_url"] = *body.AvatarURL
+		setClauses = append(setClauses, "avatar_url = ?")
+		args = append(args, *body.AvatarURL)
 	}
 
-	if len(payload) == 0 {
+	if len(setClauses) == 0 {
 		return c.Status(400).JSON(fiber.Map{"error": "no fields to update"})
 	}
 
-	path := "/rest/v1/profiles?id=eq." + userID
-	status, respBody, err := supabaseJSONRequest("PATCH", path, payload, "")
+	args = append(args, userID.(string))
+	_, err := database.DB.Exec(
+		"UPDATE profiles SET "+strings.Join(setClauses, ", ")+" WHERE id = ?",
+		args...,
+	)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "update failed", "detail": string(respBody)})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to update profile"})
 	}
 
-	// Parse and return the updated profile
-	var items []json.RawMessage
-	if err := json.Unmarshal(respBody, &items); err != nil || len(items) == 0 {
+	// Return updated profile
+	rows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", userID.(string))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query updated profile"})
+	}
+	defer rows.Close()
+
+	profile, err := scanOneRow(rows)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
-	}
-
-	var profile map[string]interface{}
-	if err := json.Unmarshal(items[0], &profile); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
 	}
 
 	return c.JSON(profile)
@@ -555,59 +614,36 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 //	);
 
 // handleGetSettings returns the combined account and preferences for a user.
-// GET /api/v1/settings?user_id=xxx
+// GET /api/v1/settings
 func handleGetSettings(c *fiber.Ctx) error {
-	userID := c.Query("user_id")
-	if userID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
 	}
+	uid := userID.(string)
 
-	// Fetch profile from Supabase
-	path := "/rest/v1/profiles?select=*&id=eq." + userID
-	status, body, err := supabaseRequest("GET", path, nil, "")
+	// Fetch profile from SQLite
+	profileRows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", uid)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
-	}
+	defer profileRows.Close()
 
-	// Supabase returns an array; extract the first element
-	var profileItems []json.RawMessage
-	if err := json.Unmarshal(body, &profileItems); err != nil || len(profileItems) == 0 {
-		return c.Status(404).JSON(fiber.Map{"error": "profile not found"})
-	}
-
-	var profile map[string]interface{}
-	if err := json.Unmarshal(profileItems[0], &profile); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
-	}
-
-	// Fetch preferences from Supabase
-	prefsPath := "/rest/v1/user_preferences?select=*&user_id=eq." + userID
-	pStatus, pBody, err := supabaseRequest("GET", prefsPath, nil, "")
+	profile, err := scanOneRow(profileRows)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		profile = map[string]interface{}{}
 	}
 
-	var prefs interface{}
-	// Return empty object if preferences table returns 404 or empty array
-	if pStatus == 404 || string(pBody) == "[]" || string(pBody) == "null" {
+	// Fetch preferences from SQLite
+	prefRows, err := database.DB.Query("SELECT * FROM user_preferences WHERE user_id = ?", uid)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query preferences"})
+	}
+	defer prefRows.Close()
+
+	prefs, err := scanOneRow(prefRows)
+	if err != nil {
 		prefs = map[string]interface{}{}
-	} else if pStatus >= 400 {
-		return c.Status(pStatus).JSON(fiber.Map{"error": "upstream error", "detail": string(pBody)})
-	} else {
-		var prefItems []json.RawMessage
-		if err := json.Unmarshal(pBody, &prefItems); err != nil || len(prefItems) == 0 {
-			prefs = map[string]interface{}{}
-		} else {
-			var pref map[string]interface{}
-			if err := json.Unmarshal(prefItems[0], &pref); err != nil {
-				prefs = map[string]interface{}{}
-			} else {
-				prefs = pref
-			}
-		}
 	}
 
 	return c.JSON(fiber.Map{
@@ -617,12 +653,13 @@ func handleGetSettings(c *fiber.Ctx) error {
 }
 
 // handleUpdateSettings updates account and/or preference fields for a user.
-// PATCH /api/v1/settings?user_id=xxx
+// PATCH /api/v1/settings
 func handleUpdateSettings(c *fiber.Ctx) error {
-	userID := c.Query("user_id")
-	if userID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
 	}
+	uid := userID.(string)
 
 	var body struct {
 		DisplayName *string                `json:"display_name"`
@@ -637,104 +674,105 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 
 	// Update profile fields if provided
 	if body.DisplayName != nil || body.AvatarURL != nil {
-		payload := make(map[string]interface{})
+		var setClauses []string
+		var args []interface{}
 		if body.DisplayName != nil {
-			payload["display_name"] = *body.DisplayName
+			setClauses = append(setClauses, "display_name = ?")
+			args = append(args, *body.DisplayName)
 		}
 		if body.AvatarURL != nil {
-			payload["avatar_url"] = *body.AvatarURL
+			setClauses = append(setClauses, "avatar_url = ?")
+			args = append(args, *body.AvatarURL)
 		}
-
-		profilePath := "/rest/v1/profiles?id=eq." + userID
-		pStatus, pBody, err := supabaseJSONRequest("PATCH", profilePath, payload, "")
+		args = append(args, uid)
+		_, err := database.DB.Exec(
+			"UPDATE profiles SET "+strings.Join(setClauses, ", ")+" WHERE id = ?",
+			args...,
+		)
 		if err != nil {
-			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-		}
-		if pStatus >= 400 {
-			return c.Status(pStatus).JSON(fiber.Map{"error": "update failed", "detail": string(pBody)})
+			return c.Status(500).JSON(fiber.Map{"error": "failed to update profile"})
 		}
 		updated = true
 	}
 
 	// Update preferences if provided
 	if body.Preferences != nil {
-		prefsPayload := *body.Preferences
-		prefsPayload["user_id"] = userID
+		prefs := *body.Preferences
+		// Remove non-preference keys
+		delete(prefs, "id")
+		delete(prefs, "user_id")
+		delete(prefs, "created_at")
 
-		// Check if preferences row exists — POST to create, PATCH to update
-		getPath := "/rest/v1/user_preferences?user_id=eq." + userID
-		getStatus, getBody, err := supabaseRequest("GET", getPath, nil, "")
-		if err != nil {
-			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-		}
+		if len(prefs) > 0 {
+			// Check if preferences row exists
+			var exists int
+			err := database.DB.QueryRow("SELECT 1 FROM user_preferences WHERE user_id = ?", uid).Scan(&exists)
 
-		var method, prefsPath string
-		if getStatus == 404 || string(getBody) == "[]" {
-			method = "POST"
-			prefsPath = "/rest/v1/user_preferences"
-		} else {
-			method = "PATCH"
-			prefsPath = "/rest/v1/user_preferences?user_id=eq." + userID
-		}
+			if err == sql.ErrNoRows {
+				// Insert new preferences row
+				var cols []string
+				var vals []string
+				var args []interface{}
+				args = append(args, randomID(), uid)
+				for k, v := range prefs {
+					cols = append(cols, k)
+					vals = append(vals, "?")
+					args = append(args, v)
+				}
+				args = append(args, time.Now().UTC().Format("20060102T150405Z"))
+				cols = append(cols, "created_at")
+				vals = append(vals, "?")
 
-		upStatus, upBody, err := supabaseJSONRequest(method, prefsPath, prefsPayload, "")
-		if err != nil {
-			return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+				_, err = database.DB.Exec(
+					"INSERT INTO user_preferences (id, user_id, "+strings.Join(cols, ", ")+") VALUES (?, ?, "+strings.Join(vals, ", ")+")",
+					args...,
+				)
+			} else {
+				// Update existing preferences row
+				var setClauses []string
+				var args []interface{}
+				for k, v := range prefs {
+					setClauses = append(setClauses, k+" = ?")
+					args = append(args, v)
+				}
+				args = append(args, uid)
+				_, err = database.DB.Exec(
+					"UPDATE user_preferences SET "+strings.Join(setClauses, ", ")+" WHERE user_id = ?",
+					args...,
+				)
+			}
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{"error": "failed to update preferences"})
+			}
+			updated = true
 		}
-		if upStatus >= 400 {
-			return c.Status(upStatus).JSON(fiber.Map{"error": "preferences update failed", "detail": string(upBody)})
-		}
-		updated = true
 	}
 
 	if !updated {
 		return c.Status(400).JSON(fiber.Map{"error": "no fields to update"})
 	}
 
-	// Return combined settings (same format as handleGetSettings)
-	// Re-fetch the profile and preferences to build the full response
-	profilePath := "/rest/v1/profiles?select=*&id=eq." + userID
-	pStatus, pBody, err := supabaseRequest("GET", profilePath, nil, "")
+	// Return combined settings
+	profileRows, err := database.DB.Query("SELECT * FROM profiles WHERE id = ?", uid)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query profile"})
 	}
-	if pStatus >= 400 {
-		return c.Status(pStatus).JSON(fiber.Map{"error": "upstream error", "detail": string(pBody)})
-	}
+	defer profileRows.Close()
 
-	var profileItems []json.RawMessage
-	if err := json.Unmarshal(pBody, &profileItems); err != nil || len(profileItems) == 0 {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
-	}
-
-	var profile map[string]interface{}
-	if err := json.Unmarshal(profileItems[0], &profile); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
-	}
-
-	prefsPath := "/rest/v1/user_preferences?select=*&user_id=eq." + userID
-	prStatus, prBody, err := supabaseRequest("GET", prefsPath, nil, "")
+	profile, err := scanOneRow(profileRows)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		profile = map[string]interface{}{}
 	}
 
-	var prefs interface{}
-	if prStatus == 404 || string(prBody) == "[]" || string(prBody) == "null" {
+	prefRows, err := database.DB.Query("SELECT * FROM user_preferences WHERE user_id = ?", uid)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query preferences"})
+	}
+	defer prefRows.Close()
+
+	prefs, err := scanOneRow(prefRows)
+	if err != nil {
 		prefs = map[string]interface{}{}
-	} else if prStatus >= 400 {
-		prefs = map[string]interface{}{}
-	} else {
-		var prefItems []json.RawMessage
-		if err := json.Unmarshal(prBody, &prefItems); err != nil || len(prefItems) == 0 {
-			prefs = map[string]interface{}{}
-		} else {
-			var pref map[string]interface{}
-			if err := json.Unmarshal(prefItems[0], &pref); err != nil {
-				prefs = map[string]interface{}{}
-			} else {
-				prefs = pref
-			}
-		}
 	}
 
 	return c.JSON(fiber.Map{

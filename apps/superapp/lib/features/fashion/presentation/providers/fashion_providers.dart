@@ -1,22 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
 import '../../data/repository/repository.dart';
 
-/// Base Dio provider for API calls.
-/// Replace baseUrl with the actual backend URL via environment config.
-final dioProvider = Provider<Dio>((ref) {
-  return Dio(BaseOptions(
-    baseUrl: 'http://localhost:8080/api',
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-    headers: {'Content-Type': 'application/json'},
-  ));
-});
-
-/// Provides the [FashionApiClient] singleton.
+/// Provides the [FashionApiClient] singleton using the shared auth-aware Dio.
 final fashionApiClientProvider = Provider<FashionApiClient>((ref) {
-  return FashionApiClient(ref.read(dioProvider));
+  return FashionApiClient(ref.read(authDioProvider));
 });
 
 /// Provides the [FashionRepository] singleton.

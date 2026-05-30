@@ -1,24 +1,14 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/network_providers.dart';
 import '../../data/api/settings_api_client.dart';
 import '../../data/repository/settings_repository.dart';
 import '../../data/models/notification_preferences.dart';
 import 'settings_state.dart';
 
-/// Base Dio provider for the settings feature.
-final dioProvider = Provider<Dio>((ref) {
-  return Dio(BaseOptions(
-    baseUrl: 'http://100.110.59.78:8080/api/v1',
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-    headers: {'Content-Type': 'application/json'},
-  ));
-});
-
-/// Provides the [SettingsApiClient] singleton.
+/// Provides the [SettingsApiClient] singleton using the shared auth-aware Dio.
 final settingsApiClientProvider = Provider<SettingsApiClient>((ref) {
-  return SettingsApiClient(dio: ref.read(dioProvider));
+  return SettingsApiClient(dio: ref.read(authDioProvider));
 });
 
 /// Provides the [SettingsRepository] singleton.

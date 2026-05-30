@@ -1,19 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/json"
+	"database/sql"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/patrickSevans123/superapp-api/database"
 )
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -32,65 +30,6 @@ func randomID() string {
 	b := make([]byte, 16)
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-}
-
-// supabaseRequest makes an HTTP request to the Supabase REST API.
-// If userID is non-empty, it appends user_id=eq.{userID} to the URL query string.
-// Returns the HTTP status code, response body, and any error.
-func supabaseRequest(method, path string, body io.Reader, userID string) (int, []byte, error) {
-	supabaseURL := strings.TrimRight(os.Getenv("SUPABASE_URL"), "/")
-	serviceKey := os.Getenv("SUPABASE_SERVICE_KEY")
-
-	fullURL := supabaseURL + path
-
-	// Append user_id filter if userID is provided
-	if userID != "" {
-		sep := "?"
-		if strings.Contains(path, "?") {
-			sep = "&"
-		}
-		fullURL += sep + "user_id=eq." + userID
-	}
-
-	req, err := http.NewRequest(method, fullURL, body)
-	if err != nil {
-		return 0, nil, fmt.Errorf("create request: %w", err)
-	}
-
-	req.Header.Set("apikey", serviceKey)
-	req.Header.Set("Authorization", "Bearer "+serviceKey)
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	req.Header.Set("Prefer", "return=representation")
-
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return 0, nil, fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return resp.StatusCode, nil, fmt.Errorf("read body: %w", err)
-	}
-
-	return resp.StatusCode, respBody, nil
-}
-
-// supabaseJSONRequest is a convenience wrapper that marshals the payload to JSON
-// and calls supabaseRequest.
-func supabaseJSONRequest(method, path string, payload interface{}, userID string) (int, []byte, error) {
-	var body io.Reader
-	if payload != nil {
-		data, err := json.Marshal(payload)
-		if err != nil {
-			return 0, nil, fmt.Errorf("marshal payload: %w", err)
-		}
-		body = bytes.NewReader(data)
-	}
-	return supabaseRequest(method, path, body, userID)
 }
 
 // ─── Wardrobe Handlers ─────────────────────────────────────────────────────
@@ -116,61 +55,50 @@ func HandleGetWardrobe(c *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
-	// Build query params for data request
-	params := []string{"select=*"}
-	params = append(params, "order=created_at.desc")
-	params = append(params, "limit="+strconv.Itoa(limit))
-	params = append(params, "offset="+strconv.Itoa(offset))
+	// Build query with filters
+	baseQuery := "SELECT * FROM clothing_items WHERE user_id = ?"
+	countQuery := "SELECT COUNT(*) FROM clothing_items WHERE user_id = ?"
+	var args []interface{} = []interface{}{userID}
+	var countArgs []interface{} = []interface{}{userID}
 
 	if category := c.Query("category"); category != "" {
-		params = append(params, "category=eq."+category)
+		baseQuery += " AND category = ?"
+		countQuery += " AND category = ?"
+		args = append(args, category)
+		countArgs = append(countArgs, category)
 	}
 	if season := c.Query("season"); season != "" {
-		params = append(params, "season_tags=cs.{"+season+"}")
+		baseQuery += " AND season_tags LIKE ?"
+		countQuery += " AND season_tags LIKE ?"
+		args = append(args, "%"+season+"%")
+		countArgs = append(countArgs, "%"+season+"%")
 	}
 	if search := c.Query("search"); search != "" {
-		params = append(params, "name=ilike.*"+search+"*")
+		baseQuery += " AND name LIKE ?"
+		countQuery += " AND name LIKE ?"
+		args = append(args, "%"+search+"%")
+		countArgs = append(countArgs, "%"+search+"%")
 	}
 
-	queryString := "?" + strings.Join(params, "&")
+	// Get total count
+	var total int
+	if err := database.DB.QueryRow(countQuery, countArgs...).Scan(&total); err != nil {
+		total = 0
+	}
 
-	// Fetch data
-	status, body, err := supabaseRequest("GET", "/rest/v1/clothing_items"+queryString, nil, userID)
+	// Execute data query
+	rows, err := database.DB.Query(baseQuery+" ORDER BY created_at DESC LIMIT ? OFFSET ?", append(args, limit, offset)...)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query wardrobe"})
 	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
-	}
+	defer rows.Close()
 
-	// Parse items
-	var items []json.RawMessage
-	if err := json.Unmarshal(body, &items); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse response"})
+	items, err := scanRows(rows)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse wardrobe items"})
 	}
-
-	// Get total count (separate request with select=count)
-	countParams := []string{"select=count"}
-	if category := c.Query("category"); category != "" {
-		countParams = append(countParams, "category=eq."+category)
-	}
-	if season := c.Query("season"); season != "" {
-		countParams = append(countParams, "season_tags=cs.{"+season+"}")
-	}
-	if search := c.Query("search"); search != "" {
-		countParams = append(countParams, "name=ilike.*"+search+"*")
-	}
-	countQuery := "?" + strings.Join(countParams, "&")
-	_, countBody, _ := supabaseRequest("GET", "/rest/v1/clothing_items"+countQuery, nil, userID)
-
-	total := len(items)
-	if len(countBody) > 0 {
-		var countData []map[string]string
-		if err := json.Unmarshal(countBody, &countData); err == nil && len(countData) > 0 {
-			if c, err := strconv.Atoi(countData[0]["count"]); err == nil {
-				total = c
-			}
-		}
+	if items == nil {
+		items = []map[string]interface{}{}
 	}
 
 	return c.JSON(fiber.Map{
@@ -189,22 +117,54 @@ func HandleCreateWardrobeItem(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
-	// Parse body into a generic map so we can inject user_id
-	var bodyMap map[string]interface{}
-	if err := c.BodyParser(&bodyMap); err != nil {
+	var body struct {
+		Name            string   `json:"name"`
+		Category        string   `json:"category"`
+		Brand           string   `json:"brand"`
+		Cost            *float64 `json:"cost"`
+		DominantColors  string   `json:"dominant_colors"`
+		SeasonTags      string   `json:"season_tags"`
+		OriginalImageURL string  `json:"original_image_url"`
+		ProcessedImageURL string `json:"processed_image_url"`
+	}
+	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
 	}
-	bodyMap["user_id"] = userID
+	if body.Name == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "name is required"})
+	}
 
-	status, respBody, err := supabaseJSONRequest("POST", "/rest/v1/clothing_items", bodyMap, "")
+	id := randomID()
+	now := time.Now().UTC().Format("20060102T150405Z")
+
+	var cost float64
+	if body.Cost != nil {
+		cost = *body.Cost
+	}
+
+	_, err = database.DB.Exec(
+		`INSERT INTO clothing_items (id, user_id, name, category, brand, cost, dominant_colors, season_tags, original_image_url, processed_image_url, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, userID, body.Name, body.Category, body.Brand, cost, body.DominantColors, body.SeasonTags,
+		body.OriginalImageURL, body.ProcessedImageURL, now,
+	)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "creation failed", "detail": string(respBody)})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to create item"})
 	}
 
-	return c.Status(201).JSON(json.RawMessage(respBody))
+	// Return the created item
+	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ?", id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read created item"})
+	}
+	defer rows.Close()
+
+	item, err := scanOneRow(rows)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse created item"})
+	}
+
+	return c.Status(201).JSON(item)
 }
 
 // HandleGetWardrobeItem returns a single clothing item by ID.
@@ -216,25 +176,18 @@ func HandleGetWardrobeItem(c *fiber.Ctx) error {
 	}
 
 	id := c.Params("id")
-	path := "/rest/v1/clothing_items?id=eq." + id + "&select=*"
-
-	status, body, err := supabaseRequest("GET", path, nil, userID)
+	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query item"})
 	}
-	if status >= 400 || string(body) == "[]" || string(body) == "null" {
+	defer rows.Close()
+
+	item, err := scanOneRow(rows)
+	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
-
-	// Supabase returns an array; extract the first element
-	var items []json.RawMessage
-	if err := json.Unmarshal(body, &items); err != nil || len(items) == 0 {
-		return c.Status(404).JSON(fiber.Map{"error": "not found"})
-	}
-
-	var item map[string]interface{}
-	if err := json.Unmarshal(items[0], &item); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "parse error"})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse item"})
 	}
 
 	return c.JSON(item)
@@ -250,31 +203,62 @@ func HandleUpdateWardrobeItem(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 
-	// Verify ownership first
-	checkPath := "/rest/v1/clothing_items?id=eq." + id + "&select=id"
-	checkStatus, checkBody, err := supabaseRequest("GET", checkPath, nil, userID)
-	if err != nil || checkStatus >= 400 || string(checkBody) == "[]" {
+	// Verify ownership
+	var exists int
+	err = database.DB.QueryRow("SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
+	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to verify ownership"})
+	}
 
-	var bodyMap map[string]interface{}
-	if err := c.BodyParser(&bodyMap); err != nil {
+	var body map[string]interface{}
+	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
 	}
+
 	// Remove user_id from update payload to prevent reassignment
-	delete(bodyMap, "user_id")
-	bodyMap["updated_at"] = time.Now().UTC().Format(time.RFC3339)
+	delete(body, "user_id")
+	delete(body, "id")
+	delete(body, "created_at")
 
-	path := "/rest/v1/clothing_items?id=eq." + id
-	status, respBody, err := supabaseJSONRequest("PATCH", path, bodyMap, "")
+	if len(body) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "no fields to update"})
+	}
+
+	body["updated_at"] = time.Now().UTC().Format("20060102T150405Z")
+
+	// Build SET clause
+	var setClauses []string
+	var updateArgs []interface{}
+	for col, val := range body {
+		setClauses = append(setClauses, col+" = ?")
+		updateArgs = append(updateArgs, val)
+	}
+	updateArgs = append(updateArgs, id, userID)
+
+	_, err = database.DB.Exec(
+		"UPDATE clothing_items SET "+strings.Join(setClauses, ", ")+" WHERE id = ? AND user_id = ?",
+		updateArgs...,
+	)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "update failed", "detail": string(respBody)})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to update item"})
 	}
 
-	return c.JSON(json.RawMessage(respBody))
+	// Return updated item
+	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE id = ?", id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read updated item"})
+	}
+	defer rows.Close()
+
+	item, err := scanOneRow(rows)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated item"})
+	}
+
+	return c.JSON(item)
 }
 
 // HandleDeleteWardrobeItem deletes a clothing item by ID.
@@ -287,26 +271,25 @@ func HandleDeleteWardrobeItem(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 
-	// Verify ownership first
-	checkPath := "/rest/v1/clothing_items?id=eq." + id + "&select=id"
-	checkStatus, checkBody, err := supabaseRequest("GET", checkPath, nil, userID)
-	if err != nil || checkStatus >= 400 || string(checkBody) == "[]" {
+	// Verify ownership
+	var exists int
+	err = database.DB.QueryRow("SELECT 1 FROM clothing_items WHERE id = ? AND user_id = ?", id, userID).Scan(&exists)
+	if err == sql.ErrNoRows {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
-
-	path := "/rest/v1/clothing_items?id=eq." + id
-	status, respBody, err := supabaseRequest("DELETE", path, nil, "")
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to verify ownership"})
 	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "delete failed", "detail": string(respBody)})
+
+	_, err = database.DB.Exec("DELETE FROM clothing_items WHERE id = ? AND user_id = ?", id, userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to delete item"})
 	}
 
 	return c.JSON(fiber.Map{"success": true})
 }
 
-// HandleMarkWorn increments the worn count for a clothing item via Supabase RPC.
+// HandleMarkWorn increments the worn count for a clothing item.
 // POST /api/v1/wardrobe/:id/worn
 func HandleMarkWorn(c *fiber.Ctx) error {
 	userID, err := getUserID(c)
@@ -315,22 +298,19 @@ func HandleMarkWorn(c *fiber.Ctx) error {
 	}
 
 	id := c.Params("id")
+	now := time.Now().UTC().Format("20060102T150405Z")
 
-	// Verify ownership
-	checkPath := "/rest/v1/clothing_items?id=eq." + id + "&select=id"
-	checkStatus, checkBody, err := supabaseRequest("GET", checkPath, nil, userID)
-	if err != nil || checkStatus >= 400 || string(checkBody) == "[]" {
-		return c.Status(404).JSON(fiber.Map{"error": "not found"})
-	}
-
-	// Call RPC
-	payload := map[string]string{"item_id": id}
-	status, respBody, err := supabaseJSONRequest("POST", "/rest/v1/rpc/increment_worn_count", payload, "")
+	result, err := database.DB.Exec(
+		"UPDATE clothing_items SET times_worn = times_worn + 1, last_worn_at = ? WHERE id = ? AND user_id = ?",
+		now, id, userID,
+	)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to mark as worn"})
 	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "rpc failed", "detail": string(respBody)})
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
 
 	return c.JSON(fiber.Map{"success": true})
@@ -355,15 +335,15 @@ func HandleGetWardrobeInsights(c *fiber.Ctx) error {
 	}
 
 	// Fetch all items for the user (no pagination for insights)
-	path := "/rest/v1/clothing_items?select=*"
-	status, body, err := supabaseRequest("GET", path, nil, userID)
-	if err != nil || status >= 400 {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	rows, err := database.DB.Query("SELECT * FROM clothing_items WHERE user_id = ?", userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query wardrobe"})
 	}
+	defer rows.Close()
 
-	var items []map[string]interface{}
-	if err := json.Unmarshal(body, &items); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "parse error"})
+	items, err := scanRows(rows)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse items"})
 	}
 
 	totalItems := len(items)
@@ -380,12 +360,24 @@ func HandleGetWardrobeInsights(c *fiber.Ctx) error {
 		}
 		byCategory[cat]++
 
-		// Cost accumulation
-		cost, _ := getFloat(item["cost"])
+		// Cost accumulation (handle int64 from SQLite)
+		cost := 0.0
+		switch v := item["cost"].(type) {
+		case float64:
+			cost = v
+		case int64:
+			cost = float64(v)
+		}
 		totalCost += cost
 
-		// Worn count
-		worn, _ := getInt(item["times_worn"])
+		// Worn count (handle int64 from SQLite)
+		worn := 0
+		switch v := item["times_worn"].(type) {
+		case int64:
+			worn = int(v)
+		case float64:
+			worn = int(v)
+		}
 		totalWorn += worn
 
 		// CPW calculation (only if cost > 0 and worn > 0)
@@ -454,32 +446,29 @@ func HandleGetTryonHistory(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
-	// Use Supabase resource embedding to join with clothing_items
-	path := "/rest/v1/tryon_results?select=*,clothing_items(name,category)&order=created_at.desc"
-	status, body, err := supabaseRequest("GET", path, nil, userID)
-	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
-	}
-
-	var items []json.RawMessage
-	if err := json.Unmarshal(body, &items); err != nil {
-		items = []json.RawMessage{}
-	}
-
 	// Get count
-	countPath := "/rest/v1/tryon_results?select=count"
-	_, countBody, _ := supabaseRequest("GET", countPath, nil, userID)
-	total := len(items)
-	if len(countBody) > 0 {
-		var countData []map[string]string
-		if err := json.Unmarshal(countBody, &countData); err == nil && len(countData) > 0 {
-			if c, err := strconv.Atoi(countData[0]["count"]); err == nil {
-				total = c
-			}
-		}
+	var total int
+	if err := database.DB.QueryRow("SELECT COUNT(*) FROM tryon_results WHERE user_id = ?", userID).Scan(&total); err != nil {
+		total = 0
+	}
+
+	rows, err := database.DB.Query(
+		`SELECT tr.*, ci.name as clothing_name, ci.category as clothing_category
+		 FROM tryon_results tr
+		 LEFT JOIN clothing_items ci ON tr.clothing_item_id = ci.id
+		 WHERE tr.user_id = ?
+		 ORDER BY tr.created_at DESC`, userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query try-on history"})
+	}
+	defer rows.Close()
+
+	items, err := scanRows(rows)
+	if err != nil {
+		items = []map[string]interface{}{}
+	}
+	if items == nil {
+		items = []map[string]interface{}{}
 	}
 
 	return c.JSON(fiber.Map{
@@ -497,8 +486,8 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		ClothingItemID  *string `json:"clothing_item_id"`
-		PersonImageURL  *string `json:"person_image_url"`
+		ClothingItemID *string `json:"clothing_item_id"`
+		PersonImageURL *string `json:"person_image_url"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
@@ -507,25 +496,31 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "person_image_url is required"})
 	}
 
-	record := map[string]interface{}{
-		"user_id":         userID,
-		"person_image_url": *body.PersonImageURL,
-		"status":          "queued",
-		"fashn_job_id":    "pending-" + randomID(),
-	}
-	if body.ClothingItemID != nil {
-		record["clothing_item_id"] = *body.ClothingItemID
-	}
+	id := randomID()
+	now := time.Now().UTC().Format("20060102T150405Z")
 
-	status, respBody, err := supabaseJSONRequest("POST", "/rest/v1/tryon_results", record, "")
+	_, err = database.DB.Exec(
+		`INSERT INTO tryon_results (id, user_id, clothing_item_id, person_image_url, status, fashn_job_id, created_at)
+		 VALUES (?, ?, ?, ?, 'queued', ?, ?)`,
+		id, userID, body.ClothingItemID, *body.PersonImageURL, "pending-"+randomID(), now,
+	)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "creation failed", "detail": string(respBody)})
+		return c.Status(500).JSON(fiber.Map{"error": "failed to create try-on"})
 	}
 
-	return c.Status(201).JSON(json.RawMessage(respBody))
+	// Return created record
+	rows, err := database.DB.Query("SELECT * FROM tryon_results WHERE id = ?", id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read created try-on"})
+	}
+	defer rows.Close()
+
+	item, err := scanOneRow(rows)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse created try-on"})
+	}
+
+	return c.Status(201).JSON(item)
 }
 
 // ─── OOTD Handlers ─────────────────────────────────────────────────────────
@@ -538,31 +533,27 @@ func HandleGetOOTDLogs(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
-	path := "/rest/v1/ootd_logs?select=*&order=suggested_at.desc"
-	status, body, err := supabaseRequest("GET", path, nil, userID)
-	if err != nil {
-		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
-	}
-	if status >= 400 {
-		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
-	}
-
-	var items []json.RawMessage
-	if err := json.Unmarshal(body, &items); err != nil {
-		items = []json.RawMessage{}
-	}
-
 	// Get count
-	countPath := "/rest/v1/ootd_logs?select=count"
-	_, countBody, _ := supabaseRequest("GET", countPath, nil, userID)
-	total := len(items)
-	if len(countBody) > 0 {
-		var countData []map[string]string
-		if err := json.Unmarshal(countBody, &countData); err == nil && len(countData) > 0 {
-			if c, err := strconv.Atoi(countData[0]["count"]); err == nil {
-				total = c
-			}
-		}
+	var total int
+	if err := database.DB.QueryRow("SELECT COUNT(*) FROM ootd_logs WHERE user_id = ?", userID).Scan(&total); err != nil {
+		total = 0
+	}
+
+	rows, err := database.DB.Query(
+		"SELECT * FROM ootd_logs WHERE user_id = ? ORDER BY suggested_at DESC",
+		userID,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query OOTD logs"})
+	}
+	defer rows.Close()
+
+	items, err := scanRows(rows)
+	if err != nil {
+		items = []map[string]interface{}{}
+	}
+	if items == nil {
+		items = []map[string]interface{}{}
 	}
 
 	return c.JSON(fiber.Map{
@@ -579,10 +570,8 @@ func getFloat(v interface{}) (float64, bool) {
 	switch val := v.(type) {
 	case float64:
 		return val, true
-	case json.Number:
-		if f, err := val.Float64(); err == nil {
-			return f, true
-		}
+	case int64:
+		return float64(val), true
 	case string:
 		if f, err := strconv.ParseFloat(val, 64); err == nil {
 			return f, true
@@ -597,10 +586,8 @@ func getInt(v interface{}) (int, bool) {
 	switch val := v.(type) {
 	case float64:
 		return int(val), true
-	case json.Number:
-		if i, err := strconv.Atoi(val.String()); err == nil {
-			return i, true
-		}
+	case int64:
+		return int(val), true
 	case string:
 		if i, err := strconv.Atoi(val); err == nil {
 			return i, true
