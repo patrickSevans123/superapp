@@ -154,7 +154,11 @@ func main() {
 
 	// ── DuckDB initialisation ───────────────────────────────────────────
 	var err error
-	db, err = sql.Open("duckdb", "../beasiswa_crawler/data/scholarships.duckdb?access_mode=read_only&threads=4")
+	dbPath := os.Getenv("DUCKDB_PATH")
+	if dbPath == "" {
+		dbPath = "services/beasiswa_crawler/data/scholarships.duckdb" // relative to repo root
+	}
+	db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4")
 	if err != nil {
 		log.Fatalf("Failed to open DuckDB: %v", err)
 	}
