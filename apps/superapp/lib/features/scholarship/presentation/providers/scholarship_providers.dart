@@ -770,3 +770,49 @@ final scholarshipDetailProvider =
     orElse: () => throw Exception('Scholarship not found'),
   );
 });
+
+// ─── Saved Scholarship IDs (local state, no backend yet) ─────────────────
+//
+// TODO: Replace with API-backed provider once Supabase is wired.
+
+/// Notifier that manages a set of saved (bookmarked) scholarship IDs.
+class SavedIdsNotifier extends StateNotifier<Set<String>> {
+  SavedIdsNotifier() : super({});
+
+  /// Toggle the saved state of a scholarship ID.
+  /// Returns the new state (true = saved, false = unsaved).
+  bool toggle(String id) {
+    if (state.contains(id)) {
+      state = Set.from(state)..remove(id);
+      return false;
+    } else {
+      state = Set.from(state)..add(id);
+      return true;
+    }
+  }
+
+  /// Add a scholarship ID to the saved set.
+  void save(String id) {
+    state = Set.from(state)..add(id);
+  }
+
+  /// Remove a scholarship ID from the saved set.
+  void unsave(String id) {
+    state = Set.from(state)..remove(id);
+  }
+}
+
+/// Provider for the set of saved scholarship IDs.
+final savedIdsProvider =
+    StateNotifierProvider<SavedIdsNotifier, Set<String>>((ref) {
+  return SavedIdsNotifier();
+});
+
+/// Provider that resolves saved IDs to full [ScholarshipModel] objects.
+final savedScholarshipsProvider =
+    FutureProvider.autoDispose<List<ScholarshipModel>>((ref) async {
+  final ids = ref.watch(savedIdsProvider);
+  if (ids.isEmpty) return [];
+  await Future.delayed(const Duration(milliseconds: 200));
+  return _mockScholarships.where((s) => ids.contains(s.id)).toList();
+});

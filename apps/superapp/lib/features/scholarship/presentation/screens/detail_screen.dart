@@ -55,7 +55,7 @@ class DetailScreen extends ConsumerWidget {
       error: (err, _) => GradientBackground(
         child: _buildError(context, err, ref),
       ),
-      data: (scholarship) => _DetailContent(scholarship: scholarship),
+      data: (scholarship) => _DetailContent(scholarship: scholarship, ref: ref),
     );
   }
 
@@ -103,13 +103,16 @@ class DetailScreen extends ConsumerWidget {
 
 // ─── Detail Content (full page) ──────────────────────────────────────────
 
-class _DetailContent extends StatelessWidget {
+class _DetailContent extends ConsumerWidget {
   final ScholarshipModel scholarship;
 
-  const _DetailContent({required this.scholarship});
+  const _DetailContent({required this.scholarship, required WidgetRef ref});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedIds = ref.watch(savedIdsProvider);
+    final isSaved = savedIds.contains(scholarship.id);
+
     return GlassScaffold(
       appBar: GlassAppBar(
         leading: IconButton(
@@ -119,10 +122,13 @@ class _DetailContent extends StatelessWidget {
         title: scholarship.title,
         actions: [
           IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            color: AppColors.stone,
+            icon: Icon(
+              isSaved ? Icons.bookmark : Icons.bookmark_border,
+            ),
+            color: isSaved ? AppColors.accent : AppColors.stone,
             onPressed: () {
-              debugPrint('Bookmark toggled for: ${scholarship.id}');
+              final nowSaved = ref.read(savedIdsProvider.notifier).toggle(scholarship.id);
+              debugPrint('TODO: ${nowSaved ? "save" : "unsave"} scholarship ${scholarship.id} via API');
             },
           ),
         ],
@@ -165,7 +171,7 @@ class _DetailContent extends StatelessWidget {
               ],
 
               // ── Quick Info / Actions ──────────────────────────────────
-              _buildQuickInfo(),
+              _buildQuickInfo(ref, isSaved),
 
               const SizedBox(height: 16),
 
@@ -583,7 +589,7 @@ class _DetailContent extends StatelessWidget {
 
   // ─── Quick Info / Actions ─────────────────────────────────────────────
 
-  Widget _buildQuickInfo() {
+  Widget _buildQuickInfo(WidgetRef ref, bool isSaved) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -644,11 +650,12 @@ class _DetailContent extends StatelessWidget {
 
           // Save button
           GlassButton(
-            label: 'Save Scholarship',
-            icon: Icons.bookmark_border,
+            label: isSaved ? 'Unsave Scholarship' : 'Save Scholarship',
+            icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
             variant: GlassButtonVariant.secondary,
             onPressed: () {
-              debugPrint('Saved scholarship: ${scholarship.id}');
+              final nowSaved = ref.read(savedIdsProvider.notifier).toggle(scholarship.id);
+              debugPrint('TODO: ${nowSaved ? "save" : "unsave"} scholarship ${scholarship.id} via API');
             },
           ),
         ],

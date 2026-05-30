@@ -196,6 +196,10 @@ func main() {
 
 	// ─── Scholarship endpoints ───
 	v1.Get("/scholarships", handleListScholarships)
+	// Saved/bookmarked scholarships (must register before :id to avoid conflict)
+	v1.Get("/scholarships/saved", handleGetSavedScholarships)
+	v1.Post("/scholarships/:id/save", handleSaveScholarship)
+	v1.Delete("/scholarships/:id/save", handleUnsaveScholarship)
 	v1.Get("/scholarships/:id", handleGetScholarship)
 
 	// ─── Fashion endpoints (proxied to Supabase) ───
@@ -367,6 +371,64 @@ func handleGetScholarship(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(scanRowToScholarship(vals))
+}
+
+// ─── Saved / Bookmarked Scholarship Handlers (placeholder) ────────────────
+
+// handleSaveScholarship saves (bookmarks) a scholarship for a user.
+// POST /api/v1/scholarships/:id/save
+func handleSaveScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var body struct {
+		UserID string `json:"user_id"`
+		Status string `json:"status"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		body.UserID = "" // ignore parse errors for now
+	}
+
+	log.Printf("TODO: save scholarship %s for user %s (status=%s)", id, body.UserID, body.Status)
+	// TODO: wire to Supabase REST API — upsert into saved_scholarships table
+
+	return c.JSON(fiber.Map{
+		"saved": true,
+		"id":    id,
+	})
+}
+
+// handleGetSavedScholarships returns saved scholarship IDs for a user.
+// GET /api/v1/scholarships/saved?user_id=xxx
+func handleGetSavedScholarships(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	log.Printf("TODO: fetch saved scholarships for user %s", userID)
+	// TODO: wire to Supabase REST API — SELECT id FROM saved_scholarships WHERE user_id = ?
+
+	return c.JSON(fiber.Map{
+		"data":  []string{},
+		"total": 0,
+	})
+}
+
+// handleUnsaveScholarship removes a saved/bookmarked scholarship.
+// DELETE /api/v1/scholarships/:id/save
+func handleUnsaveScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var body struct {
+		UserID string `json:"user_id"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		body.UserID = ""
+	}
+
+	log.Printf("TODO: unsave scholarship %s for user %s", id, body.UserID)
+	// TODO: wire to Supabase REST API — DELETE FROM saved_scholarships WHERE id = ? AND user_id = ?
+
+	return c.JSON(fiber.Map{
+		"saved": false,
+		"id":    id,
+	})
 }
 
 func handleListWardrobe(c *fiber.Ctx) error {

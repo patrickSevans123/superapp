@@ -4,6 +4,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 import '../../features/scholarship/presentation/screens/browse_screen.dart';
 import '../../features/scholarship/presentation/screens/detail_screen.dart';
+import '../../features/scholarship/presentation/screens/saved_screen.dart';
 
 // ─── Placeholder screens (will be replaced with real features) ───
 
@@ -25,6 +26,12 @@ final appRouter = GoRouter(
           path: '/scholarship',
           pageBuilder: (context, state) => const NoTransitionPage(
             child: BrowseScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/scholarship/saved',
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: SavedScreen(),
           ),
         ),
         GoRoute(

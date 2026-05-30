@@ -108,6 +108,68 @@ class ScholarshipApiClient {
     }
   }
 
+  /// Saves (bookmarks) a scholarship for the given [userId].
+  /// [status] defaults to 'saved'.
+  Future<bool> saveScholarship(String id, String userId,
+      {String status = 'saved'}) async {
+    try {
+      final response = await _dio.post(
+        '/scholarships/$id/save',
+        data: {'user_id': userId, 'status': status},
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return (response.data as Map)['saved'] == true;
+      }
+      return false;
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Failed to save scholarship',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// Removes a saved/bookmarked scholarship.
+  Future<bool> unsaveScholarship(String id, String userId) async {
+    try {
+      final response = await _dio.delete(
+        '/scholarships/$id/save',
+        data: {'user_id': userId},
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return (response.data as Map)['saved'] == false;
+      }
+      return false;
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Failed to unsave scholarship',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// Fetches the list of saved scholarship IDs for the given [userId].
+  Future<List<String>> getSavedScholarshipIds(String userId) async {
+    try {
+      final response = await _dio.get(
+        '/scholarships/saved',
+        queryParameters: {'user_id': userId},
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        final data = (response.data as Map)['data'];
+        if (data is List) {
+          return data.cast<String>();
+        }
+      }
+      return [];
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Failed to fetch saved scholarship IDs',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
   /// Fetches a single scholarship by its [id].
   Future<ScholarshipModel> getScholarship(String id) async {
     try {
