@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -260,6 +263,14 @@ func main() {
 	// ─── Settings endpoints ───
 	v1.Get("/settings", handleGetSettings)
 	v1.Patch("/settings", handleUpdateSettings)
+
+	// ─── Upload endpoints ───
+	v1.Post("/upload/photo", handleUploadPhoto)
+
+	// Serve uploads directory
+	uploadsDir := filepath.Join("data", "uploads")
+	os.MkdirAll(uploadsDir, 0755)
+	app.Static("/uploads", uploadsDir)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -652,6 +663,50 @@ func handleGetSettings(c *fiber.Ctx) error {
 	})
 }
 
+// ─── Upload Handler ─────────────────────────────────────────────────────────
+
+// handleUploadPhoto accepts a multipart file upload and returns a public URL.
+// POST /api/v1/upload/photo
+// Form field: "file"
+func handleUploadPhoto(c *fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "file field is required"})
+	}
+
+	// Save to data/uploads/
+	ext := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
+	uploadDir := filepath.Join("data", "uploads")
+	os.MkdirAll(uploadDir, 0755)
+
+	dst := filepath.Join(uploadDir, filename)
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read uploaded file"})
+	}
+	defer src.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to save file"})
+	}
+	defer dstFile.Close()
+
+	if _, err := io.Copy(dstFile, src); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to write file"})
+	}
+
+	// Build public URL
+	scheme := "http"
+	if c.Get("X-Forwarded-Proto") == "https" {
+		scheme = "https"
+	}
+	host := c.Hostname()
+	publicURL := fmt.Sprintf("%s://%s/uploads/%s", scheme, host, filename)
+
+	return c.JSON(fiber.Map{"url": publicURL})
+}
 // handleUpdateSettings updates account and/or preference fields for a user.
 // PATCH /api/v1/settings
 func handleUpdateSettings(c *fiber.Ctx) error {

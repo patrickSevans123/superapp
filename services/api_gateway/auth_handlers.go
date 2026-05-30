@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -111,10 +110,7 @@ func handleRegister(c *fiber.Ctx) error {
 		Password    string `json:"password"`
 		DisplayName string `json:"display_name"`
 	}
-	rawBody := string(c.Body())
-	log.Printf("DEBUG register raw body (%d bytes): %q", len(rawBody), rawBody)
 	if err := c.BodyParser(&body); err != nil {
-		log.Printf("DEBUG register parse error: %v", err)
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
 	}
 
