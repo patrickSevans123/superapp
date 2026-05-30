@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"os"
 	"strconv"
@@ -230,6 +231,7 @@ func main() {
 
 	// ─── Profile endpoints ───
 	v1.Get("/profile", handleGetProfile)
+	v1.Patch("/profile", handleUpdateProfile)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -451,5 +453,80 @@ func handleUnsaveScholarship(c *fiber.Ctx) error {
 }
 
 func handleGetProfile(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"message": "profile — coming in Phase 1"})
+	userID := c.Query("user_id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	}
+
+	path := "/rest/v1/profiles?select=*&id=eq." + userID
+	status, body, err := supabaseRequest("GET", path, nil, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+	if status >= 400 {
+		return c.Status(status).JSON(fiber.Map{"error": "upstream error", "detail": string(body)})
+	}
+
+	// Supabase returns an array; extract the first element
+	var items []json.RawMessage
+	if err := json.Unmarshal(body, &items); err != nil || len(items) == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "profile not found"})
+	}
+
+	var profile map[string]interface{}
+	if err := json.Unmarshal(items[0], &profile); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
+	}
+
+	return c.JSON(profile)
+}
+
+func handleUpdateProfile(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id query parameter is required"})
+	}
+
+	var body struct {
+		DisplayName *string `json:"display_name"`
+		AvatarURL   *string `json:"avatar_url"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
+	}
+
+	// Build update payload with only provided fields
+	payload := make(map[string]interface{})
+	if body.DisplayName != nil {
+		payload["display_name"] = *body.DisplayName
+	}
+	if body.AvatarURL != nil {
+		payload["avatar_url"] = *body.AvatarURL
+	}
+
+	if len(payload) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "no fields to update"})
+	}
+
+	path := "/rest/v1/profiles?id=eq." + userID
+	status, respBody, err := supabaseJSONRequest("PATCH", path, payload, "")
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "upstream request failed"})
+	}
+	if status >= 400 {
+		return c.Status(status).JSON(fiber.Map{"error": "update failed", "detail": string(respBody)})
+	}
+
+	// Parse and return the updated profile
+	var items []json.RawMessage
+	if err := json.Unmarshal(respBody, &items); err != nil || len(items) == 0 {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse updated profile"})
+	}
+
+	var profile map[string]interface{}
+	if err := json.Unmarshal(items[0], &profile); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to parse profile"})
+	}
+
+	return c.JSON(profile)
 }

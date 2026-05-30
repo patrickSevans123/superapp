@@ -12,12 +12,8 @@ import '../../features/fashion/presentation/screens/item_detail_screen.dart';
 import '../../features/trade/presentation/screens/trade_dashboard_screen.dart';
 import '../../features/trade/presentation/screens/trade_plans_screen.dart';
 import '../../features/trade/presentation/screens/trade_news_screen.dart';
-
-// ─── Placeholder screens (will be replaced with real features) ───
-
-Widget _placeholder(String label) => GradientBackground(
-      child: Center(child: GlassBadge(label, accent: true)),
-    );
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/scholarship',
@@ -70,8 +66,16 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/profile',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: _ProfilePlaceholder(),
+            child: ProfileScreen(),
           ),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: EditProfileScreen(),
+              ),
+            ),
+          ],
         ),
       ],
     ),
@@ -149,10 +153,4 @@ int _navIndex(String path) {
 
 const _navPaths = ['/scholarship', '/fashion', '/trade', '/profile'];
 
-// ─── Placeholder widgets ───
 
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-  @override
-  Widget build(BuildContext context) => _placeholder('PROFILE');
-}
