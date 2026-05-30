@@ -23,14 +23,7 @@ class TradeApiException implements Exception {
 class TradeApiClient {
   final Dio _dio;
 
-  TradeApiClient({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              baseUrl: 'http://100.110.59.78:8080/api/v1',
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              headers: {'Content-Type': 'application/json'},
-            ));
+  TradeApiClient({required Dio dio}) : _dio = dio;
 
   // ─── Quotes ────────────────────────────────────────────────────────
 

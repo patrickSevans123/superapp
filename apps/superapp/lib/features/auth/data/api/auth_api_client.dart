@@ -37,4 +37,9 @@ class AuthApiClient {
         options: Options(headers: {'Authorization': 'Bearer $token'}));
     return response.data as Map<String, dynamic>;
   }
+
+  Future<void> logout(String token) async {
+    await _dio.post('/auth/logout',
+        options: Options(headers: {'Authorization': 'Bearer $token'}));
+  }
 }

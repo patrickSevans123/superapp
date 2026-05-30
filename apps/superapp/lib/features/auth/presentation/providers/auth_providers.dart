@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/network/network_providers.dart';
 import '../../data/api/auth_api_client.dart';
 import '../../data/repository/auth_repository.dart';
 
@@ -24,7 +25,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 // ─── API Client ──────────────────────────────────────────────────────────────
 
 final authApiClientProvider = Provider<AuthApiClient>((ref) {
-  return AuthApiClient();
+  return AuthApiClient(dio: ref.read(authDioProvider));
 });
 
 // ─── Auth State ──────────────────────────────────────────────────────────────

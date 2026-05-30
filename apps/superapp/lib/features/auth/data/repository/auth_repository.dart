@@ -23,6 +23,15 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    // Try to blacklist token on server (best-effort — ignore errors)
+    final token = await getToken();
+    if (token != null) {
+      try {
+        await _api.logout(token);
+      } catch (_) {
+        // Server unreachable is fine — still clear local token
+      }
+    }
     await _prefs.remove('auth_token');
   }
 

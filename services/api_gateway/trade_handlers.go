@@ -77,8 +77,7 @@ func fetchQuote(symbol string) (*QuoteResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("yahoo returned status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("yahoo returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)

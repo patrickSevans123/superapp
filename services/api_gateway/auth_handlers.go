@@ -29,6 +29,26 @@ func init() {
 	jwtSecret = []byte(secret)
 }
 
+// parseAndValidateJWT parses a JWT token string and returns its claims.
+// Returns an error if the token is invalid, expired, or has wrong signing method.
+func parseAndValidateJWT(tokenStr string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid or expired token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token claims")
+	}
+	return claims, nil
+}
+
 // generateJWT creates a signed JWT token for the given user.
 func generateJWT(userID, email string) (string, error) {
 	now := time.Now()
@@ -68,22 +88,12 @@ func authMiddleware(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid authorization format"})
 	}
 
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-		}
-		return jwtSecret, nil
-	})
-	if err != nil || !token.Valid {
+	claims, err := parseAndValidateJWT(tokenStr)
+	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid or expired token"})
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "invalid token claims"})
-	}
-
-		// Check if token is blacklisted
+	// Check if token is blacklisted
 		jtiRaw, _ := claims["jti"]
 		jtiStr, _ := jtiRaw.(string)
 		if jtiStr != "" {
@@ -262,19 +272,9 @@ func handleRefresh(c *fiber.Ctx) error {
 	}
 
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-		}
-		return jwtSecret, nil
-	})
-	if err != nil || !token.Valid {
+	claims, err := parseAndValidateJWT(tokenStr)
+	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid or expired token"})
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "invalid token claims"})
 	}
 
 	userID, _ := claims["user_id"].(string)

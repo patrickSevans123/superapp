@@ -1,0 +1,381 @@
+package main
+
+import (
+	"database/sql"
+	"log"
+	"strconv"
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
+
+	"github.com/patrickSevans123/superapp-api/database"
+)
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+// CoverageDetail holds the flattened coverage_detail fields from DuckDB.
+type CoverageDetail struct {
+	Tuition        string   `json:"tuition"`
+	MonthlyStipend string   `json:"monthly_stipend"`
+	Currency       string   `json:"currency"`
+	Travel         string   `json:"travel"`
+	Accommodation  string   `json:"accommodation"`
+	Insurance      string   `json:"insurance"`
+	LanguageCourse string   `json:"language_course"`
+	Other          []string `json:"other"`
+}
+
+// ScholarshipResponse is the full scholarship JSON shape returned to clients.
+type ScholarshipResponse struct {
+	ID             string          `json:"id"`
+	Title          string          `json:"title"`
+	Provider       string          `json:"provider"`
+	Description    string          `json:"description"`
+	Level          []string        `json:"level"`
+	Destination    string          `json:"destination"`
+	Country        string          `json:"country"`
+	Coverage       string          `json:"coverage"`
+	CoverageDetail CoverageDetail  `json:"coverage_detail"`
+	Deadline       string          `json:"deadline"`
+	OpeningDate    string          `json:"opening_date"`
+	URL            string          `json:"url"`
+	SourceURL      string          `json:"source_url"`
+	Requirements   []string        `json:"requirements"`
+	FieldOfStudy   []string        `json:"field_of_study"`
+	Tags           []string        `json:"tags"`
+	FundingType    string          `json:"funding_type"`
+	Tips           []string        `json:"tips"`
+	Version        int             `json:"version"`
+	Checksum       string          `json:"checksum"`
+	FoundAt        string          `json:"found_at"`
+	UpdatedAt      string          `json:"updated_at"`
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// scanStringArray converts a DuckDB VARCHAR[] value (returned as []interface{})
+// to a []string. Returns an empty slice for nil / non-array values.
+func scanStringArray(val interface{}) []string {
+	if val == nil {
+		return []string{}
+	}
+	arr, ok := val.([]interface{})
+	if !ok {
+		return []string{}
+	}
+	result := make([]string, len(arr))
+	for i, v := range arr {
+		if s, ok := v.(string); ok {
+			result[i] = s
+		}
+	}
+	return result
+}
+
+// scanNullString safely converts a nullable string (interface{} from DuckDB)
+// to a string, returning "" for nil.
+func scanNullString(val interface{}) string {
+	if val == nil {
+		return ""
+	}
+	if s, ok := val.(string); ok {
+		return s
+	}
+	return ""
+}
+
+// scanNullInt safely converts a nullable int (interface{} from DuckDB)
+// to int, returning 0 for nil.
+func scanNullInt(val interface{}) int {
+	if val == nil {
+		return 0
+	}
+	switch v := val.(type) {
+	case int64:
+		return int(v)
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
+}
+
+// scanRowToScholarship scans a single row returned by the DuckDB query
+// into a ScholarshipResponse.
+func scanRowToScholarship(row []interface{}) ScholarshipResponse {
+	return ScholarshipResponse{
+		ID:          scanNullString(row[0]),
+		Title:       scanNullString(row[1]),
+		Provider:    scanNullString(row[2]),
+		Description: scanNullString(row[3]),
+		Level:       scanStringArray(row[4]),
+		Destination: scanNullString(row[5]),
+		Country:     scanNullString(row[6]),
+		Coverage:    scanNullString(row[7]),
+		CoverageDetail: CoverageDetail{
+			Tuition:        scanNullString(row[8]),
+			MonthlyStipend: scanNullString(row[9]),
+			Currency:       scanNullString(row[10]),
+			Travel:         scanNullString(row[11]),
+			Accommodation:  scanNullString(row[12]),
+			Insurance:      scanNullString(row[13]),
+			LanguageCourse: scanNullString(row[14]),
+			Other:          scanStringArray(row[15]),
+		},
+		Deadline:     scanNullString(row[16]),
+		OpeningDate:  scanNullString(row[17]),
+		URL:          scanNullString(row[18]),
+		SourceURL:    scanNullString(row[19]),
+		Requirements: scanStringArray(row[20]),
+		FieldOfStudy: scanStringArray(row[21]),
+		Tags:         scanStringArray(row[22]),
+		FundingType:  scanNullString(row[23]),
+		Tips:         scanStringArray(row[24]),
+		Version:      scanNullInt(row[25]),
+		Checksum:     scanNullString(row[26]),
+		FoundAt:      scanNullString(row[27]),
+		UpdatedAt:    scanNullString(row[28]),
+	}
+}
+
+// ─── Scholarship Handlers ─────────────────────────────────────────────────────
+
+// buildScholarshipFilters builds the WHERE clause and args for scholarship queries.
+func buildScholarshipFilters(q, level, country, fundingType string) (string, []interface{}) {
+	var conditions []string
+	var args []interface{}
+	if q != "" {
+		conditions = append(conditions, `(title ILIKE ? OR provider ILIKE ? OR description ILIKE ?)`)
+		like := "%" + q + "%"
+		args = append(args, like, like, like)
+	}
+	if level != "" {
+		conditions = append(conditions, `? = ANY("level")`)
+		args = append(args, level)
+	}
+	if country != "" {
+		conditions = append(conditions, `country ILIKE ?`)
+		args = append(args, "%"+country+"%")
+	}
+	if fundingType != "" {
+		conditions = append(conditions, `funding_type ILIKE ?`)
+		args = append(args, fundingType)
+	}
+	filterClause := strings.Join(conditions, " AND ")
+	return filterClause, args
+}
+
+// handleListScholarships returns a paginated, filterable list of scholarships.
+// GET /api/v1/scholarships?q=&level=&country=&funding_type=&page=1&limit=20
+func handleListScholarships(c *fiber.Ctx) error {
+	// ── Parse query params ──────────────────────────────────────────────
+	q := strings.TrimSpace(c.Query("q"))
+	level := strings.TrimSpace(c.Query("level"))
+	country := strings.TrimSpace(c.Query("country"))
+	fundingType := strings.TrimSpace(c.Query("funding_type"))
+
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	if limit < 1 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	offset := (page - 1) * limit
+
+	// ── Build filters once ──────────────────────────────────────────────
+	filterClause, filterArgs := buildScholarshipFilters(q, level, country, fundingType)
+
+	// ── Count query ─────────────────────────────────────────────────────
+	countQuery := `SELECT COUNT(*) FROM scholarships`
+	var total int
+	if filterClause != "" {
+		countQuery += " WHERE " + filterClause
+	}
+	if err := db.QueryRow(countQuery, filterArgs...).Scan(&total); err != nil {
+		log.Printf("ERROR counting scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to count scholarships"})
+	}
+
+	// ── Data query ──────────────────────────────────────────────────────
+	baseSelect := `SELECT id, title, provider, description, "level", destination, country,
+		coverage,
+		cd_tuition, cd_monthly_stipend, cd_currency, cd_travel,
+		cd_accommodation, cd_insurance, cd_language_course, cd_other,
+		deadline, opening_date, url, source_url,
+		requirements, field_of_study, tags, funding_type, tips,
+		version, checksum, found_at, updated_at
+		FROM scholarships`
+	if filterClause != "" {
+		baseSelect += " WHERE " + filterClause
+	}
+	baseSelect += ` ORDER BY updated_at DESC, title ASC LIMIT ? OFFSET ?`
+
+	dataArgs := append(filterArgs, limit, offset)
+	rows, err := db.Query(baseSelect, dataArgs...)
+	if err != nil {
+		log.Printf("ERROR querying scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query scholarships"})
+	}
+	defer rows.Close()
+
+	scholarships := make([]ScholarshipResponse, 0, limit)
+	for rows.Next() {
+		vals := make([]interface{}, 29)
+		ptrs := make([]interface{}, 29)
+		for i := range vals {
+			ptrs[i] = &vals[i]
+		}
+		if err := rows.Scan(ptrs...); err != nil {
+			log.Printf("ERROR scanning scholarship row: %v", err)
+			continue
+		}
+		scholarships = append(scholarships, scanRowToScholarship(vals))
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating scholarship rows: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read scholarships"})
+	}
+
+	return c.JSON(fiber.Map{
+		"data":  scholarships,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	})
+}
+
+// handleGetScholarship returns a single scholarship by its id.
+// GET /api/v1/scholarships/:id
+func handleGetScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	query := `SELECT id, title, provider, description, "level", destination, country,
+		coverage,
+		cd_tuition, cd_monthly_stipend, cd_currency, cd_travel,
+		cd_accommodation, cd_insurance, cd_language_course, cd_other,
+		deadline, opening_date, url, source_url,
+		requirements, field_of_study, tags, funding_type, tips,
+		version, checksum, found_at, updated_at
+		FROM scholarships WHERE id = ?`
+
+	vals := make([]interface{}, 29)
+	ptrs := make([]interface{}, 29)
+	for i := range vals {
+		ptrs[i] = &vals[i]
+	}
+
+	err := db.QueryRow(query, id).Scan(ptrs...)
+	if err == sql.ErrNoRows {
+		return c.Status(404).JSON(fiber.Map{"error": "not found"})
+	}
+	if err != nil {
+		log.Printf("ERROR querying scholarship %s: %v", id, err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query scholarship"})
+	}
+
+	return c.JSON(scanRowToScholarship(vals))
+}
+
+// ─── Saved / Bookmarked Scholarship Handlers ────────────────────────────────
+
+// handleSaveScholarship saves (bookmarks) a scholarship for a user.
+// POST /api/v1/scholarships/:id/save
+func handleSaveScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	uid := userID.(string)
+
+	var body struct {
+		Status string `json:"status"`
+		Notes  string `json:"notes"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
+	}
+	if body.Status == "" {
+		body.Status = "interested"
+	}
+
+	// Upsert based on (user_id, scholarship_id) uniqueness
+	_, err := database.DB.ExecContext(c.Context(),
+		`INSERT INTO saved_scholarships (id, user_id, scholarship_id, notes, status)
+		 VALUES (?, ?, ?, ?, ?)
+		 ON CONFLICT(user_id, scholarship_id) DO UPDATE SET status = ?, notes = ?`,
+		randomID(), uid, id, body.Notes, body.Status, body.Status, body.Notes,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to save scholarship"})
+	}
+
+	return c.JSON(fiber.Map{
+		"saved": true,
+		"id":    id,
+	})
+}
+
+// handleGetSavedScholarships returns saved scholarship IDs for a user.
+// GET /api/v1/scholarships/saved
+func handleGetSavedScholarships(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	uid := userID.(string)
+
+	rows, err := database.DB.QueryContext(c.Context(), "SELECT scholarship_id FROM saved_scholarships WHERE user_id = ?", uid)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query saved scholarships"})
+	}
+	defer rows.Close()
+
+	var savedIDs []string
+	for rows.Next() {
+		var sid string
+		if err := rows.Scan(&sid); err == nil {
+			savedIDs = append(savedIDs, sid)
+		}
+	}
+
+	if savedIDs == nil {
+		savedIDs = []string{}
+	}
+
+	return c.JSON(fiber.Map{
+		"data":  savedIDs,
+		"total": len(savedIDs),
+	})
+}
+
+// handleUnsaveScholarship removes a saved/bookmarked scholarship.
+// DELETE /api/v1/scholarships/:id/save
+func handleUnsaveScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userID := c.Locals("user_id")
+	if userID == nil || userID.(string) == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	uid := userID.(string)
+
+	_, err := database.DB.ExecContext(c.Context(),
+		"DELETE FROM saved_scholarships WHERE scholarship_id = ? AND user_id = ?",
+		id, uid,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to unsave scholarship"})
+	}
+
+	return c.JSON(fiber.Map{
+		"saved": false,
+		"id":    id,
+	})
+}
