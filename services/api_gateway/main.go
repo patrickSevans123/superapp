@@ -192,7 +192,14 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	// ─── Trade endpoints ───
-	v1.Get("/market/quote", handleMarketQuote)
+	trade := v1.Group("/market")
+	trade.Get("/quote", handleMarketQuote)
+	trade.Get("/quotes", handleMarketQuotes)
+
+	v1.Get("/plans", handlePlans)
+	v1.Get("/plans/summary", handlePlansSummary)
+	v1.Get("/news", handleNews)
+	v1.Get("/events", handleEvents)
 
 	// ─── Scholarship endpoints ───
 	v1.Get("/scholarships", handleListScholarships)
@@ -234,10 +241,6 @@ func main() {
 }
 
 // ─── Handlers (skeletons — will be implemented in Phase 1-3) ───
-
-func handleMarketQuote(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"message": "market quote — coming in Phase 3"})
-}
 
 // handleListScholarships returns a paginated, filterable list of scholarships.
 // GET /api/v1/scholarships?q=&level=&country=&funding_type=&page=1&limit=20

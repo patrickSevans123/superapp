@@ -1,0 +1,243 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_ui/shared_ui.dart';
+
+import '../../data/models/models.dart';
+import '../providers/trade_providers.dart';
+import '../widgets/plan_card.dart';
+import '../widgets/stat_card.dart';
+
+/// Dashboard screen for the trade feature.
+///
+/// Displays stat cards (Active, Win Rate, Avg Return, Total),
+/// a list of active plans, and recent events.
+class TradeDashboardScreen extends ConsumerStatefulWidget {
+  const TradeDashboardScreen({super.key});
+
+  @override
+  ConsumerState<TradeDashboardScreen> createState() =>
+      _TradeDashboardScreenState();
+}
+
+class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
+  bool _isLoading = true;
+  String? _error;
+  PlansSummary? _summary;
+  List<TradingPlan> _activePlans = [];
+  List<AppEvent> _events = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final repo = ref.read(tradeRepositoryProvider);
+      final results = await Future.wait([
+        repo.getPlansSummary(),
+        repo.getPlans(status: 'ACTIVE'),
+        repo.getEvents(),
+      ]);
+      setState(() {
+        _summary = results[0] as PlansSummary;
+        _activePlans = results[1] as List<TradingPlan>;
+        _events = results[2] as List<AppEvent>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GradientBackground(
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                'Could not load dashboard',
+                style: AppTextStyles.title,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: AppTextStyles.caption,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              GlassButton(
+                label: 'Retry',
+                onPressed: _loadData,
+                icon: Icons.refresh,
+                small: true,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 12),
+
+          if (_summary != null)
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    label: 'Active',
+                    value: '${_summary!.active}',
+                    color: AppColors.accent,
+                    icon: Icons.trending_up,
+                  ),
+                ),
+                Expanded(
+                  child: StatCard(
+                    label: 'Win Rate',
+                    value:
+                        '${_summary!.winRatePct.toStringAsFixed(0)}%',
+                    color: AppColors.success,
+                    icon: Icons.check_circle,
+                  ),
+                ),
+                Expanded(
+                  child: StatCard(
+                    label: 'Avg Return',
+                    value:
+                        '${_summary!.avgReturnPct.toStringAsFixed(1)}%',
+                    color: _summary!.avgReturnPct >= 0
+                        ? AppColors.success
+                        : AppColors.error,
+                    icon: Icons.show_chart,
+                  ),
+                ),
+                Expanded(
+                  child: StatCard(
+                    label: 'Total',
+                    value: '${_summary!.total}',
+                    icon: Icons.list,
+                  ),
+                ),
+              ],
+            ),
+
+          const SizedBox(height: 16),
+          Text(
+            'Active Plans',
+            style: AppTextStyles.title.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (_activePlans.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'No active plans',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.hint),
+              ),
+            )
+          else
+            ..._activePlans.map((p) => PlanCard(plan: p)),
+
+          const SizedBox(height: 16),
+          Text(
+            'Recent Events',
+            style: AppTextStyles.title.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ..._events.take(5).map(_buildEventTile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return GlassBox(
+      radius: 14,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Self-Trade',
+            style: AppTextStyles.headline.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Trading Plan Monitor',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.stone,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventTile(AppEvent event) {
+    final colors = {
+      'success': AppColors.success,
+      'danger': AppColors.error,
+      'info': AppColors.accent,
+    };
+    return GlassCard(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        dense: true,
+        leading: Icon(
+          Icons.notifications,
+          color: colors[event.severity] ?? AppColors.hint,
+          size: 20,
+        ),
+        title: Text(
+          event.title,
+          style: AppTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+        subtitle: Text(
+          event.body,
+          style: AppTextStyles.caption.copyWith(fontSize: 11),
+        ),
+      ),
+    );
+  }
+}

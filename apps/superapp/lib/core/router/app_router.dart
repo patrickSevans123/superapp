@@ -9,6 +9,9 @@ import '../../features/fashion/presentation/screens/wardrobe_screen.dart';
 import '../../features/fashion/presentation/screens/add_item_screen.dart';
 import '../../features/fashion/presentation/screens/insights_dashboard_screen.dart';
 import '../../features/fashion/presentation/screens/item_detail_screen.dart';
+import '../../features/trade/presentation/screens/trade_dashboard_screen.dart';
+import '../../features/trade/presentation/screens/trade_plans_screen.dart';
+import '../../features/trade/presentation/screens/trade_news_screen.dart';
 
 // ─── Placeholder screens (will be replaced with real features) ───
 
@@ -47,8 +50,22 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/trade',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: _TradePlaceholder(),
+            child: TradeDashboardScreen(),
           ),
+          routes: [
+            GoRoute(
+              path: 'plans',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: TradePlansScreen(),
+              ),
+            ),
+            GoRoute(
+              path: 'news',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: TradeNewsScreen(),
+              ),
+            ),
+          ],
         ),
         GoRoute(
           path: '/profile',
@@ -133,12 +150,6 @@ int _navIndex(String path) {
 const _navPaths = ['/scholarship', '/fashion', '/trade', '/profile'];
 
 // ─── Placeholder widgets ───
-
-class _TradePlaceholder extends StatelessWidget {
-  const _TradePlaceholder();
-  @override
-  Widget build(BuildContext context) => _placeholder('TRADE');
-}
 
 class _ProfilePlaceholder extends StatelessWidget {
   const _ProfilePlaceholder();
