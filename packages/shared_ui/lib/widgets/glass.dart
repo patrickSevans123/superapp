@@ -379,6 +379,26 @@ class GlassBadge extends StatelessWidget {
   }
 }
 
+// ─── GlassFieldLabel ──────────────────────────────────────────────────────────
+
+class GlassFieldLabel extends StatelessWidget {
+  const GlassFieldLabel(this.text, {super.key});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: AppTextStyles.caption.copyWith(
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.6,
+        color: AppColors.hint,
+        fontSize: 11,
+      ),
+    );
+  }
+}
+
 // ─── SleekPageTransition ─────────────────────────────────────────────────────
 
 class SleekPageTransition extends StatelessWidget {

@@ -5,6 +5,10 @@ import 'package:shared_ui/shared_ui.dart';
 import '../../features/scholarship/presentation/screens/browse_screen.dart';
 import '../../features/scholarship/presentation/screens/detail_screen.dart';
 import '../../features/scholarship/presentation/screens/saved_screen.dart';
+import '../../features/fashion/presentation/screens/wardrobe_screen.dart';
+import '../../features/fashion/presentation/screens/add_item_screen.dart';
+import '../../features/fashion/presentation/screens/insights_dashboard_screen.dart';
+import '../../features/fashion/presentation/screens/item_detail_screen.dart';
 
 // ─── Placeholder screens (will be replaced with real features) ───
 
@@ -37,7 +41,7 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/fashion',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: _FashionPlaceholder(),
+            child: WardrobeScreen(),
           ),
         ),
         GoRoute(
@@ -55,7 +59,7 @@ final appRouter = GoRouter(
       ],
     ),
 
-    // ─── Detail route (outside ShellRoute so bottom nav is hidden) ──
+    // ─── Detail routes (outside ShellRoute so bottom nav is hidden) ──
     GoRoute(
       path: '/scholarship/:id',
       pageBuilder: (context, state) {
@@ -63,6 +67,35 @@ final appRouter = GoRouter(
         return CustomTransitionPage(
           key: ValueKey(id),
           child: DetailScreen(id: id),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 200),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/fashion/add',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: AddItemScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/fashion/insights',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: InsightsDashboardScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/fashion/:id',
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return CustomTransitionPage(
+          key: ValueKey(id),
+          child: ItemDetailScreen(itemId: id),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
@@ -100,12 +133,6 @@ int _navIndex(String path) {
 const _navPaths = ['/scholarship', '/fashion', '/trade', '/profile'];
 
 // ─── Placeholder widgets ───
-
-class _FashionPlaceholder extends StatelessWidget {
-  const _FashionPlaceholder();
-  @override
-  Widget build(BuildContext context) => _placeholder('FASHION');
-}
 
 class _TradePlaceholder extends StatelessWidget {
   const _TradePlaceholder();

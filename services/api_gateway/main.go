@@ -202,8 +202,24 @@ func main() {
 	v1.Delete("/scholarships/:id/save", handleUnsaveScholarship)
 	v1.Get("/scholarships/:id", handleGetScholarship)
 
-	// ─── Fashion endpoints (proxied to Supabase) ───
-	v1.Get("/wardrobe", handleListWardrobe)
+	// ─── Fashion / Wardrobe (proxied to Supabase) ───
+	wardrobe := v1.Group("/wardrobe")
+	wardrobe.Get("/", HandleGetWardrobe)
+	wardrobe.Post("/", HandleCreateWardrobeItem)
+	wardrobe.Get("/insights", HandleGetWardrobeInsights)
+	wardrobe.Get("/:id", HandleGetWardrobeItem)
+	wardrobe.Patch("/:id", HandleUpdateWardrobeItem)
+	wardrobe.Delete("/:id", HandleDeleteWardrobeItem)
+	wardrobe.Post("/:id/worn", HandleMarkWorn)
+
+	// ─── Try-On ───
+	tryon := v1.Group("/tryon")
+	tryon.Get("/history", HandleGetTryonHistory)
+	tryon.Post("/", HandleCreateTryon)
+
+	// ─── OOTD ───
+	ootd := v1.Group("/ootd")
+	ootd.Get("/", HandleGetOOTDLogs)
 
 	// ─── Profile endpoints ───
 	v1.Get("/profile", handleGetProfile)
@@ -429,10 +445,6 @@ func handleUnsaveScholarship(c *fiber.Ctx) error {
 		"saved": false,
 		"id":    id,
 	})
-}
-
-func handleListWardrobe(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"message": "wardrobe list — coming in Phase 2"})
 }
 
 func handleGetProfile(c *fiber.Ctx) error {
