@@ -34,7 +34,7 @@ var db *sql.DB
 func main() {
 	_ = godotenv.Load()
 
-	// ── DuckDB initialisation ───────────────────────────────────────────
+	// ── DuckDB initialisation (non-fatal — scholarship queries only) ──
 	var err error
 	dbPath := os.Getenv("DUCKDB_PATH")
 	if dbPath == "" {
@@ -42,15 +42,18 @@ func main() {
 	}
 	db, err = sql.Open("duckdb", dbPath+"?access_mode=read_only&threads=4")
 	if err != nil {
-		log.Fatalf("Failed to open DuckDB: %v", err)
+		log.Printf("WARN: DuckDB unavailable (scholarship queries disabled): %v", err)
+		db = nil
+	} else {
+		db.SetMaxOpenConns(1)
+		if err = db.Ping(); err != nil {
+			log.Printf("WARN: DuckDB ping failed (scholarship queries disabled): %v", err)
+			db.Close()
+			db = nil
+		} else {
+			log.Println("Connected to DuckDB (read-only)")
+		}
 	}
-	db.SetMaxOpenConns(1)
-
-	// Verify connection
-	if err = db.Ping(); err != nil {
-		log.Fatalf("Failed to ping DuckDB: %v", err)
-	}
-	log.Println("Connected to DuckDB (read-only)")
 
 	// ── SQLite initialisation (local auth + data store) ──────────────
 	sqlitePath := os.Getenv("SQLITE_PATH")

@@ -169,6 +169,9 @@ func buildScholarshipFilters(q, level, country, fundingType string) (string, []i
 // handleListScholarships returns a paginated, filterable list of scholarships.
 // GET /api/v1/scholarships?q=&level=&country=&funding_type=&page=1&limit=20
 func handleListScholarships(c *fiber.Ctx) error {
+	if db == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "scholarship database unavailable"})
+	}
 	// ── Parse query params ──────────────────────────────────────────────
 	q := strings.TrimSpace(c.Query("q"))
 	level := strings.TrimSpace(c.Query("level"))
@@ -254,6 +257,9 @@ func handleListScholarships(c *fiber.Ctx) error {
 // handleGetScholarship returns a single scholarship by its id.
 // GET /api/v1/scholarships/:id
 func handleGetScholarship(c *fiber.Ctx) error {
+	if db == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "scholarship database unavailable"})
+	}
 	id := c.Params("id")
 
 	query := `SELECT id, title, provider, description, "level", destination, country,
