@@ -23,19 +23,17 @@ _$ScholarshipModelImpl _$$ScholarshipModelImplFromJson(
           ? const CoverageDetail()
           : CoverageDetail.fromJson(
               json['coverage_detail'] as Map<String, dynamic>),
-      deadline: json['deadline'] == null
-          ? null
-          : DateTime.parse(json['deadline'] as String),
-      openingDate: json['opening_date'] == null
-          ? null
-          : DateTime.parse(json['opening_date'] as String),
+      deadline: const FlexibleDateTimeConverter()
+          .fromJson(json['deadline'] as String?),
+      openingDate: const FlexibleDateTimeConverter()
+          .fromJson(json['opening_date'] as String?),
       url: json['url'] as String? ?? '',
       sourceUrl: json['source_url'] as String? ?? '',
       requirements: (json['requirements'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      fieldOfStudy: (json['field_of_study'] as List<dynamic>?)
+      fieldOfStudy: (json['fieldOfStudy'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -48,12 +46,14 @@ _$ScholarshipModelImpl _$$ScholarshipModelImplFromJson(
               const [],
       version: (json['version'] as num?)?.toInt() ?? 0,
       checksum: json['checksum'] as String? ?? '',
-      foundAt: json['found_at'] == null
-          ? null
-          : DateTime.parse(json['found_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      foundAt: const FlexibleDateTimeConverter()
+          .fromJson(json['found_at'] as String?),
+      updatedAt: const FlexibleDateTimeConverter()
+          .fromJson(json['updated_at'] as String?),
+      languageRequirements: json['language_requirements'] as String? ?? '',
+      applicationFee: json['application_fee'] as String? ?? '',
+      ageLimit: json['age_limit'] as String? ?? '',
+      scholarshipType: json['scholarship_type'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$ScholarshipModelImplToJson(
@@ -68,17 +68,23 @@ Map<String, dynamic> _$$ScholarshipModelImplToJson(
       'country': instance.country,
       'coverage': instance.coverage,
       'coverage_detail': instance.coverageDetail,
-      'deadline': instance.deadline?.toIso8601String(),
-      'opening_date': instance.openingDate?.toIso8601String(),
+      'deadline': const FlexibleDateTimeConverter().toJson(instance.deadline),
+      'opening_date':
+          const FlexibleDateTimeConverter().toJson(instance.openingDate),
       'url': instance.url,
       'source_url': instance.sourceUrl,
       'requirements': instance.requirements,
-      'field_of_study': instance.fieldOfStudy,
+      'fieldOfStudy': instance.fieldOfStudy,
       'tags': instance.tags,
       'funding_type': instance.fundingType,
       'tips': instance.tips,
       'version': instance.version,
       'checksum': instance.checksum,
-      'found_at': instance.foundAt?.toIso8601String(),
-      'updated_at': instance.updatedAt?.toIso8601String(),
+      'found_at': const FlexibleDateTimeConverter().toJson(instance.foundAt),
+      'updated_at':
+          const FlexibleDateTimeConverter().toJson(instance.updatedAt),
+      'language_requirements': instance.languageRequirements,
+      'application_fee': instance.applicationFee,
+      'age_limit': instance.ageLimit,
+      'scholarship_type': instance.scholarshipType,
     };

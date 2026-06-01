@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
 
 /// Edit profile screen.
@@ -43,8 +44,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _error = null;
     });
     try {
-      // TODO: Replace with actual authenticated user ID from Supabase auth
-      const userId = 'current-user-id';
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) {
+        setState(() {
+          _error = 'User not authenticated';
+          _isLoading = false;
+        });
+        return;
+      }
       final repo = ref.read(profileRepositoryProvider);
       final user = await repo.getProfile(userId);
       setState(() {
@@ -66,8 +73,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     setState(() => _isSaving = true);
     try {
-      // TODO: Replace with actual authenticated user ID from Supabase auth
-      const userId = 'current-user-id';
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update profile: User not authenticated'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
       final repo = ref.read(profileRepositoryProvider);
       await repo.updateProfile(
         userId,
@@ -202,7 +217,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           const SizedBox(height: 28),
 
           // ─── Display Name ──────────────────────────────────────
-          GlassFieldLabel('DISPLAY NAME'),
+          const GlassFieldLabel('DISPLAY NAME'),
           const SizedBox(height: 8),
           GlassTextField(
             controller: _displayNameController,
@@ -219,7 +234,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           const SizedBox(height: 8),
 
           // ─── Email (read-only) ─────────────────────────────────
-          GlassFieldLabel('EMAIL'),
+          const GlassFieldLabel('EMAIL'),
           const SizedBox(height: 8),
           GlassTextField(
             hintText: user.email,

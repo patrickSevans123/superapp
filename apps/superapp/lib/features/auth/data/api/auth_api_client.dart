@@ -1,18 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthApiClient {
   final Dio _dio;
 
-  AuthApiClient({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              baseUrl:
-                  dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1',
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              headers: {'Content-Type': 'application/json'},
-            ));
+  /// Accepts a [Dio] instance (typically from [authDioProvider])
+  /// instead of creating its own — avoids duplicated config.
+  AuthApiClient({required Dio dio}) : _dio = dio;
 
   Future<Map<String, dynamic>> register(
       String email, String password, String displayName) async {

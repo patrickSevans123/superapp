@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 import '../providers/trade_providers.dart';
 import '../widgets/plan_card.dart';
@@ -59,6 +61,19 @@ class _TradePlansScreenState extends ConsumerState<TradePlansScreen>
 
   @override
   Widget build(BuildContext context) {
+    return GlassScaffold(
+      appBar: GlassAppBar(
+        title: 'Trading Plans',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(AppRoutes.trade),
+        ),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }

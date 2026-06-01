@@ -42,7 +42,7 @@ class WeatherDatasource {
   }
 
   WeatherModel _mockWeather() {
-    return WeatherModel(
+    return const WeatherModel(
       city: 'Jakarta',
       temperatureCelsius: 28,
       condition: 'clear',

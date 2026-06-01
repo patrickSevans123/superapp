@@ -54,7 +54,7 @@ class _InsightsDashboardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: GlassAppBar(title: 'Analytics'),
+      appBar: const GlassAppBar(title: 'Analytics'),
       body: _buildBody(),
     );
   }
@@ -238,7 +238,7 @@ class _CategoryBreakdown extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GlassFieldLabel('CATEGORY BREAKDOWN'),
+          const GlassFieldLabel('CATEGORY BREAKDOWN'),
           const SizedBox(height: 14),
           ...sorted.map((e) {
             final pct = (e.value / items.length * 100);
@@ -315,7 +315,7 @@ class _InvestmentInsights extends StatelessWidget {
         children: [
           Row(
             children: [
-              GlassFieldLabel('INSIGHTS'),
+              const GlassFieldLabel('INSIGHTS'),
               const Spacer(),
               Text('$totalInvestment items with cost',
                   style: AppTextStyles.caption.copyWith(fontSize: 10)),
@@ -428,7 +428,7 @@ class _ColorHarmony extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GlassFieldLabel('WARDROBE COLOR HARMONY'),
+          const GlassFieldLabel('WARDROBE COLOR HARMONY'),
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),

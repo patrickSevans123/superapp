@@ -102,7 +102,7 @@ class _TryonScreenState extends ConsumerState<TryonScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _StepHeader(step: '01', label: 'SELECT GARMENT'),
+                    const _StepHeader(step: '01', label: 'SELECT GARMENT'),
                     const SizedBox(height: 14),
                     wardrobeAsync.when(
                       loading: () => const SizedBox(
@@ -137,7 +137,7 @@ class _TryonScreenState extends ConsumerState<TryonScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _StepHeader(step: '02', label: 'YOUR PHOTO'),
+                    const _StepHeader(step: '02', label: 'YOUR PHOTO'),
                     const SizedBox(height: 14),
                     _PersonPhotoSection(
                       personFile: tryonState.personFile,
@@ -196,7 +196,7 @@ class _TryonScreenState extends ConsumerState<TryonScreen> {
         // Inline loading overlay
         if (isProcessing)
           Container(
-            color: AppColors.canvas.withOpacity(0.80),
+            color: AppColors.canvas.withValues(alpha: 0.80),
             child: Center(
               child: GlassBox(
                 radius: 16,
@@ -415,7 +415,7 @@ class _TryonScreenState extends ConsumerState<TryonScreen> {
   }
 }
 
-// ── Components ────────────────────────────────────────────────────────────────
+// â”€â”€ Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StepHeader extends StatelessWidget {
   const _StepHeader({required this.step, required this.label});
@@ -430,9 +430,9 @@ class _StepHeader extends StatelessWidget {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: AppColors.accent.withOpacity(0.15),
+            color: AppColors.accent.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.accent.withOpacity(0.25)),
+            border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
           ),
           child: Center(
             child: Text(
@@ -507,7 +507,7 @@ class _GarmentSelector extends StatelessWidget {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.accent.withOpacity(0.20),
+                          color: AppColors.accent.withValues(alpha: 0.20),
                           blurRadius: 12,
                           spreadRadius: 0,
                         )
@@ -569,9 +569,9 @@ class _PersonPhotoSection extends StatelessWidget {
                     height: 48,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.accent.withOpacity(0.10),
+                      color: AppColors.accent.withValues(alpha: 0.10),
                       border: Border.all(
-                          color: AppColors.accent.withOpacity(0.20)),
+                          color: AppColors.accent.withValues(alpha: 0.20)),
                     ),
                     child: const Icon(Icons.person_add_outlined,
                         size: 22, color: AppColors.accent),

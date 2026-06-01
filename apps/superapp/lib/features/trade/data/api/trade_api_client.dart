@@ -1,10 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
-import '../models/app_event.dart';
-import '../models/market_quote.dart';
-import '../models/news_item.dart';
-import '../models/plans_summary.dart';
-import '../models/trading_plan.dart';
+import '../models/models.dart';
 
 /// Exception thrown by the Trade API client.
 class TradeApiException implements Exception {
@@ -30,7 +28,10 @@ class TradeApiClient {
   /// Fetches a single market quote for the given [symbol].
   Future<MarketQuote> getQuote(String symbol) async {
     try {
-      final response = await _dio.get('/quotes/$symbol');
+      final response = await _dio.get(
+        '/market/quote',
+        queryParameters: {'symbol': symbol},
+      );
 
       if (response.statusCode != 200 || response.data == null) {
         throw TradeApiException(
@@ -54,7 +55,7 @@ class TradeApiClient {
   Future<List<MarketQuote>> getQuotes(List<String> symbols) async {
     try {
       final response = await _dio.get(
-        '/quotes',
+        '/market/quotes',
         queryParameters: {'symbols': symbols.join(',')},
       );
 
@@ -66,10 +67,12 @@ class TradeApiClient {
       }
 
       final json = response.data as Map<String, dynamic>;
-      final dataList = (json['data'] as List<dynamic>?)
-              ?.map((e) => MarketQuote.fromJson(e as Map<String, dynamic>))
-              .toList() ??
+      final rawList = (json['data'] as List<dynamic>?) ??
+          (json['quotes'] as List<dynamic>?) ??
           [];
+      final dataList = rawList
+          .map((e) => MarketQuote.fromJson(e as Map<String, dynamic>))
+          .toList();
       return dataList;
     } on DioException catch (e) {
       throw TradeApiException(
@@ -100,12 +103,23 @@ class TradeApiClient {
         );
       }
 
-      final json = response.data as Map<String, dynamic>;
-      final dataList = (json['data'] as List<dynamic>?)
-              ?.map(
-                  (e) => TradingPlan.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [];
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return [];
+      }
+      final dataRaw = json['data'];
+      List<TradingPlan> dataList;
+      if (dataRaw is List) {
+        dataList = dataRaw
+            .map((e) => TradingPlan.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (json['plans'] is List) {
+        dataList = (json['plans'] as List)
+            .map((e) => TradingPlan.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        dataList = [];
+      }
       return dataList;
     } on DioException catch (e) {
       throw TradeApiException(
@@ -127,8 +141,12 @@ class TradeApiClient {
         );
       }
 
-      final json = response.data as Map<String, dynamic>;
-      final dataJson = (json['data'] as Map<String, dynamic>?) ?? json;
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return PlansSummary.fromJson({});
+      }
+      final dataRaw = json['data'];
+      final dataJson = (dataRaw is Map<String, dynamic>) ? dataRaw : json;
       return PlansSummary.fromJson(dataJson);
     } on DioException catch (e) {
       throw TradeApiException(
@@ -141,7 +159,11 @@ class TradeApiClient {
   // ─── News ──────────────────────────────────────────────────────────
 
   /// Fetches news items, with optional [source] and [limit].
-  Future<List<NewsItem>> getNews({
+  ///
+  /// Returns a [NewsResult] that bundles the list with freshness metadata
+  /// (age of newest article, total count, last-modified mtime) so the UI
+  /// can render the "Updated 9m ago" pill without a second round-trip.
+  Future<NewsResult> getNews({
     String source = 'bloomberg_english',
     int limit = 20,
   }) async {
@@ -163,18 +185,123 @@ class TradeApiClient {
         );
       }
 
-      final json = response.data as Map<String, dynamic>;
-      final dataList = (json['data'] as List<dynamic>?)
-              ?.map((e) => NewsItem.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [];
-      return dataList;
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const NewsResult(items: [], ageSeconds: null, count: 0);
+      }
+
+      // The self-trade Go API returns the list under "news" (not "data")
+      // and exposes metadata fields at the top level. Be lenient and accept
+      // both shapes to stay forward-compatible.
+      final rawList = (json['news'] as List<dynamic>?) ??
+          (json['data'] as List<dynamic>?) ??
+          const [];
+      final items = rawList
+          .whereType<Map<String, dynamic>>()
+          .map(NewsItem.fromJson)
+          .toList();
+
+      final count = (json['count'] as num?)?.toInt() ?? items.length;
+      final ageSec = (json['age_seconds'] as num?)?.toInt();
+      final mtime = json['latest_file_mtime'] != null
+          ? DateTime.tryParse(json['latest_file_mtime'].toString())
+          : null;
+
+      return NewsResult(
+        items: items,
+        count: count,
+        ageSeconds: ageSec,
+        ageLabel: json['age']?.toString(),
+        latestFileMtime: mtime,
+        latestFileSize: (json['latest_file_size_bytes'] as num?)?.toInt(),
+      );
     } on DioException catch (e) {
       throw TradeApiException(
         e.message ?? 'Network error',
         statusCode: e.response?.statusCode,
       );
     }
+  }
+
+  /// Fetches per-source freshness for every news scraper.
+  /// GET /api/v1/news/status
+  Future<NewsStatus> getNewsStatus() async {
+    try {
+      final response = await _dio.get('/news/status');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const NewsStatus(
+          allOk: true,
+          total: 0,
+          healthy: 0,
+          stale: 0,
+          sources: [],
+        );
+      }
+      return NewsStatus.fromJson(_unwrapDegraded(json));
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// Fetches per-scraper health across the whole system
+  /// (news + MSCI + trading plans).
+  /// GET /api/v1/scrapers/health
+  Future<ScraperHealth> getScrapersHealth() async {
+    try {
+      final response = await _dio.get('/scrapers/health');
+      // 503 means at least one source is stale — still a valid payload,
+      // so we don't throw, we just unwrap and parse the upstream body.
+      if (response.statusCode != null &&
+          response.statusCode! >= 400 &&
+          response.statusCode != 503) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const ScraperHealth(
+          allHealthy: true,
+          totalCount: 0,
+          healthyCount: 0,
+          staleCount: 0,
+          sources: [],
+        );
+      }
+      return ScraperHealth.fromJson(_unwrapDegraded(json));
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// The api_gateway wraps failed-upstream responses in a
+  /// `{degraded:true, raw:"<json-string>", ...}` envelope. When we see
+  /// that shape, decode the inner `raw` string so the typed model sees
+  /// the actual payload the upstream sent.
+  Map<String, dynamic> _unwrapDegraded(Map<String, dynamic> json) {
+    if (json['degraded'] == true && json['raw'] is String) {
+      try {
+        final inner = jsonDecode(json['raw'] as String);
+        if (inner is Map<String, dynamic>) return inner;
+      } catch (_) {
+        // fall through
+      }
+    }
+    return json;
   }
 
   // ─── Events ────────────────────────────────────────────────────────
@@ -191,11 +318,23 @@ class TradeApiClient {
         );
       }
 
-      final json = response.data as Map<String, dynamic>;
-      final dataList = (json['data'] as List<dynamic>?)
-              ?.map((e) => AppEvent.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [];
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return [];
+      }
+      final dataRaw = json['data'];
+      List<AppEvent> dataList;
+      if (dataRaw is List) {
+        dataList = dataRaw
+            .map((e) => AppEvent.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (json['events'] is List) {
+        dataList = (json['events'] as List)
+            .map((e) => AppEvent.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        dataList = [];
+      }
       return dataList;
     } on DioException catch (e) {
       throw TradeApiException(

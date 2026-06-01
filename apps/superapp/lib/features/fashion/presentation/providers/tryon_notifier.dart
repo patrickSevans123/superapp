@@ -182,8 +182,7 @@ class TryonNotifier extends StateNotifier<TryonState> {
 
   Future<void> deleteHistoryItem(String id) async {
     try {
-      // TODO: Add a DELETE endpoint to FashionApiClient once available
-      // For now, optimistically remove from local state
+      await _api.deleteTryonItem(id);
       state = state.copyWith(
         history: state.history.where((h) => h.id != id).toList(),
       );

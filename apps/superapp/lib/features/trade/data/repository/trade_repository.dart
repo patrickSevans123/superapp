@@ -1,8 +1,11 @@
 import '../api/trade_api_client.dart';
 import '../models/app_event.dart';
 import '../models/market_quote.dart';
-import '../models/news_item.dart';
+import '../models/models.dart';
+import '../models/news_result.dart';
+import '../models/news_status.dart';
 import '../models/plans_summary.dart';
+import '../models/scraper_health.dart';
 import '../models/trading_plan.dart';
 
 /// Repository that mediates between the [TradeApiClient] and the rest of
@@ -54,13 +57,34 @@ class TradeRepository {
 
   // ─── News ───────────────────────────────────────────────────────────
 
-  /// Fetches news items, with optional [source] and [limit].
-  Future<List<NewsItem>> getNews({
+  /// Fetches news items for a given [source]. Returns a [NewsResult]
+  /// bundling the items with freshness metadata (age, count, mtime).
+  Future<NewsResult> getNews({
     String source = 'bloomberg_english',
     int limit = 20,
   }) async {
     try {
       return await _api.getNews(source: source, limit: limit);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Per-source freshness for every news scraper. Used by the trade
+  /// dashboard and in-app notification banner.
+  Future<NewsStatus> getNewsStatus() async {
+    try {
+      return await _api.getNewsStatus();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Cross-system scraper health (news + MSCI + trading plans). Powers
+  /// the "Data Stale" banner on the trade dashboard.
+  Future<ScraperHealth> getScrapersHealth() async {
+    try {
+      return await _api.getScrapersHealth();
     } catch (e) {
       rethrow;
     }

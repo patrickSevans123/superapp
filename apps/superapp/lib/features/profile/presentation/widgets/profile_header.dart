@@ -54,7 +54,7 @@ class ProfileHeader extends StatelessWidget {
           // ─── Premium Badge ─────────────────────────────────────
           if (user.isPremium) ...[
             const SizedBox(height: 10),
-            GlassBadge('Premium', accent: true),
+            const GlassBadge('Premium', accent: true),
           ],
         ],
       ),

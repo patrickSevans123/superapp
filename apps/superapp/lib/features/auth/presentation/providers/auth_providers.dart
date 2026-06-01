@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_models/shared_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/network/network_providers.dart';
@@ -28,13 +29,19 @@ final authApiClientProvider = Provider<AuthApiClient>((ref) {
   return AuthApiClient(dio: ref.read(authDioProvider));
 });
 
+/// Provider for user ID extracted from auth state (used by other providers).
+final currentUserIdProvider = Provider<String?>((ref) {
+  final user = ref.watch(authStateProvider).user;
+  return user?.id;
+});
+
 // ─── Auth State ──────────────────────────────────────────────────────────────
 
 class AuthState {
   final bool isLoading;
   final bool isLoggedIn;
   final String? token;
-  final Map<String, dynamic>? user;
+  final UserModel? user;
   final String? error;
 
   const AuthState({
@@ -49,7 +56,7 @@ class AuthState {
     bool? isLoading,
     bool? isLoggedIn,
     String? token,
-    Map<String, dynamic>? user,
+    UserModel? user,
     String? error,
     bool clearError = false,
   }) =>

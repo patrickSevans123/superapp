@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 import '../providers/trade_providers.dart';
 import '../widgets/plan_card.dart';
@@ -25,6 +27,7 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
   PlansSummary? _summary;
   List<TradingPlan> _activePlans = [];
   List<AppEvent> _events = [];
+  bool _dismissed = false;
 
   @override
   void initState() {
@@ -107,6 +110,7 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
         padding: const EdgeInsets.all(12),
         children: [
           _buildHeader(),
+          _buildStaleBanner(),
           const SizedBox(height: 12),
 
           if (_summary != null)
@@ -149,6 +153,37 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
                 ),
               ],
             ),
+
+          const SizedBox(height: 16),
+
+          // ── Quick Actions ──────────────────────────────────────────────────
+          Text(
+            'Quick Actions',
+            style: AppTextStyles.title.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: SleekButton.gradient(
+                  label: 'Trading Plans',
+                  onPressed: () => context.go(AppRoutes.tradePlans),
+                  icon: Icons.assignment,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SleekButton(
+                  label: 'Market News',
+                  variant: SleekButtonVariant.secondary,
+                  onPressed: () => context.go(AppRoutes.tradeNews),
+                  icon: Icons.newspaper,
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 16),
           Text(
@@ -208,6 +243,75 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
         ],
       ),
     );
+  }
+
+  /// Compact "data stale" banner that surfaces the worst offending source
+  /// across all scrapers (news + MSCI + plans). Hidden on load/error or
+  /// when every source is healthy, and dismissible per-session via
+  /// setState. Mirrors the colour scheme used by `news_freshness_banner.dart`.
+  Widget _buildStaleBanner() {
+    final health = ref.watch(scrapersHealthProvider);
+    return health.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (h) {
+        if (_dismissed || h.allHealthy) return const SizedBox.shrink();
+        final worst = h.worstOffender;
+        if (worst == null) return const SizedBox.shrink();
+        final age = worst.ageLabel ?? '${worst.ageSeconds ?? 0}s';
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withOpacity(0.12),
+            border: Border.all(color: AppColors.warning.withOpacity(0.35)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.warning,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '⚠️ ${_humaniseSource(worst.source)} data stale — last update $age ago',
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 12,
+                    color: AppColors.ink,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              InkWell(
+                onTap: () => setState(() => _dismissed = true),
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.close, size: 16, color: AppColors.stone),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _humaniseSource(String s) {
+    switch (s) {
+      case 'bloomberg_english':
+        return 'Bloomberg English';
+      case 'bloomberg_technoz':
+        return 'Bloomberg Technoz';
+      case 'reuters':
+        return 'Reuters';
+      default:
+        return s;
+    }
   }
 
   Widget _buildEventTile(AppEvent event) {

@@ -1,0 +1,13 @@
+# agentic-core — symlink target
+# On the VPS (Linux), create a symlink from packages/agentic_core to the
+# agentic-core repo:
+#
+#   ln -s /home/evans/Tools/agentic-core packages/agentic_core
+#
+# On macOS:
+#   ln -s /path/to/agentic-core packages/agentic_core
+#
+# On Windows (elevated PowerShell):
+#   New-Item -ItemType Junction -Path packages\agentic_core -Target C:\path\to\agentic-core
+#
+# This path is gitignored (see .gitignore). Set it up once per machine.

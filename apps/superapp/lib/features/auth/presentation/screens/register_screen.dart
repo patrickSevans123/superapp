@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../providers/auth_providers.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -56,7 +57,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Logo / Title
-                      Icon(Icons.person_add, size: 48, color: AppColors.accent),
+                      const Icon(Icons.person_add, size: 48, color: AppColors.accent),
                       const SizedBox(height: 12),
                       Text(
                         'Create Account',
@@ -165,7 +166,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             style: AppTextStyles.caption,
                           ),
                           GestureDetector(
-                            onTap: () => context.go('/login'),
+                            onTap: () => context.go(AppRoutes.login),
                             child: Text(
                               'Sign In',
                               style: AppTextStyles.caption.copyWith(

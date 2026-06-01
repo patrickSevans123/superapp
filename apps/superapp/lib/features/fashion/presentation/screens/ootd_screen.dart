@@ -61,7 +61,7 @@ class _OotdContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Weather banner ────────────────────────────────────────────
+          // â”€â”€ Weather banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _WeatherBanner(weather: suggestion.weather),
 
           const SizedBox(height: 14),
@@ -77,9 +77,9 @@ class _OotdContent extends ConsumerWidget {
                     height: 64,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.accent.withOpacity(0.10),
+                      color: AppColors.accent.withValues(alpha: 0.10),
                       border: Border.all(
-                          color: AppColors.accent.withOpacity(0.20)),
+                          color: AppColors.accent.withValues(alpha: 0.20)),
                     ),
                     child: const Icon(Icons.checkroom_outlined,
                         color: AppColors.accent, size: 32),
@@ -102,7 +102,7 @@ class _OotdContent extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 children: [
-                  _GlassFieldLabel('SUGGESTED OUTFIT'),
+                  const _GlassFieldLabel('SUGGESTED OUTFIT'),
                   const Spacer(),
                   Text(
                     '${suggestion.items.length} items',
@@ -125,7 +125,6 @@ class _OotdContent extends ConsumerWidget {
   }
 
   Future<void> _wearAll(BuildContext context, WidgetRef ref) async {
-    // TODO: Integrate with backend when mark-worn endpoint is stable
     for (final item in suggestion.items) {
       try {
         await ref.read(fashionApiClientProvider).markWorn(item.id);
@@ -140,7 +139,7 @@ class _OotdContent extends ConsumerWidget {
   }
 }
 
-// ── Weather banner ────────────────────────────────────────────────────────────
+// â”€â”€ Weather banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _WeatherBanner extends StatelessWidget {
   const _WeatherBanner({required this.weather});
@@ -190,7 +189,7 @@ class _WeatherBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${weather.temperatureCelsius.round()}°',
+                '${weather.temperatureCelsius.round()}Â°',
                 style: AppTextStyles.display
                     .copyWith(fontSize: 56, color: AppColors.ink),
               ),
@@ -221,7 +220,7 @@ class _WeatherPill extends StatelessWidget {
   }
 }
 
-// ── Outfit card ───────────────────────────────────────────────────────────────
+// â”€â”€ Outfit card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _OutfitCard extends StatelessWidget {
   const _OutfitCard({required this.item});
@@ -313,7 +312,7 @@ class _OutfitCard extends StatelessWidget {
   }
 }
 
-// ── Loading state ─────────────────────────────────────────────────────────────
+// â”€â”€ Loading state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _LoadingState extends StatelessWidget {
   const _LoadingState();
@@ -357,7 +356,7 @@ class _LoadingState extends StatelessWidget {
   }
 }
 
-// ── Inline GlassFieldLabel (not exported from shared_ui) ──────────────────────
+// â”€â”€ Inline GlassFieldLabel (not exported from shared_ui) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _GlassFieldLabel extends StatelessWidget {
   const _GlassFieldLabel(this.label);

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_tile.dart';
@@ -36,8 +38,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _error = null;
     });
     try {
-      // TODO: Replace with actual authenticated user ID from Supabase auth
-      const userId = 'current-user-id';
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) {
+        setState(() {
+          _error = 'User not authenticated';
+          _isLoading = false;
+        });
+        return;
+      }
       final repo = ref.read(profileRepositoryProvider);
       final user = await repo.getProfile(userId);
       setState(() {
@@ -108,7 +116,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ProfileHeader(user: user),
 
           // ─── Stats Row ─────────────────────────────────────────
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: _StatCard(
@@ -143,7 +151,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ProfileMenuTile(
             icon: Icons.person,
             title: 'Edit Profile',
-            onTap: () => context.push('/profile/edit'),
+            onTap: () => context.push(AppRoutes.profileEdit),
           ),
 
           ProfileMenuTile(
@@ -159,7 +167,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ProfileMenuTile(
             icon: Icons.settings_outlined,
             title: 'Settings',
-            onTap: () => context.push('/profile/settings'),
+            onTap: () => context.push(AppRoutes.profileSettings),
           ),
 
           ProfileMenuTile(

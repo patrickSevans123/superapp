@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/network/network_providers.dart';
+import '../../../../core/router/app_routes.dart';
 import '../providers/fashion_providers.dart';
 
 const _categories = [
@@ -58,12 +61,17 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     try {
       final api = ref.read(fashionApiClientProvider);
 
-      // TODO: Upload image to storage and get URL.
-      // For now, the API will accept null image URLs.
       final String? imageUrl;
       if (_imageFile != null) {
-        // Placeholder — replace with actual upload logic against the backend
-        imageUrl = null;
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            _imageFile!.path,
+            filename: 'garment.jpg',
+          ),
+        });
+        final uploadResponse =
+            await ref.read(authDioProvider).post('/upload/photo', data: formData);
+        imageUrl = uploadResponse.data['url'] as String?;
       } else {
         imageUrl = null;
       }
@@ -80,7 +88,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       };
 
       await api.createItem(payload);
-      if (mounted) context.go('/fashion');
+      if (mounted) context.go(AppRoutes.fashion);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -95,7 +103,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: GlassAppBar(title: 'Add Item'),
+      appBar: const GlassAppBar(title: 'Add Item'),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -105,7 +113,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Photo picker ─────────────────────────────────────────
+                  // â”€â”€ Photo picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   GlassBox(
                     radius: 16,
                     padding: const EdgeInsets.all(16),
@@ -119,14 +127,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
                   const SizedBox(height: 14),
 
-                  // ── Form fields ──────────────────────────────────────────
+                  // â”€â”€ Form fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   GlassBox(
                     radius: 16,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GlassFieldLabel('ITEM DETAILS'),
+                        const GlassFieldLabel('ITEM DETAILS'),
                         const SizedBox(height: 14),
 
                         GlassTextField(
@@ -156,7 +164,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           hintText: 'Cost (\$)',
                           prefixIcon: Icons.attach_money,
                           keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
+                              const TextInputType.numberWithOptions(decimal: true),
                         ),
                       ],
                     ),
@@ -164,14 +172,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
                   const SizedBox(height: 14),
 
-                  // ── Season chips ─────────────────────────────────────────
+                  // â”€â”€ Season chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   GlassBox(
                     radius: 16,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GlassFieldLabel('SEASON'),
+                        const GlassFieldLabel('SEASON'),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
@@ -206,7 +214,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               ),
             ),
           ),
-          // ── Loading overlay ────────────────────────────────────────────
+          // â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           if (_isSaving)
             Container(
               color: Colors.black26,
@@ -222,7 +230,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                         color: AppColors.accent,
                       ),
                       const SizedBox(height: 16),
-                      Text('Saving…', style: AppTextStyles.caption),
+                      Text('Savingâ€¦', style: AppTextStyles.caption),
                     ],
                   ),
                 ),
@@ -234,7 +242,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   }
 }
 
-// ── Components ────────────────────────────────────────────────────────────────
+// â”€â”€ Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _CategoryDropdown extends StatelessWidget {
   const _CategoryDropdown({
@@ -299,12 +307,12 @@ class _SeasonChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.accent.withOpacity(0.15)
+              ? AppColors.accent.withValues(alpha: 0.15)
               : AppColors.elevated,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: selected
-                ? AppColors.accent.withOpacity(0.50)
+                ? AppColors.accent.withValues(alpha: 0.50)
                 : AppColors.border,
             width: 1.0,
           ),
@@ -357,7 +365,7 @@ class _PhotoSection extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.canvas.withOpacity(0.7),
+                  color: AppColors.canvas.withValues(alpha: 0.7),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.close, size: 18, color: AppColors.ink),
@@ -375,8 +383,8 @@ class _PhotoSection extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.accent.withOpacity(0.10),
-              border: Border.all(color: AppColors.accent.withOpacity(0.20)),
+              color: AppColors.accent.withValues(alpha: 0.10),
+              border: Border.all(color: AppColors.accent.withValues(alpha: 0.20)),
             ),
             child: const Icon(Icons.add_photo_alternate_outlined,
                 size: 26, color: AppColors.accent),

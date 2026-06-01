@@ -20,8 +20,7 @@ _$ClothingItemModelImpl _$$ClothingItemModelImplFromJson(
       originalImageUrl: json['original_image_url'] as String?,
       processedImageUrl: json['processed_image_url'] as String?,
       dominantColors: (json['dominant_colors'] as List<dynamic>?)
-              ?.map((e) =>
-                  DominantColor.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => DominantColor.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       brand: json['brand'] as String?,
@@ -46,8 +45,7 @@ Map<String, dynamic> _$$ClothingItemModelImplToJson(
       'season_tags': instance.seasonTags,
       'original_image_url': instance.originalImageUrl,
       'processed_image_url': instance.processedImageUrl,
-      'dominant_colors':
-          instance.dominantColors.map((e) => e.toJson()).toList(),
+      'dominant_colors': instance.dominantColors,
       'brand': instance.brand,
       'cost': instance.cost,
       'times_worn': instance.timesWorn,

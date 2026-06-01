@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/api/api.dart';
 import '../../data/models/models.dart';
 import '../providers/fashion_providers.dart';
@@ -131,7 +132,7 @@ class _ItemDetailContent extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          // ── Collapsible hero image ────────────────────────────────
+          // â”€â”€ Collapsible hero image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverAppBar(
             expandedHeight: 360,
             pinned: true,
@@ -170,7 +171,7 @@ class _ItemDetailContent extends StatelessWidget {
                           end: Alignment.topCenter,
                           colors: [
                             AppColors.canvas,
-                            AppColors.canvas.withOpacity(0),
+                            AppColors.canvas.withValues(alpha: 0),
                           ],
                         ),
                       ),
@@ -181,7 +182,7 @@ class _ItemDetailContent extends StatelessWidget {
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: AppColors.ink),
-              onPressed: () => context.go('/fashion'),
+              onPressed: () => context.go(AppRoutes.fashion),
             ),
             actions: [
               Container(
@@ -202,7 +203,7 @@ class _ItemDetailContent extends StatelessWidget {
             ],
           ),
 
-          // ── Details ───────────────────────────────────────────────
+          // â”€â”€ Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -261,14 +262,14 @@ class _ItemDetailContent extends StatelessWidget {
                           child: _StatBox(
                         value: item.lastWornAt != null
                             ? '${item.lastWornAt!.day}/${item.lastWornAt!.month}'
-                            : '—',
+                            : 'â€”',
                         label: 'LAST WORN',
                       )),
                       const SizedBox(width: 10),
                       Expanded(
                           child: _StatBox(
                         value: item.seasonTags.isEmpty
-                            ? '—'
+                            ? 'â€”'
                             : item.seasonTags.first,
                         label: 'SEASON',
                       )),
@@ -288,7 +289,7 @@ class _ItemDetailContent extends StatelessWidget {
                                 content: Text('Logged as worn today')),
                           );
                           // Reload item detail to refresh counts
-                          context.go('/fashion');
+                          context.go(AppRoutes.fashion);
                         }
                       } catch (e) {
                         if (context.mounted) {
@@ -356,7 +357,7 @@ class _ItemDetailContent extends StatelessWidget {
     if (confirm == true && context.mounted) {
       try {
         await api.deleteItem(item.id);
-        if (context.mounted) context.go('/fashion');
+        if (context.mounted) context.go(AppRoutes.fashion);
       } catch (e) {
         // Error handled silently; item still removed from local list
       }

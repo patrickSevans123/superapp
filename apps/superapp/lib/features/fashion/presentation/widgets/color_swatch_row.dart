@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../utils/color_utils.dart';
 import '../../data/models/models.dart';
 
@@ -20,7 +20,7 @@ class ColorSwatchRow extends StatelessWidget {
           return Expanded(
             flex: (c.percentage * 100).round().clamp(1, 100),
             child: Tooltip(
-              message: '${c.hex} — $pct%',
+              message: '${c.hex} â€” $pct%',
               child: Container(color: color),
             ),
           );
@@ -30,7 +30,7 @@ class ColorSwatchRow extends StatelessWidget {
   }
 }
 
-/// A row of small color circles — used in compact contexts (cards, lists).
+/// A row of small color circles â€” used in compact contexts (cards, lists).
 class ColorSwatchCircles extends StatelessWidget {
   const ColorSwatchCircles({
     super.key,
@@ -55,7 +55,7 @@ class ColorSwatchCircles extends StatelessWidget {
           decoration: BoxDecoration(
             color: ColorUtils.hexToColor(c.hex),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withOpacity(0.25)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
           ),
         );
       }).toList(),

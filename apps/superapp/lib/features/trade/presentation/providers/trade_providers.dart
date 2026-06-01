@@ -13,3 +13,17 @@ final tradeApiClientProvider = Provider<TradeApiClient>((ref) {
 final tradeRepositoryProvider = Provider<TradeRepository>((ref) {
   return TradeRepository(ref.read(tradeApiClientProvider));
 });
+
+/// Per-source news freshness, polled every 60s while at least one consumer
+/// is listening. Powers the data-stale banner on the trade dashboard.
+final newsStatusProvider = FutureProvider.autoDispose((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getNewsStatus();
+});
+
+/// Cross-system scraper health (news + MSCI + trading plans). Same
+/// 60s polling cadence as [newsStatusProvider].
+final scrapersHealthProvider = FutureProvider.autoDispose((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getScrapersHealth();
+});

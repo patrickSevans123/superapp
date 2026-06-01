@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../providers/auth_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -53,7 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Logo / Title
-                      Icon(Icons.wallet, size: 48, color: AppColors.accent),
+                      const Icon(Icons.wallet, size: 48, color: AppColors.accent),
                       const SizedBox(height: 12),
                       Text(
                         'Welcome Back',
@@ -147,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: AppTextStyles.caption,
                           ),
                           GestureDetector(
-                            onTap: () => context.go('/register'),
+                            onTap: () => context.go(AppRoutes.register),
                             child: Text(
                               'Register',
                               style: AppTextStyles.caption.copyWith(

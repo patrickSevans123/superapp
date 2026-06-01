@@ -44,9 +44,6 @@ mixin _$ClothingItemModel {
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Computed: cost per wear based on [timesWorn] and [cost].
-  double? get costPerWear => throw _privateConstructorUsedError;
-
   /// Serializes this ClothingItemModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -287,7 +284,7 @@ class __$$ClothingItemModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ClothingItemModelImpl implements _ClothingItemModel {
+class _$ClothingItemModelImpl extends _ClothingItemModel {
   const _$ClothingItemModelImpl(
       {required this.id,
       @JsonKey(name: 'user_id') required this.userId,
@@ -305,7 +302,8 @@ class _$ClothingItemModelImpl implements _ClothingItemModel {
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt})
       : _seasonTags = seasonTags,
-        _dominantColors = dominantColors;
+        _dominantColors = dominantColors,
+        super._();
 
   factory _$ClothingItemModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ClothingItemModelImplFromJson(json);
@@ -313,6 +311,7 @@ class _$ClothingItemModelImpl implements _ClothingItemModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'user_id')
   final String userId;
   @override
   final String name;
@@ -360,12 +359,8 @@ class _$ClothingItemModelImpl implements _ClothingItemModel {
   final DateTime? updatedAt;
 
   @override
-  double? get costPerWear =>
-      timesWorn > 0 && cost != null ? cost! / timesWorn : null;
-
-  @override
   String toString() {
-    return 'ClothingItemModel(id: $id, userId: $userId, name: $name, category: $category, seasonTags: $seasonTags, originalImageUrl: $originalImageUrl, processedImageUrl: $processedImageUrl, dominantColors: $dominantColors, brand: $brand, cost: $cost, timesWorn: $timesWorn, lastWornAt: $lastWornAt, createdAt: $createdAt, updatedAt: $updatedAt, costPerWear: $costPerWear)';
+    return 'ClothingItemModel(id: $id, userId: $userId, name: $name, category: $category, seasonTags: $seasonTags, originalImageUrl: $originalImageUrl, processedImageUrl: $processedImageUrl, dominantColors: $dominantColors, brand: $brand, cost: $cost, timesWorn: $timesWorn, lastWornAt: $lastWornAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -400,23 +395,22 @@ class _$ClothingItemModelImpl implements _ClothingItemModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        id,
-        userId,
-        name,
-        category,
-        const DeepCollectionEquality().hash(_seasonTags),
-        originalImageUrl,
-        processedImageUrl,
-        const DeepCollectionEquality().hash(_dominantColors),
-        brand,
-        cost,
-        timesWorn,
-        lastWornAt,
-        createdAt,
-        updatedAt
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      userId,
+      name,
+      category,
+      const DeepCollectionEquality().hash(_seasonTags),
+      originalImageUrl,
+      processedImageUrl,
+      const DeepCollectionEquality().hash(_dominantColors),
+      brand,
+      cost,
+      timesWorn,
+      lastWornAt,
+      createdAt,
+      updatedAt);
 
   /// Create a copy of ClothingItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -435,23 +429,25 @@ class _$ClothingItemModelImpl implements _ClothingItemModel {
   }
 }
 
-abstract class _ClothingItemModel implements ClothingItemModel {
+abstract class _ClothingItemModel extends ClothingItemModel {
   const factory _ClothingItemModel(
-      {required final String id,
-      @JsonKey(name: 'user_id') required final String userId,
-      required final String name,
-      required final String category,
-      @JsonKey(name: 'season_tags') final List<String> seasonTags,
-      @JsonKey(name: 'original_image_url') final String? originalImageUrl,
-      @JsonKey(name: 'processed_image_url') final String? processedImageUrl,
-      @JsonKey(name: 'dominant_colors') final List<DominantColor> dominantColors,
-      final String? brand,
-      final double? cost,
-      @JsonKey(name: 'times_worn') final int timesWorn,
-      @JsonKey(name: 'last_worn_at') final DateTime? lastWornAt,
-      @JsonKey(name: 'created_at') required final DateTime createdAt,
-      @JsonKey(name: 'updated_at') final DateTime? updatedAt}) =
+          {required final String id,
+          @JsonKey(name: 'user_id') required final String userId,
+          required final String name,
+          required final String category,
+          @JsonKey(name: 'season_tags') final List<String> seasonTags,
+          @JsonKey(name: 'original_image_url') final String? originalImageUrl,
+          @JsonKey(name: 'processed_image_url') final String? processedImageUrl,
+          @JsonKey(name: 'dominant_colors')
+          final List<DominantColor> dominantColors,
+          final String? brand,
+          final double? cost,
+          @JsonKey(name: 'times_worn') final int timesWorn,
+          @JsonKey(name: 'last_worn_at') final DateTime? lastWornAt,
+          @JsonKey(name: 'created_at') required final DateTime createdAt,
+          @JsonKey(name: 'updated_at') final DateTime? updatedAt}) =
       _$ClothingItemModelImpl;
+  const _ClothingItemModel._() : super._();
 
   factory _ClothingItemModel.fromJson(Map<String, dynamic> json) =
       _$ClothingItemModelImpl.fromJson;
@@ -493,10 +489,6 @@ abstract class _ClothingItemModel implements ClothingItemModel {
   @override
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt;
-
-  /// Computed: cost per wear based on [timesWorn] and [cost].
-  @override
-  double? get costPerWear;
 
   /// Create a copy of ClothingItemModel
   /// with the given fields replaced by the non-null parameter values.

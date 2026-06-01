@@ -9,14 +9,13 @@ import 'auth_interceptor.dart';
 /// All feature-level Dio providers should reference this one so that every
 /// outgoing request includes the JWT token and 401 responses trigger a logout.
 final authDioProvider = Provider<Dio>((ref) {
-  final baseUrl =
-      dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1';
+  final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1';
   final dio = Dio(BaseOptions(
     baseUrl: baseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
     headers: {'Content-Type': 'application/json'},
   ));
-  dio.interceptors.add(AuthInterceptor(ref));
+  dio.interceptors.add(AuthInterceptor(ref, dio));
   return dio;
 });

@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 import '../providers/fashion_providers.dart';
 import '../widgets/color_swatch_row.dart';
@@ -121,7 +122,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                   const SizedBox(height: 12),
                   const GlassDivider(),
                   const SizedBox(height: 16),
-                  GlassFieldLabel('CATEGORIES'),
+                  const GlassFieldLabel('CATEGORIES'),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -146,19 +147,19 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                           setState(() {});
                         },
                         backgroundColor: AppColors.surfaceAlt,
-                        selectedColor: AppColors.accent.withOpacity(0.12),
+                        selectedColor: AppColors.accent.withValues(alpha: 0.12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                         side: BorderSide(
                           color: isSel
-                              ? AppColors.accent.withOpacity(0.5)
+                              ? AppColors.accent.withValues(alpha: 0.5)
                               : AppColors.border,
                         ),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  GlassFieldLabel('SEASONS'),
+                  const GlassFieldLabel('SEASONS'),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -183,19 +184,19 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                           setState(() {});
                         },
                         backgroundColor: AppColors.surfaceAlt,
-                        selectedColor: AppColors.accent.withOpacity(0.12),
+                        selectedColor: AppColors.accent.withValues(alpha: 0.12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                         side: BorderSide(
                           color: isSel
-                              ? AppColors.accent.withOpacity(0.5)
+                              ? AppColors.accent.withValues(alpha: 0.5)
                               : AppColors.border,
                         ),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  GlassFieldLabel('WORN STATUS'),
+                  const GlassFieldLabel('WORN STATUS'),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -255,7 +256,9 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
         if (!matchesSearch) return false;
       }
       if (_selectedCategories.isNotEmpty &&
-          !_selectedCategories.contains(item.category)) return false;
+          !_selectedCategories.contains(item.category)) {
+        return false;
+      }
       if (_selectedSeasons.isNotEmpty &&
           item.seasonTags.every((t) => !_selectedSeasons.contains(t))) {
         return false;
@@ -263,7 +266,9 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
       if (_selectedWornBracket != null) {
         if (_selectedWornBracket == 0 && item.timesWorn > 0) return false;
         if (_selectedWornBracket == 1 &&
-            (item.timesWorn < 1 || item.timesWorn > 5)) return false;
+            (item.timesWorn < 1 || item.timesWorn > 5)) {
+          return false;
+        }
         if (_selectedWornBracket == 2 && item.timesWorn < 6) return false;
       }
       return true;
@@ -282,7 +287,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                 autofocus: true,
                 style: AppTextStyles.body.copyWith(color: AppColors.ink),
                 decoration: InputDecoration(
-                  hintText: 'Search items…',
+                  hintText: 'Search itemsâ€¦',
                   hintStyle: AppTextStyles.caption,
                   border: InputBorder.none,
                 ),
@@ -308,9 +313,9 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
           ),
           IconButton(
             icon: _hasActiveFilters
-                ? Badge(
+                ? const Badge(
                     smallSize: 8,
-                    child: const Icon(Icons.filter_list,
+                    child: Icon(Icons.filter_list,
                         size: 20, color: AppColors.accent),
                   )
                 : const Icon(Icons.filter_list,
@@ -321,7 +326,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
           IconButton(
             icon: const Icon(Icons.analytics_outlined,
                 size: 20, color: AppColors.stone),
-            onPressed: () => context.go('/fashion/insights'),
+            onPressed: () => context.go(AppRoutes.fashionInsights),
             tooltip: 'Analytics',
           ),
           const SizedBox(width: 4),
@@ -329,7 +334,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
       ),
       body: _buildBody(),
       floatingActionButton: _AddFab(
-        onPressed: () => context.go('/fashion/add'),
+        onPressed: () => context.go(AppRoutes.fashionAdd),
       ),
     );
   }
@@ -371,7 +376,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
 
     final filtered = _filterItems(_items);
     if (_items.isEmpty) {
-      return _EmptyWardrobe(onAdd: () => context.go('/fashion/add'));
+      return _EmptyWardrobe(onAdd: () => context.go(AppRoutes.fashionAdd));
     }
     if (filtered.isEmpty) {
       return Center(
@@ -390,7 +395,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
   }
 }
 
-// ── Grid ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _WardrobeGrid extends StatelessWidget {
   const _WardrobeGrid({required this.items});
@@ -422,7 +427,7 @@ class _ClothingCard extends StatelessWidget {
 
     return GlassCard(
         radius: 14,
-        onTap: () => context.go('/fashion/${item.id}'),
+        onTap: () => context.go(AppRoutes.fashionDetailFor(item.id)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -483,11 +488,11 @@ class _ClothingCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 7, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.12),
+                            color: AppColors.accent.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            '×${item.timesWorn}',
+                            'Ã—${item.timesWorn}',
                             style: AppTextStyles.caption.copyWith(
                               fontWeight: FontWeight.w600,
                               fontSize: 10,
@@ -506,7 +511,7 @@ class _ClothingCard extends StatelessWidget {
   }
 }
 
-// ── Filter pill ─────────────────────────────────────────────────────────────────
+// â”€â”€ Filter pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _WornPill extends StatelessWidget {
   const _WornPill({
@@ -530,12 +535,12 @@ class _WornPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.accent.withOpacity(0.15)
+                ? AppColors.accent.withValues(alpha: 0.15)
                 : AppColors.elevated,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: selected
-                  ? AppColors.accent.withOpacity(0.5)
+                  ? AppColors.accent.withValues(alpha: 0.5)
                   : AppColors.border,
             ),
           ),
@@ -577,7 +582,7 @@ class _CategoryBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.canvas.withOpacity(0.85),
+        color: AppColors.canvas.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border),
       ),
@@ -594,7 +599,7 @@ class _CategoryBadge extends StatelessWidget {
   }
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EmptyWardrobe extends StatelessWidget {
   const _EmptyWardrobe({required this.onAdd});
@@ -616,9 +621,9 @@ class _EmptyWardrobe extends StatelessWidget {
                 height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.accent.withOpacity(0.10),
+                  color: AppColors.accent.withValues(alpha: 0.10),
                   border: Border.all(
-                      color: AppColors.accent.withOpacity(0.20)),
+                      color: AppColors.accent.withValues(alpha: 0.20)),
                 ),
                 child: const Icon(Icons.checkroom_outlined,
                     size: 36, color: AppColors.accent),
@@ -650,7 +655,7 @@ class _EmptyWardrobe extends StatelessWidget {
   }
 }
 
-// ── Shimmer grid ──────────────────────────────────────────────────────────────
+// â”€â”€ Shimmer grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShimmerGrid extends StatelessWidget {
   const _ShimmerGrid();
@@ -680,7 +685,7 @@ class _ShimmerGrid extends StatelessWidget {
   }
 }
 
-// ── FAB ───────────────────────────────────────────────────────────────────────
+// â”€â”€ FAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _AddFab extends StatefulWidget {
   const _AddFab({required this.onPressed});

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 
 /// A card that displays a single [TradingPlan].
@@ -27,6 +29,7 @@ class PlanCard extends StatelessWidget {
     return GlassCard(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       padding: const EdgeInsets.all(12),
+      onTap: () => context.push(AppRoutes.tradePlanDetailFor(plan.id)),
       child: Row(
         children: [
           Expanded(
@@ -112,6 +115,12 @@ class PlanCard extends StatelessWidget {
                   ),
               ],
             ),
+          const SizedBox(width: 6),
+          const Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: AppColors.hint,
+          ),
         ],
       ),
     );

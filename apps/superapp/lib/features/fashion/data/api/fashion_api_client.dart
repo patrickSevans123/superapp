@@ -299,6 +299,24 @@ class FashionApiClient {
     }
   }
 
+  /// Deletes a try-on history item by [id].
+  Future<void> deleteTryonItem(String id) async {
+    try {
+      final response = await _dio.delete('/tryon/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw FashionApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw FashionApiException(
+        e.message ?? 'Failed to delete try-on item',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
   // ─── OOTD ───────────────────────────────────────────────────────────
 
   /// Fetches Outfit-of-the-Day logs.

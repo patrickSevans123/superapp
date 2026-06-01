@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../providers/settings_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -80,7 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           title: const Text('Notification Preferences'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () =>
-                              context.push('/profile/settings/notifications'),
+                              context.push(AppRoutes.profileNotifications),
                         ),
                       ),
                       const SizedBox(height: 24),

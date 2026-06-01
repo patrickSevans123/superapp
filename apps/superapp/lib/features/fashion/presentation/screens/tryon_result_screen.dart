@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -17,7 +17,7 @@ class TryonResultScreen extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Result image ──────────────────────────────────────────────
+          // â”€â”€ Result image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           resultUrl != null
               ? CachedNetworkImage(
                   imageUrl: resultUrl,
@@ -44,13 +44,13 @@ class TryonResultScreen extends ConsumerWidget {
                   child: Text('No result available',
                       style: TextStyle(color: AppColors.hint))),
 
-          // ── Top bar ───────────────────────────────────────────────────
+          // â”€â”€ Top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: Container(
-              color: AppColors.canvas.withOpacity(0.90),
+              color: AppColors.canvas.withValues(alpha: 0.90),
               child: SafeArea(
                 bottom: false,
                 child: Row(
@@ -90,13 +90,13 @@ class TryonResultScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Bottom action bar ─────────────────────────────────────────
+          // â”€â”€ Bottom action bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
-              color: AppColors.canvas.withOpacity(0.90),
+              color: AppColors.canvas.withValues(alpha: 0.90),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: SafeArea(
                 top: false,

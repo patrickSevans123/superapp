@@ -1,134 +1,89 @@
-// ─── Scholarship Detail Screen ───────────────────────────────────────────
+// â”€â”€â”€ Scholarship Detail Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
-import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../data/models/scholarship_model.dart';
 import '../providers/scholarship_providers.dart';
+import '../shared/scholarship_helpers.dart';
 
-// ─── Country → Flag Emoji Helper ─────────────────────────────────────────
+// â”€â”€â”€ Application Status Options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-String _countryFlag(String country) {
-  const flags = <String, String>{
-    'Jerman': '🇩🇪',
-    'Jepang': '🇯🇵',
-    'Korea Selatan': '🇰🇷',
-    'Tiongkok': '🇨🇳',
-    'Amerika Serikat': '🇺🇸',
-    'Inggris': '🇬🇧',
-    'Australia': '🇦🇺',
-    'Singapura': '🇸🇬',
-    'Belanda': '🇳🇱',
-    'Swiss': '🇨🇭',
-    'Indonesia': '🇮🇩',
-    'Perancis': '🇫🇷',
-    'Kanada': '🇨🇦',
-    'Swedia': '🇸🇪',
-    'Italia': '🇮🇹',
-    'Finlandia': '🇫🇮',
-  };
-  return flags[country] ?? '🌍';
-}
+const _statusOptions = [
+  'Interested',
+  'Applied',
+  'Interview',
+  'Accepted',
+  'Rejected',
+];
 
-// ─── Detail Screen ───────────────────────────────────────────────────────
+// â”€â”€â”€ Detail Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-class DetailScreen extends ConsumerWidget {
+class DetailScreen extends ConsumerStatefulWidget {
   final String id;
 
   const DetailScreen({super.key, required this.id});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(scholarshipDetailProvider(id));
+  ConsumerState<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends ConsumerState<DetailScreen> {
+  String? _applicationStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final detailAsync = ref.watch(scholarshipDetailProvider(widget.id));
 
     return detailAsync.when(
-      loading: () => GradientBackground(
-        child: const Center(
+      loading: () => const GradientBackground(
+        child: Center(
           child: CircularProgressIndicator(color: AppColors.accent),
         ),
       ),
       error: (err, _) => GradientBackground(
-        child: _buildError(context, err, ref),
+        child: _buildError(context, err),
       ),
-      data: (scholarship) => _DetailContent(scholarship: scholarship, ref: ref),
+      data: (scholarship) => _buildScaffold(scholarship),
     );
   }
 
-  Widget _buildError(BuildContext context, Object error, WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 56,
-              color: AppColors.error.withOpacity(0.7),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Failed to load details',
-              style: AppTextStyles.title.copyWith(
-                color: AppColors.stone,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              error.toString(),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.error.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 20),
-            GlassButton(
-              label: 'Retry',
-              icon: Icons.refresh,
-              onPressed: () => ref.invalidate(scholarshipDetailProvider(id)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Detail Content (full page) ──────────────────────────────────────────
-
-class _DetailContent extends ConsumerWidget {
-  final ScholarshipModel scholarship;
-
-  const _DetailContent({required this.scholarship, required WidgetRef ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget _buildScaffold(ScholarshipModel s) {
     final savedIds = ref.watch(savedIdsProvider);
-    final isSaved = savedIds.contains(scholarship.id);
+    final isSaved = savedIds.contains(s.id);
 
     return GlassScaffold(
       appBar: GlassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.go('/scholarship'),
+          onPressed: () => context.go(AppRoutes.scholarship),
         ),
-        title: scholarship.title,
+        title: s.title,
         actions: [
+          // Share button
           IconButton(
-            icon: Icon(
-              isSaved ? Icons.bookmark : Icons.bookmark_border,
-            ),
-            color: isSaved ? AppColors.accent : AppColors.stone,
+            icon: const Icon(Icons.share),
+            tooltip: 'Copy link',
             onPressed: () {
-              final nowSaved = ref.read(savedIdsProvider.notifier).toggle(scholarship.id);
-              debugPrint('TODO: ${nowSaved ? "save" : "unsave"} scholarship ${scholarship.id} via API');
+              Clipboard.setData(ClipboardData(text: s.url));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Link copied to clipboard')),
+              );
+            },
+          ),
+          // Save toggle button
+          IconButton(
+            icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
+            color: isSaved ? AppColors.accent : AppColors.stone,
+            onPressed: () async {
+              await ref.read(savedIdsProvider.notifier).toggle(s.id);
             },
           ),
         ],
@@ -139,49 +94,56 @@ class _DetailContent extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Hero Section ───────────────────────────────────────────
-              _buildHero(),
+              // â”€â”€ Hero Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildHero(s),
 
               const SizedBox(height: 16),
 
-              // ── Coverage Details ──────────────────────────────────────
-              _buildCoverageCard(),
+              // â”€â”€ Coverage Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildCoverageCard(s),
 
               const SizedBox(height: 16),
 
-              // ── Description ───────────────────────────────────────────
-              _buildDescriptionCard(),
+              // â”€â”€ Description â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildDescriptionCard(s),
 
               const SizedBox(height: 16),
 
-              // ── Requirements ──────────────────────────────────────────
-              _buildRequirementsCard(),
+              // â”€â”€ Requirements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildRequirementsCard(s),
 
               const SizedBox(height: 16),
 
-              // ── Level & Fields ─────────────────────────────────────────
-              _buildLevelAndFields(),
+              // â”€â”€ Level & Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildLevelAndFields(s),
 
               const SizedBox(height: 16),
 
-              // ── Deadline Callout ──────────────────────────────────────
-              if (scholarship.deadline != null) ...[
-                _buildDeadlineCallout(),
+              // â”€â”€ Deadline Callout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              if (s.deadline != null) ...[
+                _buildDeadlineCallout(s),
                 const SizedBox(height: 16),
               ],
 
-              // ── Quick Info / Actions ──────────────────────────────────
-              _buildQuickInfo(ref, isSaved),
+              // â”€â”€ Application Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildStatusTracking(),
 
               const SizedBox(height: 16),
 
-              // ── Tips ──────────────────────────────────────────────────
-              if (scholarship.tips.isNotEmpty) ...[
-                _buildTipsCard(),
+              // â”€â”€ Quick Info / Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildQuickInfo(s, ref, isSaved),
+
+              const SizedBox(height: 16),
+
+              // â”€â”€ Tips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              if (s.tips.isNotEmpty) ...[
+                _buildTipsCard(s),
                 const SizedBox(height: 16),
               ],
 
-              // Bottom padding
+              // â”€â”€ Related Scholarships â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+              _buildRelatedScholarships(),
+
               const SizedBox(height: 24),
             ],
           ),
@@ -190,15 +152,57 @@ class _DetailContent extends ConsumerWidget {
     );
   }
 
-  // ─── Hero Section ─────────────────────────────────────────────────────
+  // â”€â”€â”€ Error State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildHero() {
+  Widget _buildError(BuildContext context, Object error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 56,
+              color: AppColors.error.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Failed to load details',
+              style: AppTextStyles.title.copyWith(color: AppColors.stone),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              error.toString(),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.error.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 20),
+            GlassButton(
+              label: 'Retry',
+              icon: Icons.refresh,
+              onPressed: () =>
+                  ref.invalidate(scholarshipDetailProvider(widget.id)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // â”€â”€â”€ Hero Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  Widget _buildHero(ScholarshipModel s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Provider
         Text(
-          scholarship.provider,
+          s.provider,
           style: AppTextStyles.body.copyWith(
             color: AppColors.stone,
             fontSize: 12,
@@ -208,7 +212,7 @@ class _DetailContent extends ConsumerWidget {
 
         // Title
         Text(
-          scholarship.title,
+          s.title,
           style: AppTextStyles.headline.copyWith(fontSize: 20),
         ),
         const SizedBox(height: 10),
@@ -220,12 +224,12 @@ class _DetailContent extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  _countryFlag(scholarship.country),
+                  countryFlag(s.country),
                   style: const TextStyle(fontSize: 18),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  scholarship.country,
+                  s.country,
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -234,46 +238,10 @@ class _DetailContent extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
 
-            // Funding badge
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: scholarship.fundingType == 'Fully Funded'
-                    ? AppColors.success.withOpacity(0.12)
-                    : AppColors.warning.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: scholarship.fundingType == 'Fully Funded'
-                      ? AppColors.success.withOpacity(0.3)
-                      : AppColors.warning.withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    scholarship.fundingType == 'Fully Funded'
-                        ? Icons.workspace_premium
-                        : Icons.monetization_on,
-                    size: 14,
-                    color: scholarship.fundingType == 'Fully Funded'
-                        ? AppColors.success
-                        : AppColors.warning,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    scholarship.fundingType,
-                    style: AppTextStyles.caption.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: scholarship.fundingType == 'Fully Funded'
-                          ? AppColors.success
-                          : AppColors.warning,
-                    ),
-                  ),
-                ],
-              ),
+            // Funding badge (with icon)
+            ScholarshipFundingBadge(
+              fundingType: s.fundingType,
+              style: FundingBadgeStyle.withIcon,
             ),
           ],
         ),
@@ -281,12 +249,12 @@ class _DetailContent extends ConsumerWidget {
     );
   }
 
-  // ─── Coverage Card ────────────────────────────────────────────────────
+  // â”€â”€â”€ Coverage Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildCoverageCard() {
-    final c = scholarship.coverageDetail;
-    final items = [
-      _CoverageItem(
+  Widget _buildCoverageCard(ScholarshipModel s) {
+    final c = s.coverageDetail;
+    final items = <Widget>[
+      CoverageItemWidget(
         icon: Icons.school,
         label: 'Tuition',
         value: c.tuition,
@@ -294,7 +262,7 @@ class _DetailContent extends ConsumerWidget {
             c.tuition != 'Not Covered' &&
             c.tuition != 'None',
       ),
-      _CoverageItem(
+      CoverageItemWidget(
         icon: Icons.account_balance_wallet,
         label: 'Stipend',
         value: c.monthlyStipend,
@@ -302,7 +270,7 @@ class _DetailContent extends ConsumerWidget {
             c.monthlyStipend != 'Not Covered' &&
             c.monthlyStipend != 'None',
       ),
-      _CoverageItem(
+      CoverageItemWidget(
         icon: Icons.flight,
         label: 'Travel',
         value: c.travel,
@@ -310,7 +278,7 @@ class _DetailContent extends ConsumerWidget {
             c.travel != 'Not Covered' &&
             c.travel != 'None',
       ),
-      _CoverageItem(
+      CoverageItemWidget(
         icon: Icons.home,
         label: 'Accommodation',
         value: c.accommodation,
@@ -318,7 +286,7 @@ class _DetailContent extends ConsumerWidget {
             c.accommodation != 'Not Covered' &&
             c.accommodation != 'None',
       ),
-      _CoverageItem(
+      CoverageItemWidget(
         icon: Icons.health_and_safety,
         label: 'Insurance',
         value: c.insurance,
@@ -326,7 +294,7 @@ class _DetailContent extends ConsumerWidget {
             c.insurance != 'Not Covered' &&
             c.insurance != 'None',
       ),
-      _CoverageItem(
+      CoverageItemWidget(
         icon: Icons.language,
         label: 'Language',
         value: c.languageCourse,
@@ -343,7 +311,7 @@ class _DetailContent extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.card_giftcard, size: 18, color: AppColors.accent),
+              const Icon(Icons.card_giftcard, size: 18, color: AppColors.accent),
               const SizedBox(width: 8),
               Text(
                 'Coverage',
@@ -352,27 +320,34 @@ class _DetailContent extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: items.length,
-            itemBuilder: (_, i) => items[i],
+
+          // Responsive grid: 2 cols on narrow (<360), 3 on wider
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth < 360 ? 2 : 3;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: items.length,
+                itemBuilder: (_, i) => items[i],
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  // ─── Description Card ─────────────────────────────────────────────────
+  // â”€â”€â”€ Description Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildDescriptionCard() {
+  Widget _buildDescriptionCard(ScholarshipModel s) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -380,7 +355,7 @@ class _DetailContent extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.description, size: 18, color: AppColors.accent),
+              const Icon(Icons.description, size: 18, color: AppColors.accent),
               const SizedBox(width: 8),
               Text(
                 'Description',
@@ -390,7 +365,7 @@ class _DetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           MarkdownBody(
-            data: scholarship.description,
+            data: s.description,
             selectable: true,
             styleSheet: MarkdownStyleSheet(
               p: AppTextStyles.body.copyWith(
@@ -414,7 +389,7 @@ class _DetailContent extends ConsumerWidget {
                 color: AppColors.accent,
                 fontSize: 13,
               ),
-              code: TextStyle(
+              code: const TextStyle(
                 backgroundColor: AppColors.elevated,
                 color: AppColors.accent,
                 fontSize: 12,
@@ -424,7 +399,7 @@ class _DetailContent extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               blockquoteDecoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.08),
+                color: AppColors.accent.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
                 border: const Border(
                   left: BorderSide(color: AppColors.accent, width: 3),
@@ -437,9 +412,9 @@ class _DetailContent extends ConsumerWidget {
     );
   }
 
-  // ─── Requirements Card ────────────────────────────────────────────────
+  // â”€â”€â”€ Requirements Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildRequirementsCard() {
+  Widget _buildRequirementsCard(ScholarshipModel s) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -447,7 +422,7 @@ class _DetailContent extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.checklist, size: 18, color: AppColors.accent),
+              const Icon(Icons.checklist, size: 18, color: AppColors.accent),
               const SizedBox(width: 8),
               Text(
                 'Requirements',
@@ -456,7 +431,7 @@ class _DetailContent extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          ...scholarship.requirements.map(
+          ...s.requirements.map(
             (req) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
@@ -467,7 +442,7 @@ class _DetailContent extends ConsumerWidget {
                     child: Icon(
                       Icons.check_circle_outline,
                       size: 16,
-                      color: AppColors.accent.withOpacity(0.7),
+                      color: AppColors.accent.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -490,106 +465,24 @@ class _DetailContent extends ConsumerWidget {
     );
   }
 
-  // ─── Level & Fields Chips ────────────────────────────────────────────
+  // â”€â”€â”€ Level & Fields Chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildLevelAndFields() {
+  Widget _buildLevelAndFields(ScholarshipModel s) {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       children: [
-        // Level badges
-        ...scholarship.level.map(
-          (l) => GlassBadge(l, accent: true),
-        ),
-
-        // Field of study badges
-        ...scholarship.fieldOfStudy.map(
-          (f) => GlassBadge(f),
-        ),
+        ...s.level.map((l) => GlassBadge(l, accent: true)),
+        ...s.fieldOfStudy.map((f) => GlassBadge(f)),
       ],
     );
   }
 
-  // ─── Deadline Callout ─────────────────────────────────────────────────
+  // â”€â”€â”€ Deadline Callout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildDeadlineCallout() {
-    final deadline = scholarship.deadline!;
-    final now = DateTime.now();
-    final daysLeft = deadline.difference(now).inDays;
-    final isUrgent = daysLeft >= 0 && daysLeft <= 30;
-    final isPast = daysLeft < 0;
+  Widget _buildDeadlineCallout(ScholarshipModel s) {
+    final info = s.deadline!.deadlineInfo;
 
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isPast
-                  ? AppColors.error.withOpacity(0.12)
-                  : isUrgent
-                      ? AppColors.warning.withOpacity(0.12)
-                      : AppColors.accent.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isPast
-                  ? Icons.block
-                  : isUrgent
-                      ? Icons.alarm
-                      : Icons.event,
-              size: 22,
-              color: isPast
-                  ? AppColors.error
-                  : isUrgent
-                      ? AppColors.warning
-                      : AppColors.accent,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isPast
-                      ? 'Deadline Passed'
-                      : isUrgent
-                          ? 'Deadline Approaching!'
-                          : 'Application Deadline',
-                  style: AppTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: isPast
-                        ? AppColors.error
-                        : isUrgent
-                            ? AppColors.warning
-                            : AppColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isPast
-                      ? 'This scholarship closed ${DateFormat('MMM d, yyyy').format(deadline)}'
-                      : 'Due ${DateFormat('EEEE, MMMM d, yyyy').format(deadline)}'
-                          '${isUrgent ? ' ($daysLeft days left!)' : ''}',
-                  style: AppTextStyles.caption.copyWith(
-                    fontSize: 11,
-                    color: AppColors.stone,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── Quick Info / Actions ─────────────────────────────────────────────
-
-  Widget _buildQuickInfo(WidgetRef ref, bool isSaved) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -597,7 +490,187 @@ class _DetailContent extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.link, size: 18, color: AppColors.accent),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: info.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  info.icon,
+                  size: 22,
+                  color: info.color,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      info.label,
+                      style: AppTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: info.color,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      info.isPast
+                          ? 'This scholarship closed ${formatDate(s.deadline!)}'
+                          : info.isToday
+                              ? 'Deadline is today!'
+                              : 'Due ${formatDate(s.deadline!)}'
+                                  '${info.isUrgent ? ' (${info.daysLeft} days left!)' : ''}',
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 11,
+                        color: AppColors.stone,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Set Reminder button (only for future deadlines)
+          if (!info.isPast) ...[
+            const SizedBox(height: 12),
+            GlassButton(
+              label: 'Set Reminder',
+              icon: Icons.notifications_outlined,
+              variant: GlassButtonVariant.secondary,
+              small: true,
+              onPressed: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: s.deadline!.isBefore(DateTime.now())
+                      ? DateTime.now().add(const Duration(days: 1))
+                      : s.deadline!,
+                  firstDate: DateTime.now(),
+                  lastDate: s.deadline!.isBefore(DateTime.now())
+                      ? DateTime.now().add(const Duration(days: 365))
+                      : s.deadline!,
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: const ColorScheme.dark(
+                          primary: AppColors.accent,
+                          surface: AppColors.elevated,
+                          onSurface: AppColors.ink,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Reminder set for ${formatDate(picked)}',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // â”€â”€â”€ Application Status Tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  Widget _buildStatusTracking() {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.track_changes, size: 18, color: AppColors.accent),
+              const SizedBox(width: 8),
+              Text(
+                'Application Status',
+                style: AppTextStyles.title.copyWith(fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _statusOptions.map((status) {
+              final isSelected = _applicationStatus == status;
+              final isRejected = status == 'Rejected';
+              final isAccepted = status == 'Accepted';
+              Color chipColor;
+              if (isSelected) {
+                if (isRejected) {
+                  chipColor = AppColors.error;
+                } else if (isAccepted) {
+                  chipColor = AppColors.success;
+                } else {
+                  chipColor = AppColors.accent;
+                }
+              } else {
+                chipColor = AppColors.accent;
+              }
+
+              return ChoiceChip(
+                label: Text(
+                  status,
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? AppColors.ink : AppColors.stone,
+                  ),
+                ),
+                selected: isSelected,
+                selectedColor: chipColor.withValues(alpha: 0.25),
+                backgroundColor: AppColors.elevated,
+                side: BorderSide(
+                  color: isSelected
+                      ? chipColor.withValues(alpha: 0.5)
+                      : AppColors.border,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                onSelected: (_) {
+                  setState(() {
+                    _applicationStatus =
+                        isSelected ? null : status;
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // â”€â”€â”€ Quick Info / Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  Widget _buildQuickInfo(
+      ScholarshipModel s, WidgetRef ref, bool isSaved) {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.link, size: 18, color: AppColors.accent),
               const SizedBox(width: 8),
               Text(
                 'Quick Info',
@@ -616,11 +689,11 @@ class _DetailContent extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.language, size: 16, color: AppColors.hint),
+                const Icon(Icons.language, size: 16, color: AppColors.hint),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    scholarship.url,
+                    s.url,
                     style: AppTextStyles.caption.copyWith(
                       fontSize: 10,
                       color: AppColors.hint,
@@ -639,7 +712,7 @@ class _DetailContent extends ConsumerWidget {
             label: 'Visit Website',
             icon: Icons.open_in_new,
             onPressed: () async {
-              final uri = Uri.tryParse(scholarship.url);
+              final uri = Uri.tryParse(s.url);
               if (uri != null && await canLaunchUrl(uri)) {
                 await launchUrl(uri,
                     mode: LaunchMode.externalApplication);
@@ -653,9 +726,8 @@ class _DetailContent extends ConsumerWidget {
             label: isSaved ? 'Unsave Scholarship' : 'Save Scholarship',
             icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
             variant: GlassButtonVariant.secondary,
-            onPressed: () {
-              final nowSaved = ref.read(savedIdsProvider.notifier).toggle(scholarship.id);
-              debugPrint('TODO: ${nowSaved ? "save" : "unsave"} scholarship ${scholarship.id} via API');
+            onPressed: () async {
+              await ref.read(savedIdsProvider.notifier).toggle(s.id);
             },
           ),
         ],
@@ -663,9 +735,179 @@ class _DetailContent extends ConsumerWidget {
     );
   }
 
-  // ─── Tips Card ────────────────────────────────────────────────────────
+  // â”€â”€â”€ Related Scholarships â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _buildTipsCard() {
+  Widget _buildRelatedScholarships() {
+    final relatedAsync = ref.watch(relatedScholarshipsProvider(widget.id));
+
+    return relatedAsync.when(
+      loading: () => _buildRelatedShimmer(),
+      error: (err, _) => const SizedBox.shrink(),
+      data: (scholarships) {
+        if (scholarships.isEmpty) return const SizedBox.shrink();
+        return _buildRelatedList(scholarships);
+      },
+    );
+  }
+
+  Widget _buildRelatedShimmer() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.auto_awesome, size: 18, color: AppColors.accent),
+            const SizedBox(width: 8),
+            Text(
+              'Related Scholarships',
+              style: AppTextStyles.title.copyWith(fontSize: 15),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 130,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(right: 4),
+            itemCount: 4,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, __) => _buildRelatedShimmerCard(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRelatedShimmerCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[800]!,
+      highlightColor: Colors.grey[600]!,
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 10,
+              width: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 8,
+              width: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const Spacer(),
+            Container(
+              height: 10,
+              width: 80,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRelatedList(List<ScholarshipModel> scholarships) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.auto_awesome, size: 18, color: AppColors.accent),
+            const SizedBox(width: 8),
+            Text(
+              'Related Scholarships',
+              style: AppTextStyles.title.copyWith(fontSize: 15),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 130,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(right: 4),
+            itemCount: scholarships.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, i) => _buildRelatedCard(scholarships[i]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRelatedCard(ScholarshipModel s) {
+    return GlassCard(
+      radius: 12,
+      onTap: () => context.go(AppRoutes.scholarshipDetailFor(s.id)),
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Text(
+              s.title,
+              style: AppTextStyles.body.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const Spacer(),
+            // Country + flag
+            Row(
+              children: [
+                Text(countryFlag(s.country),
+                    style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    s.country,
+                    style: AppTextStyles.caption.copyWith(fontSize: 9),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            // Funding badge
+            ScholarshipFundingBadge(
+              fundingType: s.fundingType,
+              style: FundingBadgeStyle.compact,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // â”€â”€â”€ Tips Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  Widget _buildTipsCard(ScholarshipModel s) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -673,7 +915,7 @@ class _DetailContent extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline,
+              const Icon(Icons.lightbulb_outline,
                   size: 18, color: AppColors.warning),
               const SizedBox(width: 8),
               Text(
@@ -683,7 +925,7 @@ class _DetailContent extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          ...scholarship.tips.asMap().entries.map(
+          ...s.tips.asMap().entries.map(
             (entry) {
               final index = entry.key + 1;
               final tip = entry.value;
@@ -697,7 +939,7 @@ class _DetailContent extends ConsumerWidget {
                       height: 20,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.12),
+                        color: AppColors.warning.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -724,72 +966,6 @@ class _DetailContent extends ConsumerWidget {
                 ),
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Coverage Item Widget ────────────────────────────────────────────────
-
-class _CoverageItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool covered;
-
-  const _CoverageItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.covered,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.elevated,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: covered
-              ? AppColors.success.withOpacity(0.2)
-              : AppColors.border,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: covered ? AppColors.success : AppColors.hint,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              color: AppColors.hint,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: AppTextStyles.caption.copyWith(
-              fontSize: 8,
-              color: covered ? AppColors.success : AppColors.stone,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

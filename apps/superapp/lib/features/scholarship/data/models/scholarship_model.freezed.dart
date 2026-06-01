@@ -30,14 +30,15 @@ mixin _$ScholarshipModel {
   String get coverage => throw _privateConstructorUsedError;
   @JsonKey(name: 'coverage_detail')
   CoverageDetail get coverageDetail => throw _privateConstructorUsedError;
+  @FlexibleDateTimeConverter()
   DateTime? get deadline => throw _privateConstructorUsedError;
   @JsonKey(name: 'opening_date')
+  @FlexibleDateTimeConverter()
   DateTime? get openingDate => throw _privateConstructorUsedError;
   String get url => throw _privateConstructorUsedError;
   @JsonKey(name: 'source_url')
   String get sourceUrl => throw _privateConstructorUsedError;
   List<String> get requirements => throw _privateConstructorUsedError;
-  @JsonKey(name: 'field_of_study')
   List<String> get fieldOfStudy => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   @JsonKey(name: 'funding_type')
@@ -46,9 +47,20 @@ mixin _$ScholarshipModel {
   int get version => throw _privateConstructorUsedError;
   String get checksum => throw _privateConstructorUsedError;
   @JsonKey(name: 'found_at')
+  @FlexibleDateTimeConverter()
   DateTime? get foundAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
-  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  @FlexibleDateTimeConverter()
+  DateTime? get updatedAt =>
+      throw _privateConstructorUsedError; // ── New fields ─────────────────────────────────────────────────────
+  @JsonKey(name: 'language_requirements')
+  String get languageRequirements => throw _privateConstructorUsedError;
+  @JsonKey(name: 'application_fee')
+  String get applicationFee => throw _privateConstructorUsedError;
+  @JsonKey(name: 'age_limit')
+  String get ageLimit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'scholarship_type')
+  String get scholarshipType => throw _privateConstructorUsedError;
 
   /// Serializes this ScholarshipModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -76,19 +88,27 @@ abstract class $ScholarshipModelCopyWith<$Res> {
       String country,
       String coverage,
       @JsonKey(name: 'coverage_detail') CoverageDetail coverageDetail,
-      DateTime? deadline,
-      @JsonKey(name: 'opening_date') DateTime? openingDate,
+      @FlexibleDateTimeConverter() DateTime? deadline,
+      @JsonKey(name: 'opening_date')
+      @FlexibleDateTimeConverter()
+      DateTime? openingDate,
       String url,
       @JsonKey(name: 'source_url') String sourceUrl,
       List<String> requirements,
-      @JsonKey(name: 'field_of_study') List<String> fieldOfStudy,
+      List<String> fieldOfStudy,
       List<String> tags,
       @JsonKey(name: 'funding_type') String fundingType,
       List<String> tips,
       int version,
       String checksum,
-      @JsonKey(name: 'found_at') DateTime? foundAt,
-      @JsonKey(name: 'updated_at') DateTime? updatedAt});
+      @JsonKey(name: 'found_at') @FlexibleDateTimeConverter() DateTime? foundAt,
+      @JsonKey(name: 'updated_at')
+      @FlexibleDateTimeConverter()
+      DateTime? updatedAt,
+      @JsonKey(name: 'language_requirements') String languageRequirements,
+      @JsonKey(name: 'application_fee') String applicationFee,
+      @JsonKey(name: 'age_limit') String ageLimit,
+      @JsonKey(name: 'scholarship_type') String scholarshipType});
 }
 
 /// @nodoc
@@ -128,6 +148,10 @@ class _$ScholarshipModelCopyWithImpl<$Res, $Val extends ScholarshipModel>
     Object? checksum = null,
     Object? foundAt = freezed,
     Object? updatedAt = freezed,
+    Object? languageRequirements = null,
+    Object? applicationFee = null,
+    Object? ageLimit = null,
+    Object? scholarshipType = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -218,6 +242,22 @@ class _$ScholarshipModelCopyWithImpl<$Res, $Val extends ScholarshipModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      languageRequirements: null == languageRequirements
+          ? _value.languageRequirements
+          : languageRequirements // ignore: cast_nullable_to_non_nullable
+              as String,
+      applicationFee: null == applicationFee
+          ? _value.applicationFee
+          : applicationFee // ignore: cast_nullable_to_non_nullable
+              as String,
+      ageLimit: null == ageLimit
+          ? _value.ageLimit
+          : ageLimit // ignore: cast_nullable_to_non_nullable
+              as String,
+      scholarshipType: null == scholarshipType
+          ? _value.scholarshipType
+          : scholarshipType // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -240,19 +280,27 @@ abstract class _$$ScholarshipModelImplCopyWith<$Res>
       String country,
       String coverage,
       @JsonKey(name: 'coverage_detail') CoverageDetail coverageDetail,
-      DateTime? deadline,
-      @JsonKey(name: 'opening_date') DateTime? openingDate,
+      @FlexibleDateTimeConverter() DateTime? deadline,
+      @JsonKey(name: 'opening_date')
+      @FlexibleDateTimeConverter()
+      DateTime? openingDate,
       String url,
       @JsonKey(name: 'source_url') String sourceUrl,
       List<String> requirements,
-      @JsonKey(name: 'field_of_study') List<String> fieldOfStudy,
+      List<String> fieldOfStudy,
       List<String> tags,
       @JsonKey(name: 'funding_type') String fundingType,
       List<String> tips,
       int version,
       String checksum,
-      @JsonKey(name: 'found_at') DateTime? foundAt,
-      @JsonKey(name: 'updated_at') DateTime? updatedAt});
+      @JsonKey(name: 'found_at') @FlexibleDateTimeConverter() DateTime? foundAt,
+      @JsonKey(name: 'updated_at')
+      @FlexibleDateTimeConverter()
+      DateTime? updatedAt,
+      @JsonKey(name: 'language_requirements') String languageRequirements,
+      @JsonKey(name: 'application_fee') String applicationFee,
+      @JsonKey(name: 'age_limit') String ageLimit,
+      @JsonKey(name: 'scholarship_type') String scholarshipType});
 }
 
 /// @nodoc
@@ -290,6 +338,10 @@ class __$$ScholarshipModelImplCopyWithImpl<$Res>
     Object? checksum = null,
     Object? foundAt = freezed,
     Object? updatedAt = freezed,
+    Object? languageRequirements = null,
+    Object? applicationFee = null,
+    Object? ageLimit = null,
+    Object? scholarshipType = null,
   }) {
     return _then(_$ScholarshipModelImpl(
       id: null == id
@@ -380,6 +432,22 @@ class __$$ScholarshipModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      languageRequirements: null == languageRequirements
+          ? _value.languageRequirements
+          : languageRequirements // ignore: cast_nullable_to_non_nullable
+              as String,
+      applicationFee: null == applicationFee
+          ? _value.applicationFee
+          : applicationFee // ignore: cast_nullable_to_non_nullable
+              as String,
+      ageLimit: null == ageLimit
+          ? _value.ageLimit
+          : ageLimit // ignore: cast_nullable_to_non_nullable
+              as String,
+      scholarshipType: null == scholarshipType
+          ? _value.scholarshipType
+          : scholarshipType // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -398,20 +466,25 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
       this.coverage = '',
       @JsonKey(name: 'coverage_detail')
       this.coverageDetail = const CoverageDetail(),
-      this.deadline,
-      @JsonKey(name: 'opening_date') this.openingDate,
+      @FlexibleDateTimeConverter() this.deadline,
+      @JsonKey(name: 'opening_date')
+      @FlexibleDateTimeConverter()
+      this.openingDate,
       this.url = '',
       @JsonKey(name: 'source_url') this.sourceUrl = '',
       final List<String> requirements = const [],
-      @JsonKey(name: 'field_of_study')
       final List<String> fieldOfStudy = const [],
       final List<String> tags = const [],
       @JsonKey(name: 'funding_type') this.fundingType = '',
       final List<String> tips = const [],
       this.version = 0,
       this.checksum = '',
-      @JsonKey(name: 'found_at') this.foundAt,
-      @JsonKey(name: 'updated_at') this.updatedAt})
+      @JsonKey(name: 'found_at') @FlexibleDateTimeConverter() this.foundAt,
+      @JsonKey(name: 'updated_at') @FlexibleDateTimeConverter() this.updatedAt,
+      @JsonKey(name: 'language_requirements') this.languageRequirements = '',
+      @JsonKey(name: 'application_fee') this.applicationFee = '',
+      @JsonKey(name: 'age_limit') this.ageLimit = '',
+      @JsonKey(name: 'scholarship_type') this.scholarshipType = ''})
       : _level = level,
         _requirements = requirements,
         _fieldOfStudy = fieldOfStudy,
@@ -452,9 +525,11 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
   @JsonKey(name: 'coverage_detail')
   final CoverageDetail coverageDetail;
   @override
+  @FlexibleDateTimeConverter()
   final DateTime? deadline;
   @override
   @JsonKey(name: 'opening_date')
+  @FlexibleDateTimeConverter()
   final DateTime? openingDate;
   @override
   @JsonKey()
@@ -473,7 +548,7 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
 
   final List<String> _fieldOfStudy;
   @override
-  @JsonKey(name: 'field_of_study')
+  @JsonKey()
   List<String> get fieldOfStudy {
     if (_fieldOfStudy is EqualUnmodifiableListView) return _fieldOfStudy;
     // ignore: implicit_dynamic_type
@@ -509,14 +584,29 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
   final String checksum;
   @override
   @JsonKey(name: 'found_at')
+  @FlexibleDateTimeConverter()
   final DateTime? foundAt;
   @override
   @JsonKey(name: 'updated_at')
+  @FlexibleDateTimeConverter()
   final DateTime? updatedAt;
+// ── New fields ─────────────────────────────────────────────────────
+  @override
+  @JsonKey(name: 'language_requirements')
+  final String languageRequirements;
+  @override
+  @JsonKey(name: 'application_fee')
+  final String applicationFee;
+  @override
+  @JsonKey(name: 'age_limit')
+  final String ageLimit;
+  @override
+  @JsonKey(name: 'scholarship_type')
+  final String scholarshipType;
 
   @override
   String toString() {
-    return 'ScholarshipModel(id: $id, title: $title, provider: $provider, description: $description, level: $level, destination: $destination, country: $country, coverage: $coverage, coverageDetail: $coverageDetail, deadline: $deadline, openingDate: $openingDate, url: $url, sourceUrl: $sourceUrl, requirements: $requirements, fieldOfStudy: $fieldOfStudy, tags: $tags, fundingType: $fundingType, tips: $tips, version: $version, checksum: $checksum, foundAt: $foundAt, updatedAt: $updatedAt)';
+    return 'ScholarshipModel(id: $id, title: $title, provider: $provider, description: $description, level: $level, destination: $destination, country: $country, coverage: $coverage, coverageDetail: $coverageDetail, deadline: $deadline, openingDate: $openingDate, url: $url, sourceUrl: $sourceUrl, requirements: $requirements, fieldOfStudy: $fieldOfStudy, tags: $tags, fundingType: $fundingType, tips: $tips, version: $version, checksum: $checksum, foundAt: $foundAt, updatedAt: $updatedAt, languageRequirements: $languageRequirements, applicationFee: $applicationFee, ageLimit: $ageLimit, scholarshipType: $scholarshipType)';
   }
 
   @override
@@ -558,7 +648,15 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
                 other.checksum == checksum) &&
             (identical(other.foundAt, foundAt) || other.foundAt == foundAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.languageRequirements, languageRequirements) ||
+                other.languageRequirements == languageRequirements) &&
+            (identical(other.applicationFee, applicationFee) ||
+                other.applicationFee == applicationFee) &&
+            (identical(other.ageLimit, ageLimit) ||
+                other.ageLimit == ageLimit) &&
+            (identical(other.scholarshipType, scholarshipType) ||
+                other.scholarshipType == scholarshipType));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -586,7 +684,11 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
         version,
         checksum,
         foundAt,
-        updatedAt
+        updatedAt,
+        languageRequirements,
+        applicationFee,
+        ageLimit,
+        scholarshipType
       ]);
 
   /// Create a copy of ScholarshipModel
@@ -608,29 +710,39 @@ class _$ScholarshipModelImpl implements _ScholarshipModel {
 
 abstract class _ScholarshipModel implements ScholarshipModel {
   const factory _ScholarshipModel(
-          {required final String id,
-          required final String title,
-          required final String provider,
-          final String description,
-          final List<String> level,
-          final String destination,
-          final String country,
-          final String coverage,
-          @JsonKey(name: 'coverage_detail') final CoverageDetail coverageDetail,
-          final DateTime? deadline,
-          @JsonKey(name: 'opening_date') final DateTime? openingDate,
-          final String url,
-          @JsonKey(name: 'source_url') final String sourceUrl,
-          final List<String> requirements,
-          @JsonKey(name: 'field_of_study') final List<String> fieldOfStudy,
-          final List<String> tags,
-          @JsonKey(name: 'funding_type') final String fundingType,
-          final List<String> tips,
-          final int version,
-          final String checksum,
-          @JsonKey(name: 'found_at') final DateTime? foundAt,
-          @JsonKey(name: 'updated_at') final DateTime? updatedAt}) =
-      _$ScholarshipModelImpl;
+      {required final String id,
+      required final String title,
+      required final String provider,
+      final String description,
+      final List<String> level,
+      final String destination,
+      final String country,
+      final String coverage,
+      @JsonKey(name: 'coverage_detail') final CoverageDetail coverageDetail,
+      @FlexibleDateTimeConverter() final DateTime? deadline,
+      @JsonKey(name: 'opening_date')
+      @FlexibleDateTimeConverter()
+      final DateTime? openingDate,
+      final String url,
+      @JsonKey(name: 'source_url') final String sourceUrl,
+      final List<String> requirements,
+      final List<String> fieldOfStudy,
+      final List<String> tags,
+      @JsonKey(name: 'funding_type') final String fundingType,
+      final List<String> tips,
+      final int version,
+      final String checksum,
+      @JsonKey(name: 'found_at')
+      @FlexibleDateTimeConverter()
+      final DateTime? foundAt,
+      @JsonKey(name: 'updated_at')
+      @FlexibleDateTimeConverter()
+      final DateTime? updatedAt,
+      @JsonKey(name: 'language_requirements') final String languageRequirements,
+      @JsonKey(name: 'application_fee') final String applicationFee,
+      @JsonKey(name: 'age_limit') final String ageLimit,
+      @JsonKey(name: 'scholarship_type')
+      final String scholarshipType}) = _$ScholarshipModelImpl;
 
   factory _ScholarshipModel.fromJson(Map<String, dynamic> json) =
       _$ScholarshipModelImpl.fromJson;
@@ -655,9 +767,11 @@ abstract class _ScholarshipModel implements ScholarshipModel {
   @JsonKey(name: 'coverage_detail')
   CoverageDetail get coverageDetail;
   @override
+  @FlexibleDateTimeConverter()
   DateTime? get deadline;
   @override
   @JsonKey(name: 'opening_date')
+  @FlexibleDateTimeConverter()
   DateTime? get openingDate;
   @override
   String get url;
@@ -667,7 +781,6 @@ abstract class _ScholarshipModel implements ScholarshipModel {
   @override
   List<String> get requirements;
   @override
-  @JsonKey(name: 'field_of_study')
   List<String> get fieldOfStudy;
   @override
   List<String> get tags;
@@ -682,10 +795,25 @@ abstract class _ScholarshipModel implements ScholarshipModel {
   String get checksum;
   @override
   @JsonKey(name: 'found_at')
+  @FlexibleDateTimeConverter()
   DateTime? get foundAt;
   @override
   @JsonKey(name: 'updated_at')
-  DateTime? get updatedAt;
+  @FlexibleDateTimeConverter()
+  DateTime?
+      get updatedAt; // ── New fields ─────────────────────────────────────────────────────
+  @override
+  @JsonKey(name: 'language_requirements')
+  String get languageRequirements;
+  @override
+  @JsonKey(name: 'application_fee')
+  String get applicationFee;
+  @override
+  @JsonKey(name: 'age_limit')
+  String get ageLimit;
+  @override
+  @JsonKey(name: 'scholarship_type')
+  String get scholarshipType;
 
   /// Create a copy of ScholarshipModel
   /// with the given fields replaced by the non-null parameter values.

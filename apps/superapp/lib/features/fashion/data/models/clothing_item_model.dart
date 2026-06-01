@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_annotation_target
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'dominant_color.dart';
@@ -34,7 +36,6 @@ class ClothingItemModel with _$ClothingItemModel {
       _$ClothingItemModelFromJson(json);
 
   /// Computed: cost per wear based on [timesWorn] and [cost].
-  @override
   double? get costPerWear =>
       timesWorn > 0 && cost != null ? cost! / timesWorn : null;
 }

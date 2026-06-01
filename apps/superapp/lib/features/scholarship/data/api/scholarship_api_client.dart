@@ -64,6 +64,9 @@ class ScholarshipApiClient {
   /// [level] — filter by education level.
   /// [country] — filter by destination country.
   /// [fundingType] — filter by funding type (e.g. "full", "partial").
+  /// [sortBy] — field to sort by (e.g. "deadline", "updated_at", "title").
+  /// [sortOrder] — sort direction ("ASC" or "DESC").
+  /// [deadlineDays] — filter to scholarships with deadline within N days.
   /// [page] — page number (1-indexed).
   /// [limit] — results per page.
   Future<ScholarshipListResponse> listScholarships({
@@ -71,6 +74,9 @@ class ScholarshipApiClient {
     String? level,
     String? country,
     String? fundingType,
+    String? sortBy,
+    String? sortOrder,
+    int? deadlineDays,
     int page = 1,
     int limit = 20,
   }) async {
@@ -81,6 +87,9 @@ class ScholarshipApiClient {
         if (country != null && country.isNotEmpty) 'country': country,
         if (fundingType != null && fundingType.isNotEmpty)
           'funding_type': fundingType,
+        if (sortBy != null && sortBy.isNotEmpty) 'sort_by': sortBy,
+        if (sortOrder != null && sortOrder.isNotEmpty) 'sort_order': sortOrder,
+        if (deadlineDays != null) 'deadline_days': deadlineDays.toString(),
         'page': page,
         'limit': limit,
       };
@@ -170,6 +179,32 @@ class ScholarshipApiClient {
     }
   }
 
+  /// Fetches multiple scholarships by their IDs (batch endpoint).
+  Future<List<ScholarshipModel>> getScholarshipsBatch(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    try {
+      final response = await _dio.get(
+        '/scholarships/batch',
+        queryParameters: {'ids': ids.join(',')},
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        final data = (response.data as Map)['data'];
+        if (data is List) {
+          return data
+              .map((e) =>
+                  ScholarshipModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return [];
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
   /// Fetches a single scholarship by its [id].
   Future<ScholarshipModel> getScholarship(String id) async {
     try {
@@ -188,6 +223,55 @@ class ScholarshipApiClient {
           (json['data'] as Map<String, dynamic>?) ?? json;
 
       return ScholarshipModel.fromJson(scholarshipJson);
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// Fetches related scholarships for a given scholarship [id].
+  Future<List<ScholarshipModel>> getRelatedScholarships(String id,
+      {int limit = 6}) async {
+    try {
+      final response = await _dio.get(
+        '/scholarships/$id/related',
+        queryParameters: {'limit': limit},
+      );
+
+      if (response.statusCode == 200 && response.data is Map) {
+        final data = (response.data as Map)['data'];
+        if (data is List) {
+          return data
+              .map((e) =>
+                  ScholarshipModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return [];
+    } on DioException catch (e) {
+      throw ScholarshipApiException(
+        e.message ?? 'Failed to fetch related scholarships',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  /// Fetches scholarship statistics (totals, deadlines, breakdowns).
+  Future<Map<String, dynamic>> getScholarshipStats() async {
+    try {
+      final response = await _dio.get('/scholarships/stats');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final json = response.data as Map<String, dynamic>;
+        return (json['data'] as Map<String, dynamic>?) ?? json;
+      }
+
+      throw ScholarshipApiException(
+        'Unexpected response: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
     } on DioException catch (e) {
       throw ScholarshipApiException(
         e.message ?? 'Network error',

@@ -1,5 +1,9 @@
 export 'app_event.dart';
 export 'market_quote.dart';
 export 'news_item.dart';
+export 'news_result.dart';
+export 'news_status.dart';
 export 'plans_summary.dart';
+export 'scraper_health.dart';
+export 'source_health.dart';
 export 'trading_plan.dart';
