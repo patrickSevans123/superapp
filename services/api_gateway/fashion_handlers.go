@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -118,14 +122,14 @@ func HandleCreateWardrobeItem(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		Name            string   `json:"name"`
-		Category        string   `json:"category"`
-		Brand           string   `json:"brand"`
-		Cost            *float64 `json:"cost"`
-		DominantColors  string   `json:"dominant_colors"`
-		SeasonTags      string   `json:"season_tags"`
-		OriginalImageURL string  `json:"original_image_url"`
-		ProcessedImageURL string `json:"processed_image_url"`
+		Name              string   `json:"name"`
+		Category          string   `json:"category"`
+		Brand             string   `json:"brand"`
+		Cost              *float64 `json:"cost"`
+		DominantColors    string   `json:"dominant_colors"`
+		SeasonTags        string   `json:"season_tags"`
+		OriginalImageURL  string   `json:"original_image_url"`
+		ProcessedImageURL string   `json:"processed_image_url"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
@@ -497,41 +501,166 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		ClothingItemID *string `json:"clothing_item_id"`
-		PersonImageURL *string `json:"person_image_url"`
+		ClothingItemID  *string `json:"clothing_item_id"`
+		GarmentImageURL *string `json:"garment_image_url"`
+		PersonImageURL  *string `json:"person_image_url"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON body"})
 	}
-	if body.PersonImageURL == nil {
+	if body.PersonImageURL == nil || *body.PersonImageURL == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "person_image_url is required"})
 	}
 
+	// Determine garment image URL
+	var garmentImageURL string
+	if body.GarmentImageURL != nil && *body.GarmentImageURL != "" {
+		garmentImageURL = *body.GarmentImageURL
+	} else if body.ClothingItemID != nil && *body.ClothingItemID != "" {
+		var processedURL, originalURL string
+		err := database.DB.QueryRowContext(c.Context(),
+			"SELECT processed_image_url, original_image_url FROM clothing_items WHERE id = ? AND user_id = ?",
+			*body.ClothingItemID, userID,
+		).Scan(&processedURL, &originalURL)
+		if err == nil {
+			if processedURL != "" {
+				garmentImageURL = processedURL
+			} else if originalURL != "" {
+				garmentImageURL = originalURL
+			}
+		}
+	}
+
+	if garmentImageURL == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "garment image URL could not be determined; provide clothing_item_id or garment_image_url"})
+	}
+
+	// Create tryon result record in DB
 	id := randomID()
 	now := time.Now().UTC().Format("20060102T150405Z")
 
 	_, err = database.DB.ExecContext(c.Context(),
-		`INSERT INTO tryon_results (id, user_id, clothing_item_id, person_image_url, status, fashn_job_id, created_at)
-		 VALUES (?, ?, ?, ?, 'queued', ?, ?)`,
-		id, userID, body.ClothingItemID, *body.PersonImageURL, "pending-"+randomID(), now,
+		`INSERT INTO tryon_results (id, user_id, clothing_item_id, person_image_url, status, created_at)
+		 VALUES (?, ?, ?, ?, 'processing', ?)`,
+		id, userID, body.ClothingItemID, *body.PersonImageURL, now,
 	)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to create try-on"})
 	}
 
-	// Return created record
-	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM tryon_results WHERE id = ?", id)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to read created try-on"})
-	}
-	defer rows.Close()
+	// ─── Call VTON proxy ─────────────────────────────────────────────
 
-	item, err := scanOneRow(rows)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to parse created try-on"})
+	vtonURL := os.Getenv("VTON_PROXY_URL")
+	if vtonURL == "" {
+		vtonURL = "http://localhost:8001"
 	}
 
-	return c.Status(201).JSON(item)
+	// POST to start tryon job
+	payload := map[string]interface{}{
+		"person_image_url":  *body.PersonImageURL,
+		"garment_image_url": garmentImageURL,
+		"category":          "upper_body",
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to marshal VTON request"})
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Post(vtonURL+"/call/tryon", "application/json", bytes.NewReader(payloadBytes))
+	if err != nil {
+		database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("VTON proxy request failed: %v", err)})
+	}
+
+	var startResp struct {
+		EventID string `json:"event_id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&startResp); err != nil {
+		resp.Body.Close()
+		database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)
+		return c.Status(502).JSON(fiber.Map{"error": "failed to parse VTON start response"})
+	}
+	resp.Body.Close()
+
+	// ─── Poll for completion ─────────────────────────────────────────
+	pollURL := fmt.Sprintf("%s/call/tryon/%s", vtonURL, startResp.EventID)
+	deadline := time.Now().Add(30 * time.Second)
+	ticker := time.NewTicker(1500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for time.Now().Before(deadline) {
+		<-ticker.C
+
+		pollResp, pollErr := client.Get(pollURL)
+		if pollErr != nil {
+			continue
+		}
+
+		var pollResult struct {
+			Status    string `json:"status"`
+			ResultURL string `json:"result_url"`
+		}
+		if decodeErr := json.NewDecoder(pollResp.Body).Decode(&pollResult); decodeErr != nil {
+			pollResp.Body.Close()
+			continue
+		}
+		pollResp.Body.Close()
+
+		if pollResult.Status == "complete" && pollResult.ResultURL != "" {
+			// Update DB with result
+			database.DB.ExecContext(c.Context(),
+				"UPDATE tryon_results SET result_image_url = ?, status = 'complete' WHERE id = ?",
+				pollResult.ResultURL, id,
+			)
+			// Return updated record
+			rows, qErr := database.DB.QueryContext(c.Context(), "SELECT * FROM tryon_results WHERE id = ?", id)
+			if qErr != nil {
+				return c.Status(500).JSON(fiber.Map{"error": "failed to read completed try-on result"})
+			}
+			defer rows.Close()
+
+			item, scanErr := scanOneRow(rows)
+			if scanErr != nil {
+				return c.Status(500).JSON(fiber.Map{"error": "failed to parse completed try-on result"})
+			}
+			return c.JSON(item)
+		}
+
+		if pollResult.Status == "error" {
+			database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)
+			return c.Status(500).JSON(fiber.Map{"error": "VTON processing failed"})
+		}
+	}
+
+	// Timeout
+	database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)
+	return c.Status(504).JSON(fiber.Map{"error": "VTON processing timed out"})
+}
+
+// HandleDeleteTryonResult deletes a try-on history item by ID.
+// DELETE /api/v1/tryon/:id
+func HandleDeleteTryonResult(c *fiber.Ctx) error {
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	id := c.Params("id")
+
+	result, err := database.DB.ExecContext(c.Context(),
+		"DELETE FROM tryon_results WHERE id = ? AND user_id = ?", id, userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to delete try-on result"})
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "not found"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "try-on result deleted"})
 }
 
 // ─── OOTD Handlers ─────────────────────────────────────────────────────────

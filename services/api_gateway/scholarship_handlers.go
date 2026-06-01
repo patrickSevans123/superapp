@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -27,28 +28,32 @@ type CoverageDetail struct {
 
 // ScholarshipResponse is the full scholarship JSON shape returned to clients.
 type ScholarshipResponse struct {
-	ID             string          `json:"id"`
-	Title          string          `json:"title"`
-	Provider       string          `json:"provider"`
-	Description    string          `json:"description"`
-	Level          []string        `json:"level"`
-	Destination    string          `json:"destination"`
-	Country        string          `json:"country"`
-	Coverage       string          `json:"coverage"`
-	CoverageDetail CoverageDetail  `json:"coverage_detail"`
-	Deadline       string          `json:"deadline"`
-	OpeningDate    string          `json:"opening_date"`
-	URL            string          `json:"url"`
-	SourceURL      string          `json:"source_url"`
-	Requirements   []string        `json:"requirements"`
-	FieldOfStudy   []string        `json:"field_of_study"`
-	Tags           []string        `json:"tags"`
-	FundingType    string          `json:"funding_type"`
-	Tips           []string        `json:"tips"`
-	Version        int             `json:"version"`
-	Checksum       string          `json:"checksum"`
-	FoundAt        string          `json:"found_at"`
-	UpdatedAt      string          `json:"updated_at"`
+	ID                   string         `json:"id"`
+	Title                string         `json:"title"`
+	Provider             string         `json:"provider"`
+	Description          string         `json:"description"`
+	Level                []string       `json:"level"`
+	Destination          string         `json:"destination"`
+	Country              string         `json:"country"`
+	Coverage             string         `json:"coverage"`
+	CoverageDetail       CoverageDetail `json:"coverage_detail"`
+	Deadline             string         `json:"deadline"`
+	OpeningDate          string         `json:"opening_date"`
+	URL                  string         `json:"url"`
+	SourceURL            string         `json:"source_url"`
+	Requirements         []string       `json:"requirements"`
+	FieldOfStudy         []string       `json:"field_of_study"`
+	Tags                 []string       `json:"tags"`
+	FundingType          string         `json:"funding_type"`
+	Tips                 []string       `json:"tips"`
+	Version              int            `json:"version"`
+	Checksum             string         `json:"checksum"`
+	FoundAt              string         `json:"found_at"`
+	UpdatedAt            string         `json:"updated_at"`
+	LanguageRequirements string         `json:"language_requirements,omitempty"`
+	ApplicationFee       string         `json:"application_fee,omitempty"`
+	AgeLimit             string         `json:"age_limit,omitempty"`
+	ScholarshipType      string         `json:"scholarship_type,omitempty"`
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -142,7 +147,7 @@ func scanRowToScholarship(row []interface{}) ScholarshipResponse {
 // ─── Scholarship Handlers ─────────────────────────────────────────────────────
 
 // buildScholarshipFilters builds the WHERE clause and args for scholarship queries.
-func buildScholarshipFilters(q, level, country, fundingType string) (string, []interface{}) {
+func buildScholarshipFilters(q, level, country, fundingType string, deadlineDays int) (string, []interface{}) {
 	var conditions []string
 	var args []interface{}
 	if q != "" {
@@ -161,6 +166,11 @@ func buildScholarshipFilters(q, level, country, fundingType string) (string, []i
 	if fundingType != "" {
 		conditions = append(conditions, `funding_type ILIKE ?`)
 		args = append(args, fundingType)
+	}
+	if deadlineDays > 0 {
+		endDate := time.Now().AddDate(0, 0, deadlineDays).Format("2006-01-02")
+		conditions = append(conditions, `deadline IS NOT NULL AND deadline >= CURRENT_DATE AND deadline <= ?`)
+		args = append(args, endDate)
 	}
 	filterClause := strings.Join(conditions, " AND ")
 	return filterClause, args
@@ -191,8 +201,26 @@ func handleListScholarships(c *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
+	// ── Sort and deadline params ────────────────────────────────────────
+	sortBy := strings.TrimSpace(c.Query("sort_by", "updated_at"))
+	sortOrder := strings.TrimSpace(c.Query("sort_order", "DESC"))
+	deadlineDays, _ := strconv.Atoi(c.Query("deadline_days", "0"))
+	if deadlineDays < 0 {
+		deadlineDays = 0
+	}
+
+	// Whitelist sort_by to prevent SQL injection
+	sortByWhitelist := map[string]bool{"deadline": true, "updated_at": true, "title": true}
+	if !sortByWhitelist[sortBy] {
+		sortBy = "updated_at"
+	}
+	sortOrderWhitelist := map[string]bool{"ASC": true, "DESC": true}
+	if !sortOrderWhitelist[sortOrder] {
+		sortOrder = "DESC"
+	}
+
 	// ── Build filters once ──────────────────────────────────────────────
-	filterClause, filterArgs := buildScholarshipFilters(q, level, country, fundingType)
+	filterClause, filterArgs := buildScholarshipFilters(q, level, country, fundingType, deadlineDays)
 
 	// ── Count query ─────────────────────────────────────────────────────
 	countQuery := `SELECT COUNT(*) FROM scholarships`
@@ -217,7 +245,7 @@ func handleListScholarships(c *fiber.Ctx) error {
 	if filterClause != "" {
 		baseSelect += " WHERE " + filterClause
 	}
-	baseSelect += ` ORDER BY updated_at DESC, title ASC LIMIT ? OFFSET ?`
+	baseSelect += ` ORDER BY ` + sortBy + ` ` + sortOrder + `, title ASC LIMIT ? OFFSET ?`
 
 	dataArgs := append(filterArgs, limit, offset)
 	rows, err := db.Query(baseSelect, dataArgs...)
@@ -289,6 +317,75 @@ func handleGetScholarship(c *fiber.Ctx) error {
 	return c.JSON(scanRowToScholarship(vals))
 }
 
+// handleGetScholarshipsBatch returns multiple scholarships by comma-separated IDs.
+// GET /api/v1/scholarships/batch?ids=id1,id2,id3
+func handleGetScholarshipsBatch(c *fiber.Ctx) error {
+	if db == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "scholarship database unavailable"})
+	}
+	idsParam := strings.TrimSpace(c.Query("ids"))
+	if idsParam == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "ids query parameter is required"})
+	}
+	parts := strings.Split(idsParam, ",")
+	var ids []string
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			ids = append(ids, p)
+		}
+	}
+	if len(ids) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "ids query parameter must contain at least one id"})
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := `SELECT id, title, provider, description, "level", destination, country,
+		coverage,
+		cd_tuition, cd_monthly_stipend, cd_currency, cd_travel,
+		cd_accommodation, cd_insurance, cd_language_course, cd_other,
+		deadline, opening_date, url, source_url,
+		requirements, field_of_study, tags, funding_type, tips,
+		version, checksum, found_at, updated_at
+		FROM scholarships WHERE id IN (` + strings.Join(placeholders, ",") + `)`
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		log.Printf("ERROR querying batch scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query scholarships"})
+	}
+	defer rows.Close()
+
+	scholarships := make([]ScholarshipResponse, 0, len(ids))
+	for rows.Next() {
+		vals := make([]interface{}, 29)
+		ptrs := make([]interface{}, 29)
+		for i := range vals {
+			ptrs[i] = &vals[i]
+		}
+		if err := rows.Scan(ptrs...); err != nil {
+			log.Printf("ERROR scanning scholarship row: %v", err)
+			continue
+		}
+		scholarships = append(scholarships, scanRowToScholarship(vals))
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating scholarship rows: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read scholarships"})
+	}
+
+	return c.JSON(fiber.Map{
+		"data": scholarships,
+	})
+}
+
 // ─── Saved / Bookmarked Scholarship Handlers ────────────────────────────────
 
 // handleSaveScholarship saves (bookmarks) a scholarship for a user.
@@ -326,6 +423,185 @@ func handleSaveScholarship(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"saved": true,
 		"id":    id,
+	})
+}
+
+// handleGetRelatedScholarships returns scholarships related to a given scholarship
+// by matching country OR field_of_study.
+// GET /api/v1/scholarships/:id/related?limit=6
+func handleGetRelatedScholarships(c *fiber.Ctx) error {
+	if db == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "scholarship database unavailable"})
+	}
+	id := c.Params("id")
+
+	limit, _ := strconv.Atoi(c.Query("limit", "6"))
+	if limit < 1 {
+		limit = 6
+	}
+	if limit > 12 {
+		limit = 12
+	}
+
+	// Get current scholarship's country and field_of_study
+	var countryVal, fosVal interface{}
+	err := db.QueryRow("SELECT country, field_of_study FROM scholarships WHERE id = ?", id).Scan(&countryVal, &fosVal)
+	if err == sql.ErrNoRows {
+		return c.Status(404).JSON(fiber.Map{"error": "not found"})
+	}
+	if err != nil {
+		log.Printf("ERROR querying current scholarship %s: %v", id, err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query scholarship"})
+	}
+
+	country := scanNullString(countryVal)
+	fieldOfStudy := scanStringArray(fosVal)
+
+	if country == "" && len(fieldOfStudy) == 0 {
+		return c.JSON(fiber.Map{"data": []ScholarshipResponse{}})
+	}
+
+	// Build related scholarships query
+	query := `SELECT id, title, provider, description, "level", destination, country,
+		coverage,
+		cd_tuition, cd_monthly_stipend, cd_currency, cd_travel,
+		cd_accommodation, cd_insurance, cd_language_course, cd_other,
+		deadline, opening_date, url, source_url,
+		requirements, field_of_study, tags, funding_type, tips,
+		version, checksum, found_at, updated_at
+		FROM scholarships WHERE id != ?`
+
+	var conditions []string
+	var args []interface{}
+	args = append(args, id)
+
+	if country != "" {
+		conditions = append(conditions, "country = ?")
+		args = append(args, country)
+	}
+	if len(fieldOfStudy) > 0 {
+		conditions = append(conditions, `array_has_any("field_of_study", ?)`)
+		args = append(args, fieldOfStudy)
+	}
+
+	if len(conditions) > 0 {
+		query += " AND (" + strings.Join(conditions, " OR ") + ")"
+	}
+
+	query += ` ORDER BY updated_at DESC LIMIT ?`
+	args = append(args, limit)
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		log.Printf("ERROR querying related scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query related scholarships"})
+	}
+	defer rows.Close()
+
+	scholarships := make([]ScholarshipResponse, 0, limit)
+	for rows.Next() {
+		vals := make([]interface{}, 29)
+		ptrs := make([]interface{}, 29)
+		for i := range vals {
+			ptrs[i] = &vals[i]
+		}
+		if err := rows.Scan(ptrs...); err != nil {
+			log.Printf("ERROR scanning related scholarship row: %v", err)
+			continue
+		}
+		scholarships = append(scholarships, scanRowToScholarship(vals))
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating related scholarship rows: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read related scholarships"})
+	}
+
+	return c.JSON(fiber.Map{
+		"data": scholarships,
+	})
+}
+
+// ─── Stats Handler ───────────────────────────────────────────────────────────
+
+// handleScholarshipStats returns aggregated statistics about all scholarships.
+// GET /api/v1/scholarships/stats
+func handleScholarshipStats(c *fiber.Ctx) error {
+	if db == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "scholarship database unavailable"})
+	}
+
+	// ── 1. Total count ────────────────────────────────────────────────
+	var total int
+	if err := db.QueryRow("SELECT COUNT(*) FROM scholarships").Scan(&total); err != nil {
+		log.Printf("ERROR counting scholarships: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to count scholarships"})
+	}
+
+	// ── 2. By country ────────────────────────────────────────────────
+	byCountry := make(map[string]int)
+	countryRows, err := db.Query("SELECT country, COUNT(*) as count FROM scholarships GROUP BY country ORDER BY count DESC")
+	if err != nil {
+		log.Printf("ERROR querying by country: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query by country"})
+	}
+	defer countryRows.Close()
+	for countryRows.Next() {
+		var ctry string
+		var cnt int
+		if err := countryRows.Scan(&ctry, &cnt); err != nil {
+			log.Printf("ERROR scanning by country row: %v", err)
+			continue
+		}
+		byCountry[ctry] = cnt
+	}
+	if err := countryRows.Err(); err != nil {
+		log.Printf("ERROR iterating by country rows: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read by country"})
+	}
+
+	// ── 3. By funding_type ───────────────────────────────────────────
+	byFundingType := make(map[string]int)
+	fundingRows, err := db.Query("SELECT funding_type, COUNT(*) as count FROM scholarships WHERE funding_type != '' GROUP BY funding_type")
+	if err != nil {
+		log.Printf("ERROR querying by funding_type: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to query by funding_type"})
+	}
+	defer fundingRows.Close()
+	for fundingRows.Next() {
+		var ft string
+		var cnt int
+		if err := fundingRows.Scan(&ft, &cnt); err != nil {
+			log.Printf("ERROR scanning by funding_type row: %v", err)
+			continue
+		}
+		byFundingType[ft] = cnt
+	}
+	if err := fundingRows.Err(); err != nil {
+		log.Printf("ERROR iterating by funding_type rows: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to read by funding_type"})
+	}
+
+	// ── 4. Deadlines this month ──────────────────────────────────────
+	var deadlinesThisMonth int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM scholarships WHERE deadline IS NOT NULL AND deadline >= CURRENT_DATE AND deadline <= DATE_TRUNC('month', CURRENT_DATE + INTERVAL '1 month')`).Scan(&deadlinesThisMonth); err != nil {
+		log.Printf("ERROR counting deadlines this month: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to count deadlines this month"})
+	}
+
+	// ── 5. Deadlines next 30 days ────────────────────────────────────
+	var deadlinesNext30 int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM scholarships WHERE deadline IS NOT NULL AND deadline >= CURRENT_DATE AND deadline <= CURRENT_DATE + INTERVAL '30 days'`).Scan(&deadlinesNext30); err != nil {
+		log.Printf("ERROR counting deadlines next 30 days: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "failed to count deadlines next 30 days"})
+	}
+
+	return c.JSON(fiber.Map{
+		"total":                  total,
+		"by_country":             byCountry,
+		"by_funding_type":        byFundingType,
+		"deadlines_this_month":   deadlinesThisMonth,
+		"deadlines_next_30_days": deadlinesNext30,
 	})
 }
 

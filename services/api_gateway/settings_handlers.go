@@ -23,7 +23,7 @@ var allowedPrefs = map[string]bool{
 func handleGetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id")
 	if userID == nil || userID.(string) == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
+		return c.Status(401).JSON(fiber.Map{"error": "authentication required"})
 	}
 
 	rows, err := database.DB.QueryContext(c.Context(), "SELECT * FROM profiles WHERE id = ?", userID.(string))
@@ -46,7 +46,7 @@ func handleGetProfile(c *fiber.Ctx) error {
 func handleUpdateProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id")
 	if userID == nil || userID.(string) == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
+		return c.Status(401).JSON(fiber.Map{"error": "authentication required"})
 	}
 
 	var body struct {
@@ -104,7 +104,7 @@ func handleUpdateProfile(c *fiber.Ctx) error {
 func handleGetSettings(c *fiber.Ctx) error {
 	userID := c.Locals("user_id")
 	if userID == nil || userID.(string) == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
+		return c.Status(401).JSON(fiber.Map{"error": "authentication required"})
 	}
 	uid := userID.(string)
 
@@ -143,13 +143,13 @@ func handleGetSettings(c *fiber.Ctx) error {
 func handleUpdateSettings(c *fiber.Ctx) error {
 	userID := c.Locals("user_id")
 	if userID == nil || userID.(string) == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "authentication required"})
+		return c.Status(401).JSON(fiber.Map{"error": "authentication required"})
 	}
 	uid := userID.(string)
 
 	var body struct {
-		DisplayName *string                `json:"display_name"`
-		AvatarURL   *string                `json:"avatar_url"`
+		DisplayName *string                 `json:"display_name"`
+		AvatarURL   *string                 `json:"avatar_url"`
 		Preferences *map[string]interface{} `json:"preferences"`
 	}
 	if err := c.BodyParser(&body); err != nil {
@@ -181,7 +181,7 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 		updated = true
 	}
 
-	// Update preferences if provided
+	// Update preferences if provided — single UPSERT avoids SELECT-then-INSERT race
 	if body.Preferences != nil {
 		prefs := *body.Preferences
 		// Remove non-preference keys
@@ -190,49 +190,30 @@ func handleUpdateSettings(c *fiber.Ctx) error {
 		delete(prefs, "created_at")
 
 		if len(prefs) > 0 {
-			// Check if preferences row exists
-			var exists int
-			err := database.DB.QueryRowContext(c.Context(), "SELECT 1 FROM user_preferences WHERE user_id = ?", uid).Scan(&exists)
-
-			if err == sql.ErrNoRows {
-				// Insert new preferences row
-				var cols []string
-				var vals []string
-				var args []interface{}
-				args = append(args, randomID(), uid)
-				for k, v := range prefs {
-					if !allowedPrefs[k] {
-						continue
-					}
-					cols = append(cols, k)
-					vals = append(vals, "?")
-					args = append(args, v)
+			var cols []string
+			var placeholders []string
+			var setClauses []string
+			var args []interface{}
+			args = append(args, randomID(), uid)
+			cols = append(cols, "id", "user_id")
+			placeholders = append(placeholders, "?", "?")
+			for k, v := range prefs {
+				if !allowedPrefs[k] {
+					continue
 				}
-				args = append(args, time.Now().UTC().Format("20060102T150405Z"))
-				cols = append(cols, "created_at")
-				vals = append(vals, "?")
-
-				_, err = database.DB.ExecContext(c.Context(),
-					"INSERT INTO user_preferences (id, user_id, "+strings.Join(cols, ", ")+") VALUES (?, ?, "+strings.Join(vals, ", ")+")",
-					args...,
-				)
-			} else {
-				// Update existing preferences row
-				var setClauses []string
-				var args []interface{}
-				for k, v := range prefs {
-					if !allowedPrefs[k] {
-						continue
-					}
-					setClauses = append(setClauses, k+" = ?")
-					args = append(args, v)
-				}
-				args = append(args, uid)
-				_, err = database.DB.ExecContext(c.Context(),
-					"UPDATE user_preferences SET "+strings.Join(setClauses, ", ")+" WHERE user_id = ?",
-					args...,
-				)
+				cols = append(cols, k)
+				placeholders = append(placeholders, "?")
+				setClauses = append(setClauses, k+" = excluded."+k)
+				args = append(args, v)
 			}
+			cols = append(cols, "created_at")
+			placeholders = append(placeholders, "?")
+			args = append(args, time.Now().UTC().Format("20060102T150405Z"))
+
+			_, err := database.DB.ExecContext(c.Context(),
+				"INSERT INTO user_preferences ("+strings.Join(cols, ", ")+") VALUES ("+strings.Join(placeholders, ", ")+") ON CONFLICT(user_id) DO UPDATE SET "+strings.Join(setClauses, ", "),
+				args...,
+			)
 			if err != nil {
 				return c.Status(500).JSON(fiber.Map{"error": "failed to update preferences"})
 			}

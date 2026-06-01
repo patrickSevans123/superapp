@@ -1,0 +1,1864 @@
+{
+  "colors": [
+    {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "r": 255, "g": 255, "b": 255,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Black",
+        "analogous": ["Off-White", "Cream"],
+        "triadic": ["Black", "Light Gray", "Beige"]
+      }
+    },
+    {
+      "name": "Off-White",
+      "hex": "#FAF9F6",
+      "r": 250, "g": 249, "b": 246,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Charcoal",
+        "analogous": ["White", "Cream"],
+        "triadic": ["Charcoal", "Beige", "Light Gray"]
+      }
+    },
+    {
+      "name": "Cream",
+      "hex": "#FFFDD0",
+      "r": 255, "g": 253, "b": 208,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Ivory", "Beige"],
+        "triadic": ["Slate", "Mocha", "Sage"]
+      }
+    },
+    {
+      "name": "Ivory",
+      "hex": "#FFFFF0",
+      "r": 255, "g": 255, "b": 240,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Graphite",
+        "analogous": ["Cream", "Beige"],
+        "triadic": ["Graphite", "Sage", "Taupe"]
+      }
+    },
+    {
+      "name": "Beige",
+      "hex": "#F5F5DC",
+      "r": 245, "g": 245, "b": 220,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Charcoal",
+        "analogous": ["Sand", "Cream"],
+        "triadic": ["Charcoal", "Mocha", "Olive"]
+      }
+    },
+    {
+      "name": "Sand",
+      "hex": "#C2B280",
+      "r": 194, "g": 178, "b": 128,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Beige", "Camel"],
+        "triadic": ["Navy", "Olive", "Terracotta"]
+      }
+    },
+    {
+      "name": "Camel",
+      "hex": "#C19A6B",
+      "r": 193, "g": 154, "b": 107,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Tan", "Caramel"],
+        "triadic": ["Slate", "Burgundy", "Olive"]
+      }
+    },
+    {
+      "name": "Tan",
+      "hex": "#D2B48C",
+      "r": 210, "g": 180, "b": 140,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Camel", "Sand"],
+        "triadic": ["Sapphire", "Terracotta", "Sage"]
+      }
+    },
+    {
+      "name": "Taupe",
+      "hex": "#483C32",
+      "r": 72, "g": 60, "b": 50,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Dusty Pink",
+        "analogous": ["Mushroom", "Mocha"],
+        "triadic": ["Dusty Pink", "Sage", "Slate"]
+      }
+    },
+    {
+      "name": "Mushroom",
+      "hex": "#BAB9A9",
+      "r": 186, "g": 185, "b": 169,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Plum",
+        "analogous": ["Taupe", "Stone"],
+        "triadic": ["Plum", "Sage", "Camel"]
+      }
+    },
+    {
+      "name": "Khaki",
+      "hex": "#C3B091",
+      "r": 195, "g": 176, "b": 145,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Royal Blue",
+        "analogous": ["Sand", "Tan"],
+        "triadic": ["Royal Blue", "Burgundy", "Olive"]
+      }
+    },
+    {
+      "name": "Stone",
+      "hex": "#928E85",
+      "r": 146, "g": 142, "b": 133,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Burgundy",
+        "analogous": ["Mushroom", "Light Gray"],
+        "triadic": ["Burgundy", "Sage", "Navy"]
+      }
+    },
+    {
+      "name": "Light Gray",
+      "hex": "#D3D3D3",
+      "r": 211, "g": 211, "b": 211,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Charcoal",
+        "analogous": ["Heather Gray", "Stone"],
+        "triadic": ["Charcoal", "White", "Black"]
+      }
+    },
+    {
+      "name": "Heather Gray",
+      "hex": "#B8B8B8",
+      "r": 184, "g": 184, "b": 184,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Black",
+        "analogous": ["Light Gray", "Charcoal"],
+        "triadic": ["Black", "White", "Slate"]
+      }
+    },
+    {
+      "name": "Charcoal",
+      "hex": "#36454F",
+      "r": 54, "g": 69, "b": 79,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Slate", "Graphite"],
+        "triadic": ["White", "Burgundy", "Sage"]
+      }
+    },
+    {
+      "name": "Slate",
+      "hex": "#708090",
+      "r": 112, "g": 128, "b": 144,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Camel",
+        "analogous": ["Charcoal", "Graphite"],
+        "triadic": ["Camel", "Terracotta", "Dusty Pink"]
+      }
+    },
+    {
+      "name": "Graphite",
+      "hex": "#3D3D3D",
+      "r": 61, "g": 61, "b": 61,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Charcoal", "Slate"],
+        "triadic": ["White", "Burgundy", "Mustard"]
+      }
+    },
+    {
+      "name": "Black",
+      "hex": "#000000",
+      "r": 0, "g": 0, "b": 0,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Charcoal", "Graphite"],
+        "triadic": ["White", "True Red", "Amber"]
+      }
+    },
+    {
+      "name": "Jet Black",
+      "hex": "#0A0A0A",
+      "r": 10, "g": 10, "b": 10,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Off-White",
+        "analogous": ["Black", "Graphite"],
+        "triadic": ["Off-White", "Crimson", "Amber"]
+      }
+    },
+    {
+      "name": "Mocha",
+      "hex": "#967969",
+      "r": 150, "g": 121, "b": 105,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Coffee", "Caramel"],
+        "triadic": ["Teal", "Sage", "Terracotta"]
+      }
+    },
+    {
+      "name": "Olive",
+      "hex": "#808000",
+      "r": 128, "g": 128, "b": 0,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Burgundy",
+        "analogous": ["Sage", "Moss"],
+        "triadic": ["Burgundy", "Mustard", "Navy"]
+      }
+    },
+    {
+      "name": "Forest Green",
+      "hex": "#228B22",
+      "r": 34, "g": 139, "b": 34,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Crimson",
+        "analogous": ["Sage", "Moss"],
+        "triadic": ["Crimson", "Amber", "Sapphire"]
+      }
+    },
+    {
+      "name": "Sage",
+      "hex": "#BCB88A",
+      "r": 188, "g": 184, "b": 138,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Dusty Pink",
+        "analogous": ["Olive", "Moss"],
+        "triadic": ["Dusty Pink", "Taupe", "Lavender"]
+      }
+    },
+    {
+      "name": "Moss",
+      "hex": "#8A9A5B",
+      "r": 138, "g": 154, "b": 91,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Terracotta",
+        "analogous": ["Sage", "Olive"],
+        "triadic": ["Terracotta", "Mustard", "Plum"]
+      }
+    },
+    {
+      "name": "Eucalyptus",
+      "hex": "#5F8575",
+      "r": 95, "g": 133, "b": 117,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Sage", "Mint"],
+        "triadic": ["Coral", "Lavender", "Wine"]
+      }
+    },
+    {
+      "name": "Mint",
+      "hex": "#98FF98",
+      "r": 152, "g": 255, "b": 152,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Hot Pink",
+        "analogous": ["Mint Green", "Seafoam"],
+        "triadic": ["Hot Pink", "Lavender", "Peach"]
+      }
+    },
+    {
+      "name": "Pistachio",
+      "hex": "#93C572",
+      "r": 147, "g": 197, "b": 114,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Mauve",
+        "analogous": ["Mint Green", "Sage"],
+        "triadic": ["Mauve", "Peach", "Buttercream"]
+      }
+    },
+    {
+      "name": "Avocado",
+      "hex": "#568203",
+      "r": 86, "g": 130, "b": 3,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Burgundy",
+        "analogous": ["Olive", "Moss"],
+        "triadic": ["Burgundy", "Mustard", "Terracotta"]
+      }
+    },
+    {
+      "name": "Terracotta",
+      "hex": "#E2725B",
+      "r": 226, "g": 114, "b": 91,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Rust", "Brick"],
+        "triadic": ["Teal", "Olive", "Mustard"]
+      }
+    },
+    {
+      "name": "Rust",
+      "hex": "#B7410E",
+      "r": 183, "g": 65, "b": 14,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Terracotta", "Brick"],
+        "triadic": ["Sapphire", "Olive", "Mustard"]
+      }
+    },
+    {
+      "name": "Burnt Orange",
+      "hex": "#CC5500",
+      "r": 204, "g": 85, "b": 0,
+      "seasons": ["fall"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Rust", "Terracotta"],
+        "triadic": ["Navy", "Olive", "Burgundy"]
+      }
+    },
+    {
+      "name": "Ochre",
+      "hex": "#CC7722",
+      "r": 204, "g": 119, "b": 34,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Mustard", "Marigold"],
+        "triadic": ["Sapphire", "Teal", "Burgundy"]
+      }
+    },
+    {
+      "name": "Mustard",
+      "hex": "#FFDB58",
+      "r": 255, "g": 219, "b": 88,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Plum",
+        "analogous": ["Ochre", "Marigold"],
+        "triadic": ["Plum", "Teal", "Burgundy"]
+      }
+    },
+    {
+      "name": "Marigold",
+      "hex": "#EAA221",
+      "r": 234, "g": 162, "b": 33,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Royal Purple",
+        "analogous": ["Mustard", "Ochre"],
+        "triadic": ["Royal Purple", "Teal", "Crimson"]
+      }
+    },
+    {
+      "name": "Brick",
+      "hex": "#9C3A3A",
+      "r": 156, "g": 58, "b": 58,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Terracotta", "Rust"],
+        "triadic": ["Sage", "Navy", "Mustard"]
+      }
+    },
+    {
+      "name": "Burgundy",
+      "hex": "#800020",
+      "r": 128, "g": 0, "b": 32,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Olive",
+        "analogous": ["Oxblood", "Wine"],
+        "triadic": ["Olive", "Mustard", "Navy"]
+      }
+    },
+    {
+      "name": "Oxblood",
+      "hex": "#4A0404",
+      "r": 74, "g": 4, "b": 4,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Burgundy", "Wine"],
+        "triadic": ["Sage", "Mustard", "Camel"]
+      }
+    },
+    {
+      "name": "Wine",
+      "hex": "#722F37",
+      "r": 114, "g": 47, "b": 55,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Burgundy", "Oxblood"],
+        "triadic": ["Sage", "Khaki", "Terracotta"]
+      }
+    },
+    {
+      "name": "Mahogany",
+      "hex": "#C04000",
+      "r": 192, "g": 64, "b": 0,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Burgundy", "Rust"],
+        "triadic": ["Teal", "Sage", "Amber"]
+      }
+    },
+    {
+      "name": "Cognac",
+      "hex": "#9B3A2B",
+      "r": 155, "g": 58, "b": 43,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Mahogany", "Burnt Orange"],
+        "triadic": ["Teal", "Sage", "Camel"]
+      }
+    },
+    {
+      "name": "Caramel",
+      "hex": "#AF6E4D",
+      "r": 175, "g": 110, "b": 77,
+      "seasons": ["fall", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Cognac", "Toffee"],
+        "triadic": ["Sapphire", "Olive", "Teal"]
+      }
+    },
+    {
+      "name": "Toffee",
+      "hex": "#75553F",
+      "r": 117, "g": 85, "b": 63,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sky Blue",
+        "analogous": ["Caramel", "Coffee"],
+        "triadic": ["Sky Blue", "Sage", "Dusty Pink"]
+      }
+    },
+    {
+      "name": "Espresso",
+      "hex": "#4E2E1E",
+      "r": 78, "g": 46, "b": 30,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Powder Blue",
+        "analogous": ["Coffee", "Mocha"],
+        "triadic": ["Powder Blue", "Terracotta", "Sage"]
+      }
+    },
+    {
+      "name": "Coffee",
+      "hex": "#6F4E37",
+      "r": 111, "g": 78, "b": 55,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sky Blue",
+        "analogous": ["Espresso", "Toffee"],
+        "triadic": ["Sky Blue", "Terracotta", "Sage"]
+      }
+    },
+    {
+      "name": "Walnut",
+      "hex": "#5D4E37",
+      "r": 93, "g": 78, "b": 55,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Baby Blue",
+        "analogous": ["Coffee", "Taupe"],
+        "triadic": ["Baby Blue", "Terracotta", "Olive"]
+      }
+    },
+    {
+      "name": "Baby Blue",
+      "hex": "#89CFF0",
+      "r": 137, "g": 207, "b": 240,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Sky Blue", "Powder Blue"],
+        "triadic": ["Coral", "Lavender", "Mint"]
+      }
+    },
+    {
+      "name": "Sky Blue",
+      "hex": "#87CEEB",
+      "r": 135, "g": 206, "b": 235,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Peach",
+        "analogous": ["Baby Blue", "Powder Blue"],
+        "triadic": ["Peach", "Lavender", "Mint"]
+      }
+    },
+    {
+      "name": "Powder Blue",
+      "hex": "#B0E0E6",
+      "r": 176, "g": 224, "b": 230,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Blush",
+        "analogous": ["Baby Blue", "Sky Blue"],
+        "triadic": ["Blush", "Mint", "Lavender"]
+      }
+    },
+    {
+      "name": "Periwinkle",
+      "hex": "#CCCCFF",
+      "r": 204, "g": 204, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Peach",
+        "analogous": ["Lavender", "Lilac"],
+        "triadic": ["Peach", "Mint", "Buttercream"]
+      }
+    },
+    {
+      "name": "Lilac",
+      "hex": "#C8A2C8",
+      "r": 200, "g": 162, "b": 200,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mint Green",
+        "analogous": ["Lavender", "Mauve"],
+        "triadic": ["Mint Green", "Peach", "Buttercream"]
+      }
+    },
+    {
+      "name": "Lavender",
+      "hex": "#E6E6FA",
+      "r": 230, "g": 230, "b": 250,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Lilac", "Periwinkle"],
+        "triadic": ["Sage", "Peach", "Blush"]
+      }
+    },
+    {
+      "name": "Mauve",
+      "hex": "#E0B0FF",
+      "r": 224, "g": 176, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mint",
+        "analogous": ["Lavender", "Lilac"],
+        "triadic": ["Mint", "Peach", "Buttercream"]
+      }
+    },
+    {
+      "name": "Blush",
+      "hex": "#DE5D83",
+      "r": 222, "g": 93, "b": 131,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Mint Green",
+        "analogous": ["Rose", "Dusty Pink"],
+        "triadic": ["Mint Green", "Lavender", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Rose",
+      "hex": "#FF007F",
+      "r": 255, "g": 0, "b": 127,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Kelly Green",
+        "analogous": ["Blush", "Hot Pink"],
+        "triadic": ["Kelly Green", "Amber", "Electric Blue"]
+      }
+    },
+    {
+      "name": "Salmon",
+      "hex": "#FA8072",
+      "r": 250, "g": 128, "b": 114,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Coral", "Peach"],
+        "triadic": ["Teal", "Sage", "Lavender"]
+      }
+    },
+    {
+      "name": "Peach",
+      "hex": "#FFDAB9",
+      "r": 255, "g": 218, "b": 185,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Lavender",
+        "analogous": ["Apricot", "Salmon"],
+        "triadic": ["Lavender", "Mint", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Apricot",
+      "hex": "#FBCEB1",
+      "r": 251, "g": 206, "b": 177,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Periwinkle",
+        "analogous": ["Peach", "Salmon"],
+        "triadic": ["Periwinkle", "Mint", "Buttercream"]
+      }
+    },
+    {
+      "name": "Buttercream",
+      "hex": "#FFF9E6",
+      "r": 255, "g": 249, "b": 230,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Lavender",
+        "analogous": ["Vanilla", "Champagne"],
+        "triadic": ["Lavender", "Mint", "Peach"]
+      }
+    },
+    {
+      "name": "Mint Green",
+      "hex": "#98FB98",
+      "r": 152, "g": 251, "b": 152,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Blush",
+        "analogous": ["Mint", "Seafoam"],
+        "triadic": ["Blush", "Lavender", "Peach"]
+      }
+    },
+    {
+      "name": "Seafoam",
+      "hex": "#9FE2BF",
+      "r": 159, "g": 226, "b": 191,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Mint", "Mint Green"],
+        "triadic": ["Coral", "Lavender", "Blush"]
+      }
+    },
+    {
+      "name": "Lilac Gray",
+      "hex": "#B8B5C6",
+      "r": 184, "g": 181, "b": 198,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Camel",
+        "analogous": ["Lavender", "Mauve"],
+        "triadic": ["Camel", "Blush", "Mint"]
+      }
+    },
+    {
+      "name": "Dusty Pink",
+      "hex": "#DCAE96",
+      "r": 220, "g": 174, "b": 150,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Blush", "Mauve"],
+        "triadic": ["Sage", "Powder Blue", "Lavender"]
+      }
+    },
+    {
+      "name": "Champagne",
+      "hex": "#F7E7CE",
+      "r": 247, "g": 231, "b": 206,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Pearl", "Vanilla"],
+        "triadic": ["Slate", "Blush", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Pearl",
+      "hex": "#F0EAD6",
+      "r": 240, "g": 234, "b": 214,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Graphite",
+        "analogous": ["Champagne", "Vanilla"],
+        "triadic": ["Graphite", "Blush", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Vanilla",
+      "hex": "#F3E5AB",
+      "r": 243, "g": 229, "b": 171,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Lavender",
+        "analogous": ["Buttercream", "Champagne"],
+        "triadic": ["Lavender", "Peach", "Mint"]
+      }
+    },
+    {
+      "name": "Rose Gold",
+      "hex": "#B76E79",
+      "r": 183, "g": 110, "b": 121,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Blush", "Dusty Pink"],
+        "triadic": ["Sage", "Teal", "Lavender"]
+      }
+    },
+    {
+      "name": "Ballet Slipper",
+      "hex": "#F2D5D5",
+      "r": 242, "g": 213, "b": 213,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Blush", "Dusty Pink"],
+        "triadic": ["Sage", "Powder Blue", "Mint"]
+      }
+    },
+    {
+      "name": "Misty Rose",
+      "hex": "#FFE4E1",
+      "r": 255, "g": 228, "b": 225,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Mint",
+        "analogous": ["Rose", "Blush"],
+        "triadic": ["Mint", "Powder Blue", "Lavender"]
+      }
+    },
+    {
+      "name": "Wisteria",
+      "hex": "#C9A0DC",
+      "r": 201, "g": 160, "b": 220,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mint",
+        "analogous": ["Lilac", "Lavender"],
+        "triadic": ["Mint", "Peach", "Buttercream"]
+      }
+    },
+    {
+      "name": "Angel Wing",
+      "hex": "#F5EFF7",
+      "r": 245, "g": 239, "b": 247,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Graphite",
+        "analogous": ["White", "Pearl"],
+        "triadic": ["Graphite", "Blush", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Emerald",
+      "hex": "#50C878",
+      "r": 80, "g": 200, "b": 120,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Crimson",
+        "analogous": ["Jade", "Forest Emerald"],
+        "triadic": ["Crimson", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Forest Emerald",
+      "hex": "#1B6B2B",
+      "r": 27, "g": 107, "b": 43,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Ruby",
+        "analogous": ["Emerald", "Jade"],
+        "triadic": ["Ruby", "Sapphire", "Topaz"]
+      }
+    },
+    {
+      "name": "Sapphire",
+      "hex": "#0F52BA",
+      "r": 15, "g": 82, "b": 186,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Amber",
+        "analogous": ["Royal Blue", "Navy"],
+        "triadic": ["Amber", "Emerald", "Ruby"]
+      }
+    },
+    {
+      "name": "Royal Blue",
+      "hex": "#4169E1",
+      "r": 65, "g": 105, "b": 225,
+      "seasons": ["all-season"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Sapphire", "Navy"],
+        "triadic": ["Coral", "Amber", "Emerald"]
+      }
+    },
+    {
+      "name": "Navy",
+      "hex": "#000080",
+      "r": 0, "g": 0, "b": 128,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mustard",
+        "analogous": ["Sapphire", "Royal Blue"],
+        "triadic": ["Mustard", "Burgundy", "Emerald"]
+      }
+    },
+    {
+      "name": "Cobalt",
+      "hex": "#0047AB",
+      "r": 0, "g": 71, "b": 171,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Burnt Orange",
+        "analogous": ["Sapphire", "Royal Blue"],
+        "triadic": ["Burnt Orange", "Emerald", "Ruby"]
+      }
+    },
+    {
+      "name": "Ruby",
+      "hex": "#E0115F",
+      "r": 224, "g": 17, "b": 95,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Emerald",
+        "analogous": ["Crimson", "Garnet"],
+        "triadic": ["Emerald", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Crimson",
+      "hex": "#DC143C",
+      "r": 220, "g": 20, "b": 60,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Forest Green",
+        "analogous": ["Ruby", "Garnet"],
+        "triadic": ["Forest Green", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Amethyst",
+      "hex": "#9966CC",
+      "r": 153, "g": 102, "b": 204,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Amber",
+        "analogous": ["Plum", "Violet"],
+        "triadic": ["Amber", "Emerald", "Rose"]
+      }
+    },
+    {
+      "name": "Plum",
+      "hex": "#8E4585",
+      "r": 142, "g": 69, "b": 133,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mustard",
+        "analogous": ["Violet", "Amethyst"],
+        "triadic": ["Mustard", "Teal", "Sage"]
+      }
+    },
+    {
+      "name": "Violet",
+      "hex": "#8F00FF",
+      "r": 143, "g": 0, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Lime",
+        "analogous": ["Plum", "Amethyst"],
+        "triadic": ["Lime", "Bright Orange", "Teal"]
+      }
+    },
+    {
+      "name": "Fuchsia",
+      "hex": "#FF00FF",
+      "r": 255, "g": 0, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Lime",
+        "analogous": ["Magenta", "Hot Pink"],
+        "triadic": ["Lime", "Aqua", "Sunflower"]
+      }
+    },
+    {
+      "name": "Topaz",
+      "hex": "#FFC87C",
+      "r": 255, "g": 200, "b": 124,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Amber", "Citrine"],
+        "triadic": ["Sapphire", "Emerald", "Ruby"]
+      }
+    },
+    {
+      "name": "Amber",
+      "hex": "#FFBF00",
+      "r": 255, "g": 191, "b": 0,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Topaz", "Citrine"],
+        "triadic": ["Sapphire", "Ruby", "Emerald"]
+      }
+    },
+    {
+      "name": "Citrine",
+      "hex": "#E4D00A",
+      "r": 228, "g": 208, "b": 10,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Topaz", "Amber"],
+        "triadic": ["Sapphire", "Ruby", "Amethyst"]
+      }
+    },
+    {
+      "name": "Jade",
+      "hex": "#00A86B",
+      "r": 0, "g": 168, "b": 107,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Ruby",
+        "analogous": ["Emerald", "Teal"],
+        "triadic": ["Ruby", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Teal",
+      "hex": "#008080",
+      "r": 0, "g": 128, "b": 128,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Terracotta",
+        "analogous": ["Turquoise", "Jade"],
+        "triadic": ["Terracotta", "Burgundy", "Mustard"]
+      }
+    },
+    {
+      "name": "Turquoise",
+      "hex": "#40E0D0",
+      "r": 64, "g": 224, "b": 208,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Teal", "Aquamarine"],
+        "triadic": ["Coral", "Amber", "Magenta"]
+      }
+    },
+    {
+      "name": "Aquamarine",
+      "hex": "#7FFFD4",
+      "r": 127, "g": 255, "b": 212,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Turquoise", "Teal"],
+        "triadic": ["Coral", "Lavender", "Blush"]
+      }
+    },
+    {
+      "name": "Garnet",
+      "hex": "#733635",
+      "r": 115, "g": 54, "b": 53,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Ruby", "Crimson"],
+        "triadic": ["Sage", "Mustard", "Teal"]
+      }
+    },
+    {
+      "name": "True Red",
+      "hex": "#FF0000",
+      "r": 255, "g": 0, "b": 0,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Kelly Green",
+        "analogous": ["Cherry Red", "Racing Red"],
+        "triadic": ["Kelly Green", "Royal Blue", "Amber"]
+      }
+    },
+    {
+      "name": "Cherry Red",
+      "hex": "#D2042D",
+      "r": 210, "g": 4, "b": 45,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Kelly Green",
+        "analogous": ["True Red", "Racing Red"],
+        "triadic": ["Kelly Green", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Coral",
+      "hex": "#FF7F50",
+      "r": 255, "g": 127, "b": 80,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Salmon", "Peach"],
+        "triadic": ["Teal", "Navy", "Lavender"]
+      }
+    },
+    {
+      "name": "Hot Pink",
+      "hex": "#FF69B4",
+      "r": 255, "g": 105, "b": 180,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Lime",
+        "analogous": ["Magenta", "Rose"],
+        "triadic": ["Lime", "Aqua", "Sunflower"]
+      }
+    },
+    {
+      "name": "Magenta",
+      "hex": "#FF00FF",
+      "r": 255, "g": 0, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Lime",
+        "analogous": ["Hot Pink", "Fuchsia"],
+        "triadic": ["Lime", "Aqua", "Sunflower"]
+      }
+    },
+    {
+      "name": "Electric Blue",
+      "hex": "#7DF9FF",
+      "r": 125, "g": 249, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Hyper Blue", "Ultramarine"],
+        "triadic": ["Coral", "Lime", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Royal Purple",
+      "hex": "#7851A9",
+      "r": 120, "g": 81, "b": 169,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Sunflower",
+        "analogous": ["Amethyst", "Violet"],
+        "triadic": ["Sunflower", "Emerald", "Teal"]
+      }
+    },
+    {
+      "name": "Lime",
+      "hex": "#00FF00",
+      "r": 0, "g": 255, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Hot Pink",
+        "analogous": ["Kelly Green", "Electric Lime"],
+        "triadic": ["Hot Pink", "Electric Blue", "Sunflower"]
+      }
+    },
+    {
+      "name": "Kelly Green",
+      "hex": "#4CBB17",
+      "r": 76, "g": 187, "b": 23,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Racing Red",
+        "analogous": ["Lime", "Electric Lime"],
+        "triadic": ["Racing Red", "Royal Blue", "Amber"]
+      }
+    },
+    {
+      "name": "Bright Orange",
+      "hex": "#FFA500",
+      "r": 255, "g": 165, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Tangerine", "Safety Orange"],
+        "triadic": ["Sapphire", "Emerald", "Violet"]
+      }
+    },
+    {
+      "name": "Tangerine",
+      "hex": "#FF9966",
+      "r": 255, "g": 153, "b": 102,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Bright Orange", "Coral"],
+        "triadic": ["Sapphire", "Teal", "Plum"]
+      }
+    },
+    {
+      "name": "Sunflower",
+      "hex": "#FFDA03",
+      "r": 255, "g": 218, "b": 3,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Royal Purple",
+        "analogous": ["Canary Yellow", "Cyber Yellow"],
+        "triadic": ["Royal Purple", "Teal", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Canary Yellow",
+      "hex": "#FFEF00",
+      "r": 255, "g": 239, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Violet",
+        "analogous": ["Sunflower", "Cyber Yellow"],
+        "triadic": ["Violet", "Teal", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Aqua",
+      "hex": "#00FFFF",
+      "r": 0, "g": 255, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Turquoise", "Electric Blue"],
+        "triadic": ["Coral", "Hot Pink", "Lime"]
+      }
+    },
+    {
+      "name": "Chartreuse",
+      "hex": "#DFFF00",
+      "r": 223, "g": 255, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Magenta",
+        "analogous": ["Lime", "Electric Lime"],
+        "triadic": ["Magenta", "Electric Blue", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Flame",
+      "hex": "#E25822",
+      "r": 226, "g": 88, "b": 34,
+      "seasons": ["fall", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Bright Orange", "Safety Orange"],
+        "triadic": ["Navy", "Teal", "Plum"]
+      }
+    },
+    {
+      "name": "Safety Orange",
+      "hex": "#FF6700",
+      "r": 255, "g": 103, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Sapphire",
+        "analogous": ["Bright Orange", "Flame"],
+        "triadic": ["Sapphire", "Emerald", "Violet"]
+      }
+    },
+    {
+      "name": "Electric Lime",
+      "hex": "#CCFF00",
+      "r": 204, "g": 255, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Hot Pink",
+        "analogous": ["Lime", "Chartreuse"],
+        "triadic": ["Hot Pink", "Electric Blue", "Magenta"]
+      }
+    },
+    {
+      "name": "Cyber Yellow",
+      "hex": "#FFD300",
+      "r": 255, "g": 211, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Violet",
+        "analogous": ["Sunflower", "Canary Yellow"],
+        "triadic": ["Violet", "Teal", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Ultramarine",
+      "hex": "#3F00FF",
+      "r": 63, "g": 0, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Tangerine",
+        "analogous": ["Electric Blue", "Hyper Blue"],
+        "triadic": ["Tangerine", "Lime", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Vibrant Violet",
+      "hex": "#8B00FF",
+      "r": 139, "g": 0, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Lime",
+        "analogous": ["Ultramarine", "Magenta"],
+        "triadic": ["Lime", "Electric Blue", "Sunflower"]
+      }
+    },
+    {
+      "name": "Racing Red",
+      "hex": "#CC0000",
+      "r": 204, "g": 0, "b": 0,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Kelly Green",
+        "analogous": ["True Red", "Cherry Red"],
+        "triadic": ["Kelly Green", "Sapphire", "Amber"]
+      }
+    },
+    {
+      "name": "Laser Lemon",
+      "hex": "#FFFF66",
+      "r": 255, "g": 255, "b": 102,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Violet",
+        "analogous": ["Canary Yellow", "Sunflower"],
+        "triadic": ["Violet", "Hot Pink", "Teal"]
+      }
+    },
+    {
+      "name": "Hyper Blue",
+      "hex": "#00BFFF",
+      "r": 0, "g": 191, "b": 255,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Electric Blue", "Ultramarine"],
+        "triadic": ["Coral", "Lime", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Neon Pink",
+      "hex": "#FF10F0",
+      "r": 255, "g": 16, "b": 240,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Electric Lime",
+        "analogous": ["Hot Pink", "Magenta"],
+        "triadic": ["Electric Lime", "Electric Blue", "Cyber Yellow"]
+      }
+    },
+    {
+      "name": "Oxford Blue",
+      "hex": "#002147",
+      "r": 0, "g": 33, "b": 71,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Mustard",
+        "analogous": ["Navy", "Stone Island Navy"],
+        "triadic": ["Mustard", "Burberry Beige", "Burgundy"]
+      }
+    },
+    {
+      "name": "British Racing Green",
+      "hex": "#004225",
+      "r": 0, "g": 66, "b": 37,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Louboutin Red",
+        "analogous": ["Forest Green", "Gucci Green"],
+        "triadic": ["Louboutin Red", "Burberry Beige", "Trench Coat Tan"]
+      }
+    },
+    {
+      "name": "Trench Coat Tan",
+      "hex": "#BFA16D",
+      "r": 191, "g": 161, "b": 109,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Oxford Blue",
+        "analogous": ["Burberry Beige", "Camel"],
+        "triadic": ["Oxford Blue", "British Racing Green", "Burgundy"]
+      }
+    },
+    {
+      "name": "Hermès Orange",
+      "hex": "#E85D2C",
+      "r": 232, "g": 93, "b": 44,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Tiffany Blue",
+        "analogous": ["Valentino Red", "Burberry Beige"],
+        "triadic": ["Tiffany Blue", "Gucci Green", "Chanel Black"]
+      }
+    },
+    {
+      "name": "Tiffany Blue",
+      "hex": "#81D8D0",
+      "r": 129, "g": 216, "b": 208,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Hermès Orange",
+        "analogous": ["Teal", "Turquoise"],
+        "triadic": ["Hermès Orange", "Chanel Black", "Burberry Beige"]
+      }
+    },
+    {
+      "name": "Chanel Black",
+      "hex": "#1A1A1A",
+      "r": 26, "g": 26, "b": 26,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Black", "Jet Black"],
+        "triadic": ["White", "Louboutin Red", "Tiffany Blue"]
+      }
+    },
+    {
+      "name": "Burberry Beige",
+      "hex": "#D5C4A0",
+      "r": 213, "g": 196, "b": 160,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Oxford Blue",
+        "analogous": ["Trench Coat Tan", "Camel"],
+        "triadic": ["Oxford Blue", "British Racing Green", "Louboutin Red"]
+      }
+    },
+    {
+      "name": "Louboutin Red",
+      "hex": "#B30000",
+      "r": 179, "g": 0, "b": 0,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "British Racing Green",
+        "analogous": ["Valentino Red", "Supreme Red"],
+        "triadic": ["British Racing Green", "Chanel Black", "Burberry Beige"]
+      }
+    },
+    {
+      "name": "Gucci Green",
+      "hex": "#009B4F",
+      "r": 0, "g": 155, "b": 79,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Hermès Orange",
+        "analogous": ["British Racing Green", "BAPE Camo Green"],
+        "triadic": ["Hermès Orange", "Fendi Yellow", "Louboutin Red"]
+      }
+    },
+    {
+      "name": "Fendi Yellow",
+      "hex": "#F5D442",
+      "r": 245, "g": 212, "b": 66,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Stone Island Navy",
+        "analogous": ["Hermès Orange", "Off-White Industrial Yellow"],
+        "triadic": ["Stone Island Navy", "Gucci Green", "Valentino Red"]
+      }
+    },
+    {
+      "name": "Valentino Red",
+      "hex": "#E3032E",
+      "r": 227, "g": 3, "b": 46,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Gucci Green",
+        "analogous": ["Louboutin Red", "Supreme Red"],
+        "triadic": ["Gucci Green", "Chanel Black", "Fendi Yellow"]
+      }
+    },
+    {
+      "name": "Off-White Industrial Yellow",
+      "hex": "#FFDA00",
+      "r": 255, "g": 218, "b": 0,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Stone Island Navy",
+        "analogous": ["Fendi Yellow", "BAPE Camo Green"],
+        "triadic": ["Stone Island Navy", "Chanel Black", "Supreme Red"]
+      }
+    },
+    {
+      "name": "Supreme Red",
+      "hex": "#E01020",
+      "r": 224, "g": 16, "b": 32,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "warm"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Valentino Red", "Louboutin Red"],
+        "triadic": ["White", "Chanel Black", "Off-White Industrial Yellow"]
+      }
+    },
+    {
+      "name": "Stüssy Pink",
+      "hex": "#D87093",
+      "r": 216, "g": 112, "b": 147,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Nike Volt",
+        "analogous": ["Blush", "Rose Gold"],
+        "triadic": ["Nike Volt", "Acne Studios Pastel Pink", "Chanel Black"]
+      }
+    },
+    {
+      "name": "BAPE Camo Green",
+      "hex": "#4A5D23",
+      "r": 74, "g": 93, "b": 35,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Supreme Red",
+        "analogous": ["Gucci Green", "British Racing Green"],
+        "triadic": ["Supreme Red", "Off-White Industrial Yellow", "Navy"]
+      }
+    },
+    {
+      "name": "Nike Volt",
+      "hex": "#CFFF04",
+      "r": 207, "g": 255, "b": 4,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "cool"],
+      "harmony": {
+        "complement": "Stüssy Pink",
+        "analogous": ["Electric Lime", "Off-White Industrial Yellow"],
+        "triadic": ["Stüssy Pink", "Adidas Bluebird", "Supreme Red"]
+      }
+    },
+    {
+      "name": "Adidas Bluebird",
+      "hex": "#0070B8",
+      "r": 0, "g": 112, "b": 184,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Hermès Orange",
+        "analogous": ["Oxford Blue", "Stone Island Navy"],
+        "triadic": ["Hermès Orange", "Nike Volt", "Supreme Red"]
+      }
+    },
+    {
+      "name": "Stone Island Navy",
+      "hex": "#1B2A4A",
+      "r": 27, "g": 42, "b": 74,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Fendi Yellow",
+        "analogous": ["Oxford Blue", "Navy"],
+        "triadic": ["Fendi Yellow", "Gucci Green", "Louboutin Red"]
+      }
+    },
+    {
+      "name": "Patagonia Purple",
+      "hex": "#5B3A8F",
+      "r": 91, "g": 58, "b": 143,
+      "seasons": ["fall", "spring"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Nike Volt",
+        "analogous": ["Amethyst", "Royal Purple"],
+        "triadic": ["Nike Volt", "Adidas Bluebird", "Hermès Orange"]
+      }
+    },
+    {
+      "name": "Acne Studios Pastel Pink",
+      "hex": "#F5C9D6",
+      "r": 245, "g": 201, "b": 214,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "British Racing Green",
+        "analogous": ["Blush", "Stüssy Pink"],
+        "triadic": ["British Racing Green", "Chanel Black", "Burberry Beige"]
+      }
+    },
+    {
+      "name": "Millennial Pink",
+      "hex": "#F3C1C6",
+      "r": 243, "g": 193, "b": 198,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Blush", "Acne Studios Pastel Pink"],
+        "triadic": ["Sage", "Navy", "Terracotta"]
+      }
+    },
+    {
+      "name": "Gen Z Yellow",
+      "hex": "#F5E942",
+      "r": 245, "g": 233, "b": 66,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Violet",
+        "analogous": ["Sunflower", "Fendi Yellow"],
+        "triadic": ["Violet", "Teal", "Hot Pink"]
+      }
+    },
+    {
+      "name": "Coastal Blue",
+      "hex": "#5DBCD2",
+      "r": 93, "g": 188, "b": 210,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Coral",
+        "analogous": ["Tiffany Blue", "Sky Blue"],
+        "triadic": ["Coral", "Sand", "Blush"]
+      }
+    },
+    {
+      "name": "Boho Plum",
+      "hex": "#6B2D5B",
+      "r": 107, "g": 45, "b": 91,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Mustard",
+        "analogous": ["Plum", "Amethyst"],
+        "triadic": ["Mustard", "Sage", "Terracotta"]
+      }
+    },
+    {
+      "name": "Cottagecore Beige",
+      "hex": "#E8D5B7",
+      "r": 232, "g": 213, "b": 183,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Burberry Beige", "Trench Coat Tan"],
+        "triadic": ["Slate", "Sage", "Dusty Pink"]
+      }
+    },
+    {
+      "name": "Dark Academia Brown",
+      "hex": "#3B2F2F",
+      "r": 59, "g": 47, "b": 47,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Powder Blue",
+        "analogous": ["Espresso", "Coffee"],
+        "triadic": ["Powder Blue", "Sage", "Terracotta"]
+      }
+    },
+    {
+      "name": "Coastal Grandma White",
+      "hex": "#F2F0EB",
+      "r": 242, "g": 240, "b": 235,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "cool", "neutral"],
+      "harmony": {
+        "complement": "Charcoal",
+        "analogous": ["Off-White", "Pearl"],
+        "triadic": ["Charcoal", "Coastal Blue", "Sage"]
+      }
+    },
+    {
+      "name": "Quiet Luxury Taupe",
+      "hex": "#5C4E4E",
+      "r": 92, "g": 78, "b": 78,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Dusty Pink",
+        "analogous": ["Taupe", "Mushroom"],
+        "triadic": ["Dusty Pink", "Sage", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Mob Wife Red",
+      "hex": "#8B0000",
+      "r": 139, "g": 0, "b": 0,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool"],
+      "harmony": {
+        "complement": "Olive",
+        "analogous": ["Louboutin Red", "Valentino Red"],
+        "triadic": ["Olive", "Chanel Black", "Amber"]
+      }
+    },
+    {
+      "name": "Bottega Green",
+      "hex": "#185B3E",
+      "r": 24, "g": 91, "b": 62,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Burgundy",
+        "analogous": ["Gucci Green", "Forest Green"],
+        "triadic": ["Burgundy", "Fendi Yellow", "Chanel Black"]
+      }
+    },
+    {
+      "name": "Tomato Red",
+      "hex": "#FF6347",
+      "r": 255, "g": 99, "b": 71,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Coral", "True Red"],
+        "triadic": ["Teal", "Sage", "Navy"]
+      }
+    },
+    {
+      "name": "Frosted Lavender",
+      "hex": "#D5C7E8",
+      "r": 213, "g": 199, "b": 232,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "Sage",
+        "analogous": ["Lavender", "Lilac"],
+        "triadic": ["Sage", "Blush", "Powder Blue"]
+      }
+    },
+    {
+      "name": "Prada Saffron",
+      "hex": "#F4C430",
+      "r": 244, "g": 196, "b": 48,
+      "seasons": ["spring", "fall"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Mustard", "Fendi Yellow"],
+        "triadic": ["Navy", "Bottega Green", "Valentino Red"]
+      }
+    },
+    {
+      "name": "Dior Gray",
+      "hex": "#C0C0C0",
+      "r": 192, "g": 192, "b": 192,
+      "seasons": ["all-season"],
+      "skin_tones": ["cool", "neutral"],
+      "harmony": {
+        "complement": "White",
+        "analogous": ["Light Gray", "Heather Gray"],
+        "triadic": ["White", "Chanel Black", "Louboutin Red"]
+      }
+    },
+    {
+      "name": "Cinnamon",
+      "hex": "#7B3F00",
+      "r": 123, "g": 63, "b": 0,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm"],
+      "harmony": {
+        "complement": "Teal",
+        "analogous": ["Cognac", "Mahogany"],
+        "triadic": ["Teal", "Sage", "Mustard"]
+      }
+    },
+    {
+      "name": "Gingerbread",
+      "hex": "#9C5A3C",
+      "r": 156, "g": 90, "b": 60,
+      "seasons": ["fall", "winter"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Sky Blue",
+        "analogous": ["Cinnamon", "Cognac"],
+        "triadic": ["Sky Blue", "Sage", "Cream"]
+      }
+    },
+    {
+      "name": "Sandcastle",
+      "hex": "#D4B896",
+      "r": 212, "g": 184, "b": 150,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Sand", "Tan"],
+        "triadic": ["Slate", "Sage", "Terracotta"]
+      }
+    },
+    {
+      "name": "Sahara",
+      "hex": "#E6C28F",
+      "r": 230, "g": 194, "b": 143,
+      "seasons": ["spring", "summer"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Sandcastle", "Trench Coat Tan"],
+        "triadic": ["Navy", "Terracotta", "Sage"]
+      }
+    },
+    {
+      "name": "Oatmeal",
+      "hex": "#DAC3AC",
+      "r": 218, "g": 195, "b": 172,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Slate",
+        "analogous": ["Beige", "Sand"],
+        "triadic": ["Slate", "Sage", "Dusty Pink"]
+      }
+    },
+    {
+      "name": "Hemp",
+      "hex": "#B5A08A",
+      "r": 181, "g": 160, "b": 138,
+      "seasons": ["all-season"],
+      "skin_tones": ["warm", "neutral"],
+      "harmony": {
+        "complement": "Navy",
+        "analogous": ["Oatmeal", "Khaki"],
+        "triadic": ["Navy", "Sage", "Terracotta"]
+      }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
@@ -27,12 +29,13 @@ import (
 
 var db *sql.DB
 
-
-
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 func main() {
 	_ = godotenv.Load()
+	if _, err := getJWTSecret(); err != nil {
+		log.Fatal(err)
+	}
 
 	// ── DuckDB initialisation (fully optional, zero coupling) ──
 	// Set DUCKDB_PATH env var if you want scholarship queries.
@@ -73,6 +76,11 @@ func main() {
 	defer database.DB.Close()
 	log.Println("SQLite initialised and migrated")
 
+	// ── Background maintenance: clean up expired JWT blacklist entries
+	// every 15 minutes. Previously this ran on every authenticated request
+	// (a DB write per request — wasteful).
+	stopCleanup := startBlacklistCleanup(15 * time.Minute)
+
 	// ── Fiber app ───────────────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
 		AppName: "superapp-api",
@@ -81,15 +89,25 @@ func main() {
 	// Middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
+
+	corsOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if corsOrigins == "" {
+		corsOrigins = "http://localhost:3000,http://localhost:5173"
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: corsOrigins,
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
-	// Health check
+	// Health check (liveness — always returns 200 if process is up)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok", "service": "superapp-api"})
 	})
+
+	// Readiness check — verifies critical dependencies. Returns 503 if any
+	// required dependency is unreachable so load balancers can drain traffic.
+	// This is what monitoring should poll, not /health.
+	app.Get("/health/ready", handleReadiness)
 
 	// API v1
 	v1 := app.Group("/api/v1")
@@ -98,10 +116,22 @@ func main() {
 	v1.Use(authMiddleware)
 
 	// ─── Auth endpoints (no auth required, skipped by middleware) ──────
-	v1.Post("/auth/register", handleRegister)
-	v1.Post("/auth/login", handleLogin)
-	v1.Post("/auth/refresh", handleRefresh)
-	v1.Post("/auth/logout", handleLogout)
+	// Rate limiter for auth routes: 20 req/min per IP
+	authLimiter := limiter.New(limiter.Config{
+		Max:        20,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{"error": "too many requests, please try again later"})
+		},
+	})
+	auth := v1.Group("/auth", authLimiter)
+	auth.Post("/register", handleRegister)
+	auth.Post("/login", handleLogin)
+	auth.Post("/refresh", handleRefresh)
+	auth.Post("/logout", handleLogout)
 
 	// ─── Trade endpoints ───
 	trade := v1.Group("/market")
@@ -111,12 +141,25 @@ func main() {
 	v1.Get("/plans", handlePlans)
 	v1.Get("/plans/summary", handlePlansSummary)
 	v1.Get("/news", handleNews)
+	v1.Get("/news/status", handleNewsStatus)
 	v1.Get("/events", handleEvents)
+	v1.Get("/scrapers/health", handleScrapersHealth)
+
+	// ─── LPDP endpoints ───
+	lpdp := v1.Group("/lpdp")
+	lpdp.Get("/universities", handleLPDPUniversities)
+	lpdp.Get("/universities/:name", handleLPDPUniversityDetail)
+	lpdp.Get("/programs", handleLPDPPrograms)
+	lpdp.Get("/stats", handleLPDPStats)
+	lpdp.Get("/search", handleLPDPSearch)
 
 	// ─── Scholarship endpoints ───
 	v1.Get("/scholarships", handleListScholarships)
 	// Saved/bookmarked scholarships (must register before :id to avoid conflict)
 	v1.Get("/scholarships/saved", handleGetSavedScholarships)
+	v1.Get("/scholarships/stats", handleScholarshipStats)
+	v1.Get("/scholarships/batch", handleGetScholarshipsBatch)
+	v1.Get("/scholarships/:id/related", handleGetRelatedScholarships)
 	v1.Post("/scholarships/:id/save", handleSaveScholarship)
 	v1.Delete("/scholarships/:id/save", handleUnsaveScholarship)
 	v1.Get("/scholarships/:id", handleGetScholarship)
@@ -135,6 +178,7 @@ func main() {
 	tryon := v1.Group("/tryon")
 	tryon.Get("/history", HandleGetTryonHistory)
 	tryon.Post("/", HandleCreateTryon)
+	tryon.Delete("/:id", HandleDeleteTryonResult)
 
 	// ─── OOTD ───
 	ootd := v1.Group("/ootd")
@@ -150,6 +194,26 @@ func main() {
 
 	// ─── Upload endpoints ───
 	v1.Post("/upload/photo", handleUploadPhoto)
+
+	// ─── Static reference data (university, country tips, fashion, trade) ──
+	// These endpoints are public and serve curated reference datasets loaded
+	// from JSON files at startup. See static_data_handlers.go.
+	v1.Get("/reference/status", handleStaticDataStatus)
+	v1.Get("/reference/universities", handleListUniversities)
+	v1.Get("/reference/universities/:id", handleGetUniversity)
+	v1.Get("/reference/country-tips", handleListCountryTips)
+	v1.Get("/reference/country-tips/:country", handleGetCountryTips)
+	v1.Get("/reference/fashion/brands", handleListBrands)
+	v1.Get("/reference/fashion/colors", handleListColors)
+	v1.Get("/reference/fashion/ootd-rules", handleGetOOTDRules)
+	v1.Get("/reference/trade/idx", handleListIDX)
+	v1.Get("/reference/trade/watchlists", handleListWatchlists)
+
+	// Load all static reference datasets into memory
+	loadStaticData()
+
+	// Load LPDP data into memory
+	loadLPDPData()
 
 	// Serve uploads directory
 	uploadsDir := filepath.Join("data", "uploads")
@@ -175,30 +239,113 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8082"
+		port = "8080"
 	}
 
-	// Graceful shutdown
+	// Graceful shutdown — server runs in a goroutine so we can select on
+	// either a startup error or an OS signal. Without this, a port conflict
+	// would block indefinitely.
+	errCh := make(chan error, 1)
 	go func() {
 		log.Printf("🚀 API Gateway starting on :%s", port)
-		if err := app.Listen(":" + port); err != nil {
-			log.Fatalf("server error: %v", err)
-		}
+		errCh <- app.Listen(":" + port)
 	}()
 
-	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("Shutting down server...")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := app.ShutdownWithContext(shutdownCtx); err != nil {
-		log.Fatalf("server forced to shutdown: %v", err)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			close(stopCleanup)
+			log.Fatalf("server error: %v", err)
+		}
+	case sig := <-quit:
+		log.Printf("received %s, shutting down", sig)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := app.ShutdownWithContext(shutdownCtx); err != nil {
+			log.Printf("server forced to shutdown: %v", err)
+		}
 	}
+
+	close(stopCleanup)
 	log.Println("Server stopped gracefully")
+}
+
+// ─── Readiness Check ────────────────────────────────────────────────────────
+
+// handleReadiness returns 200 only if every critical dependency is reachable.
+// Currently checks:
+//   - SQLite (local auth + data) — required
+//   - DuckDB (scholarship data) — optional (zero-coupling mode)
+//   - self-trade Python API — optional (graceful degradation)
+//
+// Returns 503 if any REQUIRED dependency is down. Optional dependencies are
+// reported in the JSON body but do not fail the check — the API gateway
+// keeps serving requests with `degraded: true` markers.
+func handleReadiness(c *fiber.Ctx) error {
+	type depStatus struct {
+		OK        bool   `json:"ok"`
+		Required  bool   `json:"required"`
+		Detail    string `json:"detail,omitempty"`
+	}
+	deps := map[string]depStatus{}
+
+	// SQLite: required.
+	if database.DB != nil {
+		if err := database.DB.PingContext(c.Context()); err == nil {
+			deps["sqlite"] = depStatus{OK: true, Required: true}
+		} else {
+			deps["sqlite"] = depStatus{OK: false, Required: true, Detail: err.Error()}
+		}
+	} else {
+		deps["sqlite"] = depStatus{OK: false, Required: true, Detail: "not initialized"}
+	}
+
+	// DuckDB: optional (zero-coupling mode means the service is not required).
+	if db != nil {
+		if err := db.PingContext(c.Context()); err == nil {
+			deps["duckdb"] = depStatus{OK: true, Required: false}
+		} else {
+			deps["duckdb"] = depStatus{OK: false, Required: false, Detail: err.Error()}
+		}
+	} else {
+		deps["duckdb"] = depStatus{OK: false, Required: false, Detail: "DUCKDB_PATH not set (zero-coupling mode)"}
+	}
+
+	// self-trade: optional — even if it's down the gateway keeps serving.
+	upstreamURL := strings.TrimSuffix(selfTradeBase, "/") + "/api/health"
+	req, _ := http.NewRequestWithContext(c.Context(), http.MethodGet, upstreamURL, nil)
+	req.Header.Set("User-Agent", userAgent)
+	upstreamClient := &http.Client{Timeout: 2 * time.Second}
+	if resp, err := upstreamClient.Do(req); err != nil {
+		deps["self_trade"] = depStatus{OK: false, Required: false, Detail: err.Error()}
+	} else {
+		resp.Body.Close()
+		deps["self_trade"] = depStatus{OK: resp.StatusCode < 500, Required: false, Detail: fmt.Sprintf("status %d", resp.StatusCode)}
+	}
+
+	// Required deps must all be OK for the overall check to pass.
+	ready := true
+	for _, d := range deps {
+		if d.Required && !d.OK {
+			ready = false
+			break
+		}
+	}
+
+	status := "ok"
+	code := fiber.StatusOK
+	if !ready {
+		status = "not_ready"
+		code = fiber.StatusServiceUnavailable
+	}
+	return c.Status(code).JSON(fiber.Map{
+		"status":        status,
+		"service":       "superapp-api",
+		"dependencies":  deps,
+	})
 }
 
 // ─── Upload Handler ─────────────────────────────────────────────────────────
@@ -257,5 +404,3 @@ func handleUploadPhoto(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"url": publicURL})
 }
-
-

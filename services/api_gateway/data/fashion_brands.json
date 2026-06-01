@@ -1,0 +1,812 @@
+{
+  "brands": [
+    {
+      "name": "Uniqlo",
+      "category": "fast-fashion",
+      "country": "Japan",
+      "price_range": "$$",
+      "popular_items": ["AIRism t-shirts", "Heattech thermals", "Ultra Light Down jackets", "Cashmere sweaters"],
+      "style_tags": ["minimalist", "basics", "casual"]
+    },
+    {
+      "name": "H&M",
+      "category": "fast-fashion",
+      "country": "Sweden",
+      "price_range": "$",
+      "popular_items": ["Basic tees", "Denim jackets", "Dresses", "Suits"],
+      "style_tags": ["trendy", "affordable", "versatile"]
+    },
+    {
+      "name": "Zara",
+      "category": "fast-fashion",
+      "country": "Spain",
+      "price_range": "$$",
+      "popular_items": ["Blazers", "Trench coats", "Knitwear", "Trousers"],
+      "style_tags": ["trendy", "sophisticated", "European"]
+    },
+    {
+      "name": "Mango",
+      "category": "fast-fashion",
+      "country": "Spain",
+      "price_range": "$$",
+      "popular_items": ["Linen shirts", "Tailored pants", "Dresses", "Leather bags"],
+      "style_tags": ["elegant", "modern", "feminine"]
+    },
+    {
+      "name": "COS",
+      "category": "premium",
+      "country": "Sweden",
+      "price_range": "$$$",
+      "popular_items": ["Structured coats", "Oversized shirts", "Wool trousers", "Sculptural dresses"],
+      "style_tags": ["minimalist", "architectural", "timeless"]
+    },
+    {
+      "name": "& Other Stories",
+      "category": "premium",
+      "country": "Sweden",
+      "price_range": "$$$",
+      "popular_items": ["Statement blouses", "Leather accessories", "Perfumes", "Knitwear"],
+      "style_tags": ["feminine", "artistic", "modern"]
+    },
+    {
+      "name": "Massimo Dutti",
+      "category": "premium",
+      "country": "Spain",
+      "price_range": "$$$",
+      "popular_items": ["Tailored suits", "Cashmere sweaters", "Leather bags", "Shoes"],
+      "style_tags": ["sophisticated", "classic", "refined"]
+    },
+    {
+      "name": "Marks & Spencer",
+      "category": "premium",
+      "country": "United Kingdom",
+      "price_range": "$$$",
+      "popular_items": ["Per Una dresses", "Autograph suits", "Lingerie", "Cashmere jumpers"],
+      "style_tags": ["classic", "British", "timeless"]
+    },
+    {
+      "name": "Gap",
+      "category": "fast-fashion",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Logo hoodies", "Denim jeans", "Oxford shirts", "Khakis"],
+      "style_tags": ["casual", "American", "basics"]
+    },
+    {
+      "name": "Old Navy",
+      "category": "fast-fashion",
+      "country": "United States",
+      "price_range": "$",
+      "popular_items": ["Flip-flops", "Graphic tees", "Activewear", "Denim"],
+      "style_tags": ["casual", "family", "affordable"]
+    },
+    {
+      "name": "Forever 21",
+      "category": "fast-fashion",
+      "country": "United States",
+      "price_range": "$",
+      "popular_items": ["Party dresses", "Crop tops", "Accessories", "Jumpsuits"],
+      "style_tags": ["youthful", "trendy", "affordable"]
+    },
+    {
+      "name": "Cotton On",
+      "category": "fast-fashion",
+      "country": "Australia",
+      "price_range": "$",
+      "popular_items": ["Basic tees", "Activewear", "Denim shorts", "Sleepwear"],
+      "style_tags": ["casual", "beach", "lifestyle"]
+    },
+    {
+      "name": "SHEIN",
+      "category": "fast-fashion",
+      "country": "China",
+      "price_range": "$",
+      "popular_items": ["Dresses", "Swimwear", "Activewear", "Jewelry"],
+      "style_tags": ["ultra-trendy", "budget", "vast-selection"]
+    },
+    {
+      "name": "ASOS",
+      "category": "fast-fashion",
+      "country": "United Kingdom",
+      "price_range": "$$",
+      "popular_items": ["ASOS Design dresses", "Suits", "Shoes", "Beauty"],
+      "style_tags": ["trendy", "diverse", "multi-brand"]
+    },
+    {
+      "name": "Boohoo",
+      "category": "fast-fashion",
+      "country": "United Kingdom",
+      "price_range": "$",
+      "popular_items": ["Going-out dresses", "Co-ord sets", "Jeans", "Lingerie"],
+      "style_tags": ["youthful", "party", "affordable"]
+    },
+    {
+      "name": "Urban Outfitters",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["Graphic tees", "BDG jeans", "Vinyl records", "Home decor"],
+      "style_tags": ["vintage", "bohemian", "edgy"]
+    },
+    {
+      "name": "American Eagle",
+      "category": "fast-fashion",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["AE jeans", "Aerie leggings", "Graphic tees", "Hoodies"],
+      "style_tags": ["casual", "denim", "lifestyle"]
+    },
+    {
+      "name": "Abercrombie & Fitch",
+      "category": "premium",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["Sweaters", "Denim", "Outerwear", "Polos"],
+      "style_tags": ["preppy", "American", "classic"]
+    },
+    {
+      "name": "Pull & Bear",
+      "category": "fast-fashion",
+      "country": "Spain",
+      "price_range": "$",
+      "popular_items": ["Graphic tees", "Jeans", "Sweatshirts", "Sneakers"],
+      "style_tags": ["casual", "youthful", "trendy"]
+    },
+    {
+      "name": "Bershka",
+      "category": "fast-fashion",
+      "country": "Spain",
+      "price_range": "$",
+      "popular_items": ["Party wear", "Denim", "Accessories", "Footwear"],
+      "style_tags": ["edgy", "youthful", "urban"]
+    },
+    {
+      "name": "Stradivarius",
+      "category": "fast-fashion",
+      "country": "Spain",
+      "price_range": "$",
+      "popular_items": ["Blouses", "Trousers", "Knitwear", "Coats"],
+      "style_tags": ["feminine", "trendy", "affordable"]
+    },
+    {
+      "name": "Nike",
+      "category": "athleisure",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["Air Force 1", "Air Jordan", "Dri-FIT tees", "Nike Pros"],
+      "style_tags": ["athletic", "sporty", "iconic"]
+    },
+    {
+      "name": "Adidas",
+      "category": "athleisure",
+      "country": "Germany",
+      "price_range": "$$$",
+      "popular_items": ["Stan Smiths", "Superstars", "Originals track pants", "Ultraboost"],
+      "style_tags": ["sporty", "heritage", "streetwear"]
+    },
+    {
+      "name": "New Balance",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["990v5", "327", "574", "Fresh Foam runners"],
+      "style_tags": ["dad-shoe", "retro", "athleisure"]
+    },
+    {
+      "name": "Asics",
+      "category": "athleisure",
+      "country": "Japan",
+      "price_range": "$$$",
+      "popular_items": ["Gel-Kayano", "Gel-Nimbus", "Onitsuka Tiger Mexico 66", "Court sneakers"],
+      "style_tags": ["performance", "retro", "running"]
+    },
+    {
+      "name": "Puma",
+      "category": "athleisure",
+      "country": "Germany",
+      "price_range": "$$",
+      "popular_items": ["Suede sneakers", "Cali shoes", "T7 track jackets", "Activewear"],
+      "style_tags": ["sporty", "retro", "casual"]
+    },
+    {
+      "name": "Reebok",
+      "category": "athleisure",
+      "country": "United Kingdom",
+      "price_range": "$$",
+      "popular_items": ["Club C sneakers", "Classic Leather", "Nanoflex trainers", "Workout leggings"],
+      "style_tags": ["retro", "fitness", "vintage"]
+    },
+    {
+      "name": "Fila",
+      "category": "athleisure",
+      "country": "Italy",
+      "price_range": "$$",
+      "popular_items": ["Disruptors", "Original sneakers", "Track suits", "T-shirts"],
+      "style_tags": ["retro", "90s", "sporty"]
+    },
+    {
+      "name": "Converse",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Chuck Taylor All Stars", "Chuck 70s", "One Star", "Run Star Hike"],
+      "style_tags": ["classic", "casual", "americana"]
+    },
+    {
+      "name": "Vans",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Old Skool", "Authentic", "Sk8-Hi", "Slip-On"],
+      "style_tags": ["skate", "casual", "surf"]
+    },
+    {
+      "name": "Dr. Martens",
+      "category": "footwear-only",
+      "country": "United Kingdom",
+      "price_range": "$$$",
+      "popular_items": ["1460 boots", "1461 shoes", "Jadon platforms", "Pascal boots"],
+      "style_tags": ["punk", "alternative", "durable"]
+    },
+    {
+      "name": "Birkenstock",
+      "category": "footwear-only",
+      "country": "Germany",
+      "price_range": "$$$",
+      "popular_items": ["Arizona sandals", "Boston clogs", "Gizeh thongs", "Mayari"],
+      "style_tags": ["comfort", "minimalist", "orthopedic"]
+    },
+    {
+      "name": "Crocs",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$",
+      "popular_items": ["Classic clogs", "Literide clogs", "Crocs sandals", "Jibbitz charms"],
+      "style_tags": ["comfort", "casual", "polarizing"]
+    },
+    {
+      "name": "Skechers",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Memory foam sneakers", "Go Walk shoes", "D'lites", "Steel-toe boots"],
+      "style_tags": ["comfort", "casual", "lifestyle"]
+    },
+    {
+      "name": "Under Armour",
+      "category": "athleisure",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["UA HeatGear tops", "Charged trainers", "Curry basketball shoes", "Compression leggings"],
+      "style_tags": ["performance", "sporty", "tech"]
+    },
+    {
+      "name": "Lululemon",
+      "category": "athleisure",
+      "country": "Canada",
+      "price_range": "$$$$",
+      "popular_items": ["Align leggings", "Define jackets", "Swiftly tech tops", "Hotty Hot shorts"],
+      "style_tags": ["yoga", "athleisure", "luxury-sport"]
+    },
+    {
+      "name": "Gymshark",
+      "category": "athleisure",
+      "country": "United Kingdom",
+      "price_range": "$$",
+      "popular_items": ["Vital seamless leggings", "Flex shorts", "Training tops", "Sports bras"],
+      "style_tags": ["fitness", "athletic", "bodybuilding"]
+    },
+    {
+      "name": "Levi's",
+      "category": "denim-heritage",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["501 jeans", "511 slim jeans", "Trucker jacket", "505 jeans"],
+      "style_tags": ["denim", "classic", "americana"]
+    },
+    {
+      "name": "Wrangler",
+      "category": "denim-heritage",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Cowboy cut jeans", "Wrancher jeans", "Denim jackets", "Bootcut jeans"],
+      "style_tags": ["western", "rugged", "denim"]
+    },
+    {
+      "name": "Lee",
+      "category": "denim-heritage",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["101 jeans", "Storm Rider jacket", "Modern Series jeans", "Chinos"],
+      "style_tags": ["denim", "heritage", "workwear"]
+    },
+    {
+      "name": "Diesel",
+      "category": "premium",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Jogg jeans", "D-structure jeans", "Leather jackets", "T-shirts"],
+      "style_tags": ["edgy", "denim", "Italian"]
+    },
+    {
+      "name": "G-Star RAW",
+      "category": "denim-heritage",
+      "country": "Netherlands",
+      "price_range": "$$$",
+      "popular_items": ["Arc pants", "3301 jeans", "Elwood jeans", "Raw denim"],
+      "style_tags": ["raw-denim", "avant-garde", "industrial"]
+    },
+    {
+      "name": "7 For All Mankind",
+      "category": "premium",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["Bootcut jeans", "Slimmy jeans", "Leather jackets", "Knitwear"],
+      "style_tags": ["premium", "denim", "luxury-casual"]
+    },
+    {
+      "name": "AGOLDE",
+      "category": "premium",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["90s mid-rise jeans", "Criss cross jeans", "Pinch waist jeans", "Denim shorts"],
+      "style_tags": ["sustainable", "premium", "contemporary"]
+    },
+    {
+      "name": "Carhartt WIP",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["Active jacket", "Chore coat", "Carpenter pants", "Beanie"],
+      "style_tags": ["workwear", "streetwear", "heritage"]
+    },
+    {
+      "name": "Dickies",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["874 work pants", "Dickies shirts", "Coveralls", "Duck jackets"],
+      "style_tags": ["workwear", "skate", "heritage"]
+    },
+    {
+      "name": "Ben Davis",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$",
+      "popular_items": ["Classic work pants", "Zip coveralls", "Graphic tees", "Work shirts"],
+      "style_tags": ["workwear", "chicano", "heritage"]
+    },
+    {
+      "name": "Red Wing",
+      "category": "footwear-only",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["Iron Ranger boots", "Classic Moc boots", "Beckman boots", "Merchant boots"],
+      "style_tags": ["heritage", "workwear", "craftsmanship"]
+    },
+    {
+      "name": "Filson",
+      "category": "outdoor",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["Tin Cloth jackets", "Mackinaw wool shirts", "Cruiser bags", "Vests"],
+      "style_tags": ["outdoor", "heritage", "rugged"]
+    },
+    {
+      "name": "Supreme",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["Box logo tees", "Hoodies", "Accessories", "Skate decks"],
+      "style_tags": ["hype", "streetwear", "limited"]
+    },
+    {
+      "name": "Palace",
+      "category": "streetwear",
+      "country": "United Kingdom",
+      "price_range": "$$$$",
+      "popular_items": ["Palace tees", "Tri-ferg hoodies", "Skateboards", "Hats"],
+      "style_tags": ["skate", "hype", "British"]
+    },
+    {
+      "name": "Stüssy",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$$",
+      "popular_items": ["Stock tees", "8-ball hoodies", "Bermuda shorts", "Hats"],
+      "style_tags": ["streetwear", "surf", "iconic"]
+    },
+    {
+      "name": "Off-White",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Arrow logo t-shirts", "Industrial belt", "Off-Court sneakers", "Diagonal zip hoodies"],
+      "style_tags": ["hype", "luxury", "deconstructed"]
+    },
+    {
+      "name": "BAPE",
+      "category": "streetwear",
+      "country": "Japan",
+      "price_range": "$$$$",
+      "popular_items": ["Shark hoodies", "ABC camo tees", "BAPE STA sneakers", "Milano shirts"],
+      "style_tags": ["japanese", "hype", "camo"]
+    },
+    {
+      "name": "Kith",
+      "category": "streetwear",
+      "country": "United States",
+      "price_range": "$$$$",
+      "popular_items": ["Kith logo tees", "Williams III hoodies", "Kith Treats cereal", "Sneaker collabs"],
+      "style_tags": ["hype", "luxury-streetwear", "lifestyle"]
+    },
+    {
+      "name": "Stone Island",
+      "category": "premium",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Compass badge jackets", "Ice jackets", "Raso Gommato coats", "Cargo pants"],
+      "style_tags": ["techwear", "Italian", "military"]
+    },
+    {
+      "name": "CDG Play",
+      "category": "streetwear",
+      "country": "Japan",
+      "price_range": "$$$",
+      "popular_items": ["Heart logo tees", "Polka dot shirts", "Knit sweaters", "Sneakers"],
+      "style_tags": ["japanese", "minimalist", "playful"]
+    },
+    {
+      "name": "Neighborhood",
+      "category": "streetwear",
+      "country": "Japan",
+      "price_range": "$$$$",
+      "popular_items": ["Savage tees", "Rider jackets", "Denim jeans", "Cargo pants"],
+      "style_tags": ["biker", "military", "japanese"]
+    },
+    {
+      "name": "Burberry",
+      "category": "luxury",
+      "country": "United Kingdom",
+      "price_range": "$$$$",
+      "popular_items": ["Heritage trench coat", "Cashmere scarves", "Check shirts", "Quilted jackets"],
+      "style_tags": ["British", "classic", "heritage"]
+    },
+    {
+      "name": "Gucci",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["GG Marmont bags", "Ace sneakers", "Silk scarves", "Horsebit loafers"],
+      "style_tags": ["Italian", "luxury", "eclectic"]
+    },
+    {
+      "name": "Prada",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Nylon backpacks", "Saffiano bags", "Pointed-toe heels", "Re-nylon jackets"],
+      "style_tags": ["minimalist", "Italian", "intellectual"]
+    },
+    {
+      "name": "Louis Vuitton",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Speedy bags", "Neverfull totes", "LV trainers", "Monogram scarves"],
+      "style_tags": ["French", "iconic", "luxury"]
+    },
+    {
+      "name": "Dior",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Lady Dior bags", "Saddle bags", "Dior Oblique sneakers", "J'Adior heels"],
+      "style_tags": ["French", "elegant", "couture"]
+    },
+    {
+      "name": "Saint Laurent",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Le Smoking jackets", "Lulu bags", "Wyatt boots", "Tribute sandals"],
+      "style_tags": ["rock", "Parisian", "luxury"]
+    },
+    {
+      "name": "Bottega Veneta",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Intrecciato pouches", "Cassette bags", "Puddle boots", "Knot earrings"],
+      "style_tags": ["Italian", "minimalist", "craftsmanship"]
+    },
+    {
+      "name": "Balenciaga",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Triple S sneakers", "Track sneakers", "Hourglass bags", "Speed trainers"],
+      "style_tags": ["avant-garde", "hype", "deconstructed"]
+    },
+    {
+      "name": "Versace",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Medusa head belts", "Baroque prints", "Safety pin dresses", "Chain bags"],
+      "style_tags": ["bold", "Italian", "glamorous"]
+    },
+    {
+      "name": "Givenchy",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Antigona bags", "GV3 bags", "Rottweiler tees", "Shark lock boots"],
+      "style_tags": ["Parisian", "edgy", "luxury"]
+    },
+    {
+      "name": "Hermès",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Birkin bags", "Kelly bags", "Silk scarves", "H belts"],
+      "style_tags": ["French", "timeless", "ultra-luxury"]
+    },
+    {
+      "name": "Fendi",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Baguette bags", "Peekaboo bags", "FF logo scarves", "Mon Tresor bags"],
+      "style_tags": ["Italian", "playful", "luxury"]
+    },
+    {
+      "name": "Celine",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Triomphe bags", "Belt bags", "Teen classic bags", "Blazers"],
+      "style_tags": ["minimalist", "Parisian", "refined"]
+    },
+    {
+      "name": "Loewe",
+      "category": "luxury",
+      "country": "Spain",
+      "price_range": "$$$$",
+      "popular_items": ["Puzzle bags", "Hammock bags", "Elephant purses", "Gate bags"],
+      "style_tags": ["Spanish", "artisan", "modern"]
+    },
+    {
+      "name": "Valentino",
+      "category": "luxury",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Rockstud pumps", "Vlogo bags", "Garavani dresses", "Rockstud sneakers"],
+      "style_tags": ["Italian", "romantic", "glamorous"]
+    },
+    {
+      "name": "Moncler",
+      "category": "luxury",
+      "country": "France",
+      "price_range": "$$$$",
+      "popular_items": ["Maya down jackets", "Bady puffer jackets", "Grenoble ski wear", "Chevalier coats"],
+      "style_tags": ["luxury", "outerwear", "ski"]
+    },
+    {
+      "name": "Bvlgari",
+      "category": "accessories-only",
+      "country": "Italy",
+      "price_range": "$$$$",
+      "popular_items": ["Serpenti watches", "Bvlgari rings", "Parentesi bracelets", "Bvlgari sunglasses"],
+      "style_tags": ["Italian", "luxury", "statement"]
+    },
+    {
+      "name": "Rolex",
+      "category": "accessories-only",
+      "country": "Switzerland",
+      "price_range": "$$$$",
+      "popular_items": ["Submariner", "Daytona", "Datejust", "Oyster Perpetual"],
+      "style_tags": ["luxury", "timeless", "status"]
+    },
+    {
+      "name": "Cotton Ink",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Graphic t-shirts", "Tote bags", "Hoodies", "Accessories"],
+      "style_tags": ["local", "print-based", "casual"]
+    },
+    {
+      "name": "Roughneck",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Bomber jackets", "Cargo pants", "Vision tees", "Bucket hats"],
+      "style_tags": ["streetwear", "edgy", "local"]
+    },
+    {
+      "name": "Nevertoolavish",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Graphic tees", "Totes", "Accessories", "Hoodies"],
+      "style_tags": ["contemporary", "urban", "local"]
+    },
+    {
+      "name": "Brodo",
+      "category": "footwear-only",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Brodo sneakers", "Canvas shoes", "Derby shoes", "Boots"],
+      "style_tags": ["local", "craftsmanship", "contemporary"]
+    },
+    {
+      "name": "Sejauh Mata Memandang",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$$",
+      "popular_items": ["Printed batik dresses", "Kebaya tops", "Ethnic print shirts", "Sarong skirts"],
+      "style_tags": ["batik", "sustainable", "cultural"]
+    },
+    {
+      "name": "Bateeq",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Batik shirts", "Dresses", "Kebaya", "Batik fabrics"],
+      "style_tags": ["batik", "traditional", "modern"]
+    },
+    {
+      "name": "Buttonscarves",
+      "category": "accessories-only",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Silk hijabs", "Satin scarves", "Pashminas", "Brooches"],
+      "style_tags": ["hijab", "luxury-modest", "feminine"]
+    },
+    {
+      "name": "Dindi",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Batik dresses", "Kaftans", "Maxi skirts", "Outerwear"],
+      "style_tags": ["feminine", "modest", "elegant"]
+    },
+    {
+      "name": "Nosstress",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Graphic tees", "Tote bags", "Stickers", "Strap accessories"],
+      "style_tags": ["youthful", "humorous", "local"]
+    },
+    {
+      "name": "WATTU",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Tailored shirts", "Blazers", "Trousers", "Vests"],
+      "style_tags": ["tailored", "modern", "local"]
+    },
+    {
+      "name": "Kami.",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Basic tees", "Structured shirts", "Denim jackets", "Aprons"],
+      "style_tags": ["minimalist", "neutral", "local"]
+    },
+    {
+      "name": "Pijakbumi",
+      "category": "footwear-only",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Vulcanized sneakers", "Slip-ons", "Canvas shoes", "Sandals"],
+      "style_tags": ["local", "sustainable", "casual"]
+    },
+    {
+      "name": "Populo",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$",
+      "popular_items": ["Printed shirts", "Dresses", "Trousers", "Knitwear"],
+      "style_tags": ["premium", "craftsmanship", "local"]
+    },
+    {
+      "name": "Paul Smith Jakarta",
+      "category": "local",
+      "country": "Indonesia",
+      "price_range": "$$$",
+      "popular_items": ["Tailored suits", "Shoes", "Shirts", "Bags"],
+      "style_tags": ["tailored", "luxury-local", "formal"]
+    },
+    {
+      "name": "3second",
+      "category": "fast-fashion",
+      "country": "Indonesia",
+      "price_range": "$",
+      "popular_items": ["Graphic tees", "Denim", "Hoodies", "Hats"],
+      "style_tags": ["streetwear", "youthful", "affordable"]
+    },
+    {
+      "name": "Padini",
+      "category": "fast-fashion",
+      "country": "Malaysia",
+      "price_range": "$",
+      "popular_items": ["Branded tees", "Vincci shoes", "Padini bags", "Accessories"],
+      "style_tags": ["family", "affordable", "SEA"]
+    },
+    {
+      "name": "FOS",
+      "category": "fast-fashion",
+      "country": "Singapore",
+      "price_range": "$",
+      "popular_items": ["Casual tees", "Loungewear", "Slippers", "Socks"],
+      "style_tags": ["budget", "rubber-shoes", "SEA"]
+    },
+    {
+      "name": "MUJI",
+      "category": "lifestyle",
+      "country": "Japan",
+      "price_range": "$$",
+      "popular_items": ["Organic cotton tees", "Linen shirts", "Cashmere sweaters", "Socks"],
+      "style_tags": ["minimalist", "natural", "Japanese"]
+    },
+    {
+      "name": "Moussy",
+      "category": "denim-heritage",
+      "country": "Japan",
+      "price_range": "$$$",
+      "popular_items": ["Moussy denim jeans", "Leather belts", "Graphic tees", "Knitwear"],
+      "style_tags": ["Japanese", "vintage", "denim"]
+    },
+    {
+      "name": "Snidel",
+      "category": "premium",
+      "country": "Japan",
+      "price_range": "$$$",
+      "popular_items": ["Lace dresses", "Feminine blouses", "Knit jumpers", "Skirts"],
+      "style_tags": ["feminine", "Japanese", "girly"]
+    },
+    {
+      "name": "Lily Brown",
+      "category": "premium",
+      "country": "Japan",
+      "price_range": "$$$",
+      "popular_items": ["Embroidered dresses", "Floral blouses", "Frill skirts", "Knit cardigans"],
+      "style_tags": ["feminine", "romantic", "Japanese"]
+    },
+    {
+      "name": "Birla Jewelry",
+      "category": "accessories-only",
+      "country": "Indonesia",
+      "price_range": "$$$",
+      "popular_items": ["Gold necklaces", "Gemstone rings", "Earrings", "Bracelets"],
+      "style_tags": ["handcrafted", "luxury-local", "traditional"]
+    },
+    {
+      "name": "John Hardy",
+      "category": "accessories-only",
+      "country": "Indonesia",
+      "price_range": "$$$$",
+      "popular_items": ["Classic Chain bracelets", "Bamboo collection", "Naga rings", "Dot earrings"],
+      "style_tags": ["handcrafted", "Bali", "luxury"]
+    },
+    {
+      "name": "Pandora",
+      "category": "accessories-only",
+      "country": "Denmark",
+      "price_range": "$$$",
+      "popular_items": ["Charm bracelets", "Moments rings", "Necklaces", "Earrings"],
+      "style_tags": ["personalized", "charm", "gifts"]
+    },
+    {
+      "name": "Swarovski",
+      "category": "accessories-only",
+      "country": "Austria",
+      "price_range": "$$$$",
+      "popular_items": ["Crystal necklaces", "Swarovski watches", "Earrings", "Bracelets"],
+      "style_tags": ["crystal", "sparkling", "luxury"]
+    }
+  ]
+}

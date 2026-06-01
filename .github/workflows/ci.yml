@@ -3,22 +3,72 @@ name: CI/CD
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  FLUTTER_VERSION: '3.44.0'
+  GO_VERSION: '1.26.0'
 
 jobs:
-  vet:
+  # ─── Flutter lint + test ─────────────────────────────────────────────────
+  flutter:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/superapp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Test
+        run: flutter test
+      - name: Build web
+        run: flutter build web
+
+  # ─── Go vet + test ──────────────────────────────────────────────────────
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api_gateway
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: ${{ env.GO_VERSION }}
+      - name: Download dependencies
+        run: go mod download
       - name: Vet
-        run: cd services/api_gateway && go vet ./...
+        run: go vet ./...
+      - name: Test
+        run: go test ./...
 
-  deploy:
-    needs: vet
+  # ─── Python lint (ruff) ─────────────────────────────────────────────────
+  python:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint beasiswa_crawler
+        run: ruff check services/beasiswa_crawler/src/
+
+  # ─── Deploy (only on push to main, after all checks pass) ────────────────
+  deploy:
+    needs: [flutter, go, python]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: SSH and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:

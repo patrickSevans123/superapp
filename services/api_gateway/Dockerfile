@@ -1,7 +1,7 @@
 # ─── Build stage ──────────────────────────────────────────────────────────────
-FROM golang:1.23-alpine AS builder
+FROM golang:1.26-bookworm AS builder
 
-RUN apk add --no-cache gcc musl-dev
+RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ libc6-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -9,11 +9,14 @@ COPY . .
 RUN CGO_ENABLED=1 GOOS=linux go build -o api-gateway .
 
 # ─── Run stage ────────────────────────────────────────────────────────────────
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
-RUN apk --no-cache add ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/api-gateway .
+COPY --from=builder /app/data ./static-data
+
+ENV STATIC_DATA_DIR=/app/static-data
 
 EXPOSE 8080
 CMD ["./api-gateway"]

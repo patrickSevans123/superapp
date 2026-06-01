@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,19 +21,35 @@ import (
 
 // ─── JWT Config ─────────────────────────────────────────────────────────────
 
-var jwtSecret []byte
+var (
+	jwtSecretMu sync.Mutex
+	jwtSecret   []byte
+)
 
-func init() {
+func getJWTSecret() ([]byte, error) {
+	jwtSecretMu.Lock()
+	defer jwtSecretMu.Unlock()
+
+	if len(jwtSecret) > 0 {
+		return jwtSecret, nil
+	}
+
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		log.Fatal("JWT_SECRET environment variable is required")
+		return nil, fmt.Errorf("JWT_SECRET environment variable is required")
 	}
 	jwtSecret = []byte(secret)
+	return jwtSecret, nil
 }
 
 // parseAndValidateJWT parses a JWT token string and returns its claims.
 // Returns an error if the token is invalid, expired, or has wrong signing method.
 func parseAndValidateJWT(tokenStr string) (jwt.MapClaims, error) {
+	jwtSecret, err := getJWTSecret()
+	if err != nil {
+		return nil, err
+	}
+
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
@@ -51,6 +69,11 @@ func parseAndValidateJWT(tokenStr string) (jwt.MapClaims, error) {
 
 // generateJWT creates a signed JWT token for the given user.
 func generateJWT(userID, email string) (string, error) {
+	jwtSecret, err := getJWTSecret()
+	if err != nil {
+		return "", err
+	}
+
 	now := time.Now()
 	jti := make([]byte, 16)
 	_, _ = rand.Read(jti)
@@ -72,9 +95,11 @@ func generateJWT(userID, email string) (string, error) {
 // authMiddleware verifies the JWT in the Authorization header and sets user_id
 // and email in Fiber locals. It skips auth routes and health check.
 func authMiddleware(c *fiber.Ctx) error {
-	// Skip auth routes and health check
+	// Skip auth routes, health check, and public reference data
 	path := c.Path()
-	if strings.HasPrefix(path, "/api/v1/auth") || path == "/health" {
+	if strings.HasPrefix(path, "/api/v1/auth") ||
+		path == "/health" ||
+		strings.HasPrefix(path, "/api/v1/reference") {
 		return c.Next()
 	}
 
@@ -93,10 +118,10 @@ func authMiddleware(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid or expired token"})
 	}
 
-	// Check if token is blacklisted
-		jtiRaw, _ := claims["jti"]
-		jtiStr, _ := jtiRaw.(string)
-		if jtiStr != "" {
+	// Check if token is blacklisted.
+	jtiRaw, _ := claims["jti"]
+	jtiStr, _ := jtiRaw.(string)
+	if jtiStr != "" {
 		var count int
 		err := database.DB.QueryRow("SELECT COUNT(*) FROM token_blacklist WHERE jti = ?", jtiStr).Scan(&count)
 		if err == nil && count > 0 {
@@ -107,6 +132,39 @@ func authMiddleware(c *fiber.Ctx) error {
 	c.Locals("user_id", claims["user_id"])
 	c.Locals("email", claims["email"])
 	return c.Next()
+}
+
+// cleanupExpiredBlacklistEntries removes expired rows from token_blacklist.
+// Called periodically by the background cleanup goroutine (see main.go).
+// Public so existing tests can call it directly.
+func cleanupExpiredBlacklistEntries() {
+	if _, err := database.DB.Exec(
+		"DELETE FROM token_blacklist WHERE datetime(expires_at) < datetime('now')",
+	); err != nil {
+		log.Printf("WARN: cleanup expired blacklist entries: %v", err)
+	}
+}
+
+// startBlacklistCleanup runs cleanupExpiredBlacklistEntries every interval
+// in a background goroutine. This replaces the previous "run on every
+// authenticated request" pattern, which was a DB write per request.
+func startBlacklistCleanup(interval time.Duration) chan struct{} {
+	stop := make(chan struct{})
+	go func() {
+		t := time.NewTicker(interval)
+		defer t.Stop()
+		// Run once on startup to clear anything stale from a prior crash.
+		cleanupExpiredBlacklistEntries()
+		for {
+			select {
+			case <-t.C:
+				cleanupExpiredBlacklistEntries()
+			case <-stop:
+				return
+			}
+		}
+	}()
+	return stop
 }
 
 // ─── Auth Response Helper ───────────────────────────────────────────────────
@@ -122,6 +180,20 @@ type authResponse struct {
 	User  authUserResponse `json:"user"`
 	Token string           `json:"token"`
 }
+
+// emailRegex is intentionally simple — full RFC 5322 is hundreds of lines
+// and rejects some valid addresses. The goal is to catch typos, not be
+// authoritative. Server-side validation is the second layer; the user
+// verifies their email via the link sent to it.
+var emailRegex = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+
+const (
+	minPasswordLen  = 8
+	maxPasswordLen  = 128
+	minDisplayName  = 1
+	maxDisplayName  = 50
+	maxEmailLength  = 254
+)
 
 // ─── Auth Handlers ──────────────────────────────────────────────────────────
 
@@ -142,11 +214,22 @@ func handleRegister(c *fiber.Ctx) error {
 	if body.Email == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "email is required"})
 	}
-	if len(body.Password) < 6 {
-		return c.Status(400).JSON(fiber.Map{"error": "password must be at least 6 characters"})
+	if len(body.Email) > maxEmailLength {
+		return c.Status(400).JSON(fiber.Map{"error": "email too long"})
 	}
-	if body.DisplayName == "" {
+	if !emailRegex.MatchString(body.Email) {
+		return c.Status(400).JSON(fiber.Map{"error": "email format is invalid"})
+	}
+	if n := len(body.Password); n < minPasswordLen || n > maxPasswordLen {
+		return c.Status(400).JSON(fiber.Map{
+			"error": fmt.Sprintf("password must be between %d and %d characters", minPasswordLen, maxPasswordLen),
+		})
+	}
+	body.DisplayName = strings.TrimSpace(body.DisplayName)
+	if n := len(body.DisplayName); n < minDisplayName {
 		body.DisplayName = strings.Split(body.Email, "@")[0]
+	} else if n > maxDisplayName {
+		body.DisplayName = body.DisplayName[:maxDisplayName]
 	}
 
 	// Check if email already exists
@@ -167,8 +250,15 @@ func handleRegister(c *fiber.Ctx) error {
 	prefsID := randomID()
 	now := time.Now().UTC().Format("20060102T150405Z")
 
+	// ── Transactional inserts: users + profiles + preferences ──
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to begin transaction"})
+	}
+	defer tx.Rollback() // no-op on successful Commit
+
 	// Insert user
-	_, err = database.DB.Exec(
+	_, err = tx.Exec(
 		"INSERT INTO users (id, email, password_hash, display_name, created_at) VALUES (?, ?, ?, ?, ?)",
 		userID, body.Email, string(hash), body.DisplayName, now,
 	)
@@ -177,7 +267,7 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 
 	// Insert profile
-	_, err = database.DB.Exec(
+	_, err = tx.Exec(
 		"INSERT INTO profiles (id, email, display_name, created_at) VALUES (?, ?, ?, ?)",
 		userID, body.Email, body.DisplayName, now,
 	)
@@ -186,13 +276,18 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 
 	// Insert default preferences
-	_, err = database.DB.Exec(
+	_, err = tx.Exec(
 		`INSERT INTO user_preferences (id, user_id, tp_hit, sl_hit, price_alert, msci_announce, ftse_notice, new_report, plan_created, scholarship_alert, fashion_alert, created_at)
 		 VALUES (?, ?, 1, 1, 1, 1, 1, 1, 1, 1, 1, ?)`,
 		prefsID, userID, now,
 	)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to create preferences"})
+	}
+
+	// Commit all inserts atomically
+	if err := tx.Commit(); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to finalize registration"})
 	}
 
 	// Generate JWT
@@ -263,7 +358,8 @@ func handleLogin(c *fiber.Ctx) error {
 	})
 }
 
-// handleRefresh issues a new JWT token if the current one is still valid.
+// handleRefresh issues a new JWT token and implements rotation: the old
+// token is immediately blacklisted so it cannot be used again.
 // POST /api/v1/auth/refresh
 func handleRefresh(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
@@ -284,10 +380,36 @@ func handleRefresh(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "invalid token payload"})
 	}
 
-	// Generate new token
+	// Opportunistic cleanup of expired blacklist entries
+	cleanupExpiredBlacklistEntries()
+
+	// Check if token is blacklisted
+	jtiRaw, _ := claims["jti"]
+	jtiStr, _ := jtiRaw.(string)
+	if jtiStr != "" {
+		var count int
+		err := database.DB.QueryRow("SELECT COUNT(*) FROM token_blacklist WHERE jti = ?", jtiStr).Scan(&count)
+		if err == nil && count > 0 {
+			return c.Status(401).JSON(fiber.Map{"error": "token revoked"})
+		}
+	}
+
+	// Generate new token before blacklisting old one
 	newToken, err := generateJWT(userID, email)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to generate token"})
+	}
+
+	// Blacklist the old token (rotation) so it cannot be reused
+	if jtiStr != "" {
+		expRaw, _ := claims["exp"]
+		if expFloat, ok := expRaw.(float64); ok {
+			expiresAt := time.Unix(int64(expFloat), 0).UTC().Format(time.RFC3339)
+			_, _ = database.DB.Exec(
+				"INSERT OR IGNORE INTO token_blacklist (jti, expires_at) VALUES (?, ?)",
+				jtiStr, expiresAt,
+			)
+		}
 	}
 
 	return c.JSON(fiber.Map{"token": newToken})
@@ -296,20 +418,22 @@ func handleRefresh(c *fiber.Ctx) error {
 // handleLogout revokes the current JWT token.
 // POST /api/v1/auth/logout
 func handleLogout(c *fiber.Ctx) error {
-	// Extract JTI from the current token
+	// Extract JTI from a verified current token
 	authHeader := c.Get("Authorization")
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-	token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+	claims, err := parseAndValidateJWT(tokenStr)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid token"})
 	}
-	claims := token.Claims.(jwt.MapClaims)
 	jti, _ := claims["jti"].(string)
 	exp, _ := claims["exp"].(float64)
 
 	if jti == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "token has no jti"})
 	}
+
+	// Opportunistic cleanup of expired blacklist entries
+	cleanupExpiredBlacklistEntries()
 
 	expiresAt := time.Unix(int64(exp), 0).UTC().Format(time.RFC3339)
 	_, err = database.DB.Exec(

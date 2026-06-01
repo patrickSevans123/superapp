@@ -1,0 +1,145 @@
+{
+  "weather_rules": [
+    {
+      "condition": "hot_dry",
+      "temp_celsius": "28-35",
+      "humidity": "low",
+      "description": "Musim kemarau, panas terik dengan sinar matahari langsung",
+      "recommended_categories": ["t-shirt", "linen-shirt", "shorts", "sandal", "sun-hat"],
+      "fabric_recommendations": ["linen", "cotton", "rayon", "bamboo-fiber"],
+      "color_palette": "light-reflecting: white, cream, beige, soft pastels",
+      "avoid": ["dark heavy fabrics", "leather jackets", "polyester", "tight-fit denim"]
+    },
+    {
+      "condition": "hot_humid",
+      "temp_celsius": "28-33",
+      "humidity": "high",
+      "description": "Cuaca panas lembab khas Indonesia, gerah dan berkeringat",
+      "recommended_categories": ["short-sleeve-shirt", "t-shirt", "chino-shorts", "loose-pants", "sandal"],
+      "fabric_recommendations": ["cotton", "linen", "chambray", "seersucker"],
+      "color_palette": "breathable light tones: pastel, off-white, light grey, soft blue",
+      "avoid": ["polyester", "nylon", "thick denim", "layered outfits"]
+    },
+    {
+      "condition": "rainy",
+      "temp_celsius": "24-30",
+      "humidity": "very-high",
+      "description": "Musim hujan, gerimis atau hujan lebat, genangan air",
+      "recommended_categories": ["raincoat", "windbreaker", "long-sleeve-shirt", "boots", "waterproof-jacket"],
+      "fabric_recommendations": ["waterproof-nylon", "polyester-mix", "quick-dry", "denim"],
+      "color_palette": "earthy tones: olive, charcoal, navy, maroon, dark green",
+      "avoid": ["white pants", "suede shoes", "linen", "cotton-only layers"]
+    },
+    {
+      "condition": "cool_dry",
+      "temp_celsius": "20-27",
+      "humidity": "low",
+      "description": "Cuaca sejuk kering — umum di Bandung, Malang, pegunungan",
+      "recommended_categories": ["light-jacket", "hoodie", "long-sleeve-shirt", "jeans", "sneakers"],
+      "fabric_recommendations": ["cotton", "fleece", "knit", "denim", "light-wool"],
+      "color_palette": "warm neutrals: camel, beige, cream, olive, rust",
+      "avoid": ["heavy wool coats", "short-shorts", "sandals"]
+    },
+    {
+      "condition": "cool_humid",
+      "temp_celsius": "20-27",
+      "humidity": "high",
+      "description": "Masa transisi hujan ke kemarau, sejuk tapi lembab",
+      "recommended_categories": ["cardigan", "long-sleeve-tshirt", "sweater", "jeans", "closed-toe-shoes"],
+      "fabric_recommendations": ["cotton", "french-terry", "modal", "lightweight-knit"],
+      "color_palette": "moody muted: slate grey, deep teal, mauve, charcoal, forest green",
+      "avoid": ["heavy polyester", "suede", "thick wool sweaters"]
+    }
+  ],
+  "occasion_rules": [
+    {
+      "occasion": "office_formal",
+      "description": "Kantor formal / rapat penting / presentasi klien",
+      "must_haves": ["dress-shirt", "blazer", "dress-pants", "leather-shoes", "belt"],
+      "color_palette": "navy, charcoal, white, subtle patterns",
+      "avoid": ["sneakers", "t-shirt", "denim", "short-pants", "hoodie"]
+    },
+    {
+      "occasion": "office_casual",
+      "description": "Smart casual kantor — tidak perlu blazer, tetap rapi",
+      "must_haves": ["button-down-shirt", "polo-shirt", "chino-pants", "loafers", "sneakers-clean"],
+      "color_palette": "earthy neutrals, pastel, light blue, beige, olive",
+      "avoid": ["flip-flops", "tank-top", "ripped-jeans", "sleepwear"]
+    },
+    {
+      "occasion": "casual_weekend",
+      "description": "Hangout santai, nongkrong di kafe, jalan-jalan mal",
+      "must_haves": ["t-shirt", "shorts", "sneakers", "sling-bag", "cap"],
+      "color_palette": "casual vibrant: white, black, earth tones, soft pastels",
+      "avoid": ["formal blazer", "dress-shirt", "dress-shoes"]
+    },
+    {
+      "occasion": "date_night",
+      "description": "Dinner romantis, kencan, acara spesial berdua",
+      "must_haves": ["slim-fit-shirt", "blazer-optional", "dark-jeans", "loafers", "nice-watch"],
+      "color_palette": "deep elegant: burgundy, navy, charcoal, black, olive",
+      "avoid": ["shorts", "flip-flops", "graphic-t-shirt", "sportswear"]
+    },
+    {
+      "occasion": "wedding_guest",
+      "description": "Undangan pernikahan — batik sangat dianjurkan di Indonesia",
+      "must_haves": ["batik-shirt", "dress-pants", "blazer", "loafers", "dress-shoes"],
+      "color_palette": "festive: batik colors, earth tones, pastel, jewel tones",
+      "avoid": ["white-all-over", "t-shirt", "shorts", "sneakers"]
+    },
+    {
+      "occasion": "gym_workout",
+      "description": "Olahraga, lari, gym, fitness",
+      "must_haves": ["tank-top", "dry-fit-shirt", "training-shorts", "running-shoes", "sweatband"],
+      "fabric_recommendations": ["polyester-dry-fit", "nylon-spandex", "mesh"],
+      "color_palette": "high-energy: neon, black, grey, vibrant blue, red",
+      "avoid": ["denim", "cotton-t-shirt-heavy", "jeans", "dress-shoes"]
+    }
+  ],
+  "color_harmony_rules": [
+    {
+      "name": "complementary",
+      "description": "Warna berlawanan di color wheel — high contrast, eye-catching",
+      "use_case": "Statement outfit, foto OOTD, acara casual yang mencolok",
+      "example_pairs": [
+        {"primary": "Navy", "accent": "Mustard"},
+        {"primary": "Burgundy", "accent": "Sage"},
+        {"primary": "Charcoal", "accent": "Coral"},
+        {"primary": "Forest Green", "accent": "Maroon"}
+      ]
+    },
+    {
+      "name": "analogous",
+      "description": "Warna bersebelahan di color wheel — harmonis, menenangkan",
+      "use_case": "Kantor, acara formal, tampilan profesional yang kalem",
+      "example_pairs": [
+        {"primary": "Navy", "accent": "Teal"},
+        {"primary": "Olive", "accent": "Mustard"},
+        {"primary": "Burgundy", "accent": "Coral"},
+        {"primary": "Charcoal", "accent": "Slate Blue"}
+      ]
+    },
+    {
+      "name": "monochrome",
+      "description": "Satu warna dalam berbagai gradasi shade dan tint — elegan dan sleek",
+      "use_case": "Formal dinner, business meeting, tampilan minimalis modern",
+      "example_pairs": [
+        {"primary": "Navy", "accent": "Light Blue"},
+        {"primary": "Charcoal", "accent": "Light Grey"},
+        {"primary": "Black", "accent": "Grey"},
+        {"primary": "Olive", "accent": "Beige"}
+      ]
+    },
+    {
+      "name": "triadic",
+      "description": "Tiga warna dengan jarak sama di color wheel — playful, vibrant, energik",
+      "use_case": "Casual weekend, streetwear, festival, tampilan berani",
+      "example_pairs": [
+        {"primary": "Navy", "accent": "Coral"},
+        {"primary": "Olive", "accent": "Terracotta"},
+        {"primary": "Burgundy", "accent": "Teal"},
+        {"primary": "Charcoal", "accent": "Mustard"}
+      ]
+    }
+  ]
+}

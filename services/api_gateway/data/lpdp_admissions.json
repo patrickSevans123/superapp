@@ -1,0 +1,770 @@
+[
+  {
+    "university": "Stanford University",
+    "url": "https://gradadmissions.stanford.edu/",
+    "last_checked": "2026-05-31T19:27:57.743612",
+    "admissions_open": true,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "open"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Harvard University",
+    "url": "https://gsas.harvard.edu/admissions",
+    "last_checked": "2026-05-31T19:27:57.851654",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Massachusetts Institute of Technology (MIT)",
+    "url": "https://gradadmissions.mit.edu/",
+    "last_checked": "2026-05-31T19:28:02.210939",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "California Institute of Technology (Caltech)",
+    "url": "https://www.gradoffice.caltech.edu/admissions",
+    "last_checked": "2026-05-31T19:28:02.314286",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Princeton University",
+    "url": "https://gradschool.princeton.edu/admissions",
+    "last_checked": "2026-05-31T19:28:02.423060",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Cornell University",
+    "url": "https://gradschool.cornell.edu/admissions/",
+    "last_checked": "2026-05-31T19:28:02.770548",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Johns Hopkins University",
+    "url": "https://applygrad.jhu.edu/",
+    "last_checked": "2026-05-31T19:28:04.297939",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "University of California, Berkeley (UCB)",
+    "url": "https://grad.berkeley.edu/admissions/",
+    "last_checked": "2026-05-31T19:28:04.958139",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "University of Oxford",
+    "url": "https://www.ox.ac.uk/admissions/graduate",
+    "last_checked": "2026-05-31T19:28:05.075782",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "University of Cambridge",
+    "url": "https://www.graduate.study.cam.ac.uk/",
+    "last_checked": "2026-05-31T19:28:07.122759",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Imperial College London",
+    "url": "https://www.imperial.ac.uk/study/apply/admissions/",
+    "last_checked": "2026-05-31T19:28:08.711839",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "Deadlines: Key links This section Skip to section navigation Global site navigation Study Course search Apply Fees and funding Stud",
+    "change_detected": false
+  },
+  {
+    "university": "London School of Economics and Political Science (LSE)",
+    "url": "https://www.lse.ac.uk/graduate/admissions",
+    "last_checked": "2026-05-31T19:28:11.655261",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Technical University of Munich",
+    "url": "https://www.tum.de/en/studies/application-and-acceptance",
+    "last_checked": "",
+    "admissions_open": false,
+    "intakes": [],
+    "notes": "Not yet checked",
+    "change_detected": false
+  },
+  {
+    "university": "The University of Tokyo",
+    "url": "https://www.u-tokyo.ac.jp/en/admissions/graduate.html",
+    "last_checked": "2026-05-31T19:28:13.114979",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Tsinghua University",
+    "url": "https://www.tsinghua.edu.cn/en/admissions/graduate.htm",
+    "last_checked": "2026-05-31T19:28:13.583155",
+    "admissions_open": false,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "closed"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "closed"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  },
+  {
+    "university": "Université PSL (Paris Sciences & Lettres)",
+    "url": "https://psl.eu/en/admissions",
+    "last_checked": "",
+    "admissions_open": false,
+    "intakes": [],
+    "notes": "Not yet checked",
+    "change_detected": false
+  },
+  {
+    "university": "Babson College",
+    "url": "https://www.babson.edu/graduate/admissions/",
+    "last_checked": "2026-05-31T19:28:15.380852",
+    "admissions_open": true,
+    "intakes": [
+      {
+        "name": "Fall 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Spring 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Summer 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Winter 2026",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Fall 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Spring 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Summer 2027",
+        "deadline": "",
+        "status": "open"
+      },
+      {
+        "name": "Winter 2027",
+        "deadline": "",
+        "status": "open"
+      }
+    ],
+    "notes": "No structured data extracted",
+    "change_detected": false
+  }
+]

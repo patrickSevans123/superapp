@@ -1,0 +1,2162 @@
+[
+  {
+    "id": "universitas-indonesia",
+    "name": "Universitas Indonesia",
+    "country": "Indonesia",
+    "city": "Depok",
+    "ranking": 1,
+    "description": "Universitas Indonesia (UI) adalah universitas negeri tertua di Indonesia yang didirikan pada tahun 1849. UI dikenal unggul dalam bidang kedokteran, hukum, ekonomi, dan teknik dengan akreditasi internasional.",
+    "website": "https://www.ui.ac.id",
+    "application_portal": "https://penerimaan.ui.ac.id",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for English programs; Bahasa Indonesia for regular programs",
+    "avg_tuition_s2": "Rp 15-30 juta/semester (UKT)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Magister Ilmu Komputer",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan fokus pada kecerdasan buatan, data sains, dan rekayasa perangkat lunak.",
+        "language": "Bahasa Indonesia",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-25 juta/semester",
+        "department": "Fakultas Ilmu Komputer",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan peminatan epidemiologi, kebijakan kesehatan, dan kesehatan lingkungan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Rp 20-30 juta/semester",
+        "department": "Fakultas Kesehatan Masyarakat",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "institut-teknologi-bandung",
+    "name": "Institut Teknologi Bandung",
+    "country": "Indonesia",
+    "city": "Bandung",
+    "ranking": 2,
+    "description": "ITB didirikan pada tahun 1920 dan merupakan institut teknologi terkemuka di Indonesia. ITB unggul dalam bidang teknik, sains, seni rupa, dan perencanaan wilayah.",
+    "website": "https://www.itb.ac.id",
+    "application_portal": "https://pendaftaran.itb.ac.id",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for English programs; Bahasa Indonesia for regular programs",
+    "avg_tuition_s2": "Rp 15-30 juta/semester (UKT)",
+    "tags": ["public", "research-intensive", "stem"],
+    "programs": [
+      {
+        "name": "Magister Teknik Elektro",
+        "degree": "S2",
+        "description": "Program magister teknik elektro dengan peminatan teknik tenaga listrik, telekomunikasi, elektronika, dan kendali.",
+        "language": "Bahasa Indonesia",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-25 juta/semester",
+        "department": "Sekolah Teknik Elektro dan Informatika",
+        "field": "Electrical Engineering"
+      },
+      {
+        "name": "Magister Manajemen",
+        "degree": "S2",
+        "description": "Program MBA yang terakreditasi AACSB dengan fokus pada kewirausahaan dan kepemimpinan bisnis.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "Rp 100-150 juta total",
+        "department": "Sekolah Bisnis dan Manajemen",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "universitas-gadjah-mada",
+    "name": "Universitas Gadjah Mada",
+    "country": "Indonesia",
+    "city": "Yogyakarta",
+    "ranking": 3,
+    "description": "UGM didirikan pada tahun 1949 dan merupakan universitas negeri pertama setelah kemerdekaan Indonesia. UGM dikenal kuat dalam bidang pertanian, biologi, filsafat, dan kedokteran.",
+    "website": "https://www.ugm.ac.id",
+    "application_portal": "https://um.ugm.ac.id",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for English programs; Bahasa Indonesia for regular programs",
+    "avg_tuition_s2": "Rp 10-20 juta/semester (UKT)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Magister Ilmu Pertanian",
+        "degree": "S2",
+        "description": "Program magister ilmu pertanian dengan pendekatan interdisipliner dalam agribisnis, agroteknologi, dan perlindungan tanaman.",
+        "language": "Bahasa Indonesia",
+        "duration": "2 years",
+        "tuition_fee": "Rp 10-18 juta/semester",
+        "department": "Fakultas Pertanian",
+        "field": "Agriculture"
+      },
+      {
+        "name": "Master of Science in Biology",
+        "degree": "S2",
+        "description": "Program magister biologi dengan riset di bidang biosains tropika, bioteknologi, dan konservasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Rp 12-20 juta/semester",
+        "department": "Fakultas Biologi",
+        "field": "Biology"
+      }
+    ]
+  },
+  {
+    "id": "institut-teknologi-sepuluh-nopember",
+    "name": "Institut Teknologi Sepuluh Nopember",
+    "country": "Indonesia",
+    "city": "Surabaya",
+    "ranking": 4,
+    "description": "ITS didirikan pada tahun 1960 dan dikenal sebagai institut teknologi unggulan di Indonesia Timur. ITS memiliki keunggulan di bidang teknik kelautan, kapal, dan teknologi informasi.",
+    "website": "https://www.its.ac.id",
+    "application_portal": "https://penerimaan.its.ac.id",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for English programs; Bahasa Indonesia for regular programs",
+    "avg_tuition_s2": "Rp 12-22 juta/semester (UKT)",
+    "tags": ["public", "research-intensive", "stem"],
+    "programs": [
+      {
+        "name": "Magister Teknik Kelautan",
+        "degree": "S2",
+        "description": "Program magister teknik kelautan dengan fokus pada struktur lepas pantai, hidrodinamika, dan rekayasa pantai.",
+        "language": "Bahasa Indonesia",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-22 juta/semester",
+        "department": "Fakultas Teknologi Kelautan",
+        "field": "Ocean Engineering"
+      },
+      {
+        "name": "Master of Data Science",
+        "degree": "S2",
+        "description": "Program magister interdisipliner yang menggabungkan ilmu komputer, statistik, dan domain aplikasi data sains.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-20 juta/semester",
+        "department": "Departemen Informatika",
+        "field": "Data Science"
+      }
+    ]
+  },
+  {
+    "id": "universitas-airlangga",
+    "name": "Universitas Airlangga",
+    "country": "Indonesia",
+    "city": "Surabaya",
+    "ranking": 5,
+    "description": "UNAIR didirikan pada tahun 1954 dan merupakan universitas negeri yang unggul dalam bidang kedokteran, farmasi, dan ilmu kesehatan. UNAIR masuk dalam QS World University Rankings 2025.",
+    "website": "https://www.unair.ac.id",
+    "application_portal": "https://penerimaan.unair.ac.id",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for English programs; Bahasa Indonesia for regular programs",
+    "avg_tuition_s2": "Rp 12-25 juta/semester (UKT)",
+    "tags": ["public", "research-intensive", "health"],
+    "programs": [
+      {
+        "name": "Magister Ilmu Farmasi",
+        "degree": "S2",
+        "description": "Program magister ilmu farmasi dengan peminatan farmasi klinik, farmasetika, dan kimia farmasi.",
+        "language": "Bahasa Indonesia",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-25 juta/semester",
+        "department": "Fakultas Farmasi",
+        "field": "Pharmacy"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan konsentrasi epidemiologi, manajemen rumah sakit, dan promosi kesehatan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Rp 15-20 juta/semester",
+        "department": "Fakultas Kesehatan Masyarakat",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "national-university-of-singapore",
+    "name": "National University of Singapore",
+    "country": "Singapura",
+    "city": "Singapore",
+    "ranking": 8,
+    "description": "NUS didirikan pada tahun 1905 dan merupakan universitas tertua serta terbesar di Singapura. NUS berada di peringkat 8 dunia QS WUR 2025 dan unggul di bidang teknik, ilmu komputer, kedokteran, dan hukum.",
+    "website": "https://www.nus.edu.sg",
+    "application_portal": "https://www.nus.edu.sg/admissions",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+; GRE for some programs",
+    "avg_tuition_s2": "SGD 35,000-50,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "global-top-10"],
+    "programs": [
+      {
+        "name": "Master of Computing",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, keamanan siber, dan ilmu data.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "SGD 48,000 total",
+        "department": "School of Computing",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Data Science and Machine Learning",
+        "degree": "S2",
+        "description": "Program interdisipliner yang menggabungkan statistik, matematika, dan ilmu komputer untuk penguasaan data sains dan machine learning.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "SGD 50,000 total",
+        "department": "Faculty of Science",
+        "field": "Data Science"
+      }
+    ]
+  },
+  {
+    "id": "nanyang-technological-university",
+    "name": "Nanyang Technological University",
+    "country": "Singapura",
+    "city": "Singapore",
+    "ranking": 15,
+    "description": "NTU didirikan pada tahun 1981 dan berkembang pesat menjadi universitas riset global yang berbasis teknologi. NTU terkenal dalam bidang teknik, ilmu material, dan pendidikan dengan kampus berteknologi tinggi.",
+    "website": "https://www.ntu.edu.sg",
+    "application_portal": "https://www.ntu.edu.sg/admissions",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+; GRE for research programs",
+    "avg_tuition_s2": "SGD 30,000-45,000/year",
+    "tags": ["public", "research-intensive", "stem", "engineering"],
+    "programs": [
+      {
+        "name": "MSc in Artificial Intelligence",
+        "degree": "S2",
+        "description": "Program magister AI yang mencakup deep learning, NLP, computer vision, dan robotika.",
+        "language": "English",
+        "duration": "1-1.5 years",
+        "tuition_fee": "SGD 42,000 total",
+        "department": "School of Computer Science and Engineering",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "MSc in Materials Science and Engineering",
+        "degree": "S2",
+        "description": "Program magister ilmu dan teknik material dengan fokus pada material nano, biomaterial, dan material energi.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "SGD 35,000 total",
+        "department": "School of Materials Science and Engineering",
+        "field": "Materials Science"
+      }
+    ]
+  },
+  {
+    "id": "universiti-malaya",
+    "name": "Universiti Malaya",
+    "country": "Malaysia",
+    "city": "Kuala Lumpur",
+    "ranking": 60,
+    "description": "UM didirikan pada tahun 1905 di Singapura dan merupakan universitas tertua di Malaysia. UM adalah universitas riset terkemuka Malaysia yang unggul dalam bidang klinis, teknik, dan ilmu sosial.",
+    "website": "https://www.um.edu.my",
+    "application_portal": "https://www.um.edu.my/admissions",
+    "intake_months": ["March", "October"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+",
+    "avg_tuition_s2": "MYR 10,000-30,000/year",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan peminatan AI, jaringan, dan rekayasa perangkat lunak.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "MYR 22,000 total",
+        "department": "Faculty of Computer Science and Information Technology",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Business Administration",
+        "degree": "S2",
+        "description": "Program MBA yang terakreditasi AACSB dan AMBA, dengan fokus kepemimpinan strategis dan kewirausahaan.",
+        "language": "English",
+        "duration": "1-1.5 years",
+        "tuition_fee": "MYR 50,000 total",
+        "department": "Faculty of Business and Economics",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "chulalongkorn-university",
+    "name": "Chulalongkorn University",
+    "country": "Thailand",
+    "city": "Bangkok",
+    "ranking": 229,
+    "description": "Chulalongkorn University didirikan pada tahun 1917 dan merupakan universitas tertua di Thailand. Berlokasi di pusat Bangkok, CU unggul dalam bidang kedokteran, teknik, bisnis, dan ilmu sosial.",
+    "website": "https://www.chula.ac.th",
+    "application_portal": "https://www.chula.ac.th/admissions",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for international programs",
+    "avg_tuition_s2": "THB 80,000-250,000/year",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Engineering in Chemical Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik kimia dengan fokus pada proses kimia lanjutan, bioteknologi, dan energi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "THB 180,000/year",
+        "department": "Faculty of Engineering",
+        "field": "Chemical Engineering"
+      },
+      {
+        "name": "Master of Arts in International Development Studies",
+        "degree": "S2",
+        "description": "Program magister studi pembangunan internasional dengan pendekatan interdisipliner tentang isu-isu pembangunan di Asia.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "THB 120,000/year",
+        "department": "Faculty of Political Science",
+        "field": "Development Studies"
+      }
+    ]
+  },
+  {
+    "id": "mahidol-university",
+    "name": "Mahidol University",
+    "country": "Thailand",
+    "city": "Bangkok",
+    "ranking": 380,
+    "description": "Mahidol University didirikan pada tahun 1888 dan merupakan universitas riset negeri yang terkenal dalam bidang kedokteran, ilmu kesehatan, dan sains. Mahidol memiliki rumah sakit tersier terbesar di Thailand.",
+    "website": "https://www.mahidol.ac.th",
+    "application_portal": "https://www.mahidol.ac.th/admissions",
+    "intake_months": ["August", "January"],
+    "language_requirements": "IELTS 6.0+ or TOEFL iBT 80+ for international programs",
+    "avg_tuition_s2": "THB 100,000-300,000/year",
+    "tags": ["public", "research-intensive", "health", "medical"],
+    "programs": [
+      {
+        "name": "Master of Science in Biomedical Sciences",
+        "degree": "S2",
+        "description": "Program biomedis dengan fokus pada biologi molekuler, genetika, dan imunologi untuk riset kesehatan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "THB 200,000/year",
+        "department": "Faculty of Science",
+        "field": "Biomedical Science"
+      },
+      {
+        "name": "Master of Management",
+        "degree": "S2",
+        "description": "Program magister manajemen di CMMU (College of Management Mahidol University) dengan spesialisasi pemasaran, keuangan, dan manajemen SDM.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "THB 500,000 total",
+        "department": "College of Management",
+        "field": "Management"
+      }
+    ]
+  },
+  {
+    "id": "university-of-tokyo",
+    "name": "University of Tokyo",
+    "country": "Jepang",
+    "city": "Tokyo",
+    "ranking": 28,
+    "description": "Didirikan pada tahun 1877, Todai adalah universitas nasional paling bergengsi di Jepang. Todai dikenal unggul dalam bidang teknik, fisika, biologi, dan ilmu sosial dengan 15 fakultas pascasarjana.",
+    "website": "https://www.u-tokyo.ac.jp",
+    "application_portal": "https://www.u-tokyo.ac.jp/en/prospective-students/application_guidelines.html",
+    "intake_months": ["April", "October"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+; Japanese N1/N2 for Japanese programs",
+    "avg_tuition_s2": "JPY 535,800/year (≈¥3.5K)",
+    "tags": ["public", "national", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Engineering in Civil Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik sipil dengan riset di bidang struktur, geoteknik, transportasi, dan rekayasa pantai.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "JPY 535,800/year",
+        "department": "Graduate School of Engineering",
+        "field": "Civil Engineering"
+      },
+      {
+        "name": "Master of Arts in International Studies",
+        "degree": "S2",
+        "description": "Program interdisipliner dalam studi kawasan, hubungan internasional, dan kebijakan publik Asia.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "JPY 535,800/year",
+        "department": "Graduate School of Arts and Sciences",
+        "field": "International Relations"
+      }
+    ]
+  },
+  {
+    "id": "kyoto-university",
+    "name": "Kyoto University",
+    "country": "Jepang",
+    "city": "Kyoto",
+    "ranking": 46,
+    "description": "Didirikan pada tahun 1897, Kyoto University adalah universitas nasional peringkat kedua di Jepang dengan tradisi riset yang kuat. KU telah melahirkan 11 peraih Nobel dan unggul dalam fisika, kimia, dan biologi.",
+    "website": "https://www.kyoto-u.ac.jp",
+    "application_portal": "https://www.kyoto-u.ac.jp/en/admissions",
+    "intake_months": ["April", "October"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+; Japanese N2+ for Japanese programs",
+    "avg_tuition_s2": "JPY 535,800/year",
+    "tags": ["public", "national", "research-intensive", "stem"],
+    "programs": [
+      {
+        "name": "Master of Science in Chemistry",
+        "degree": "S2",
+        "description": "Program magister kimia dengan riset di bidang kimia organik, anorganik, fisik, dan biokimia.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "JPY 535,800/year",
+        "department": "Graduate School of Science",
+        "field": "Chemistry"
+      },
+      {
+        "name": "Master of Informatics",
+        "degree": "S2",
+        "description": "Program magister informatika yang mencakup AI, komputasi sosial, dan sistem cerdas.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "JPY 535,800/year",
+        "department": "Graduate School of Informatics",
+        "field": "Computer Science"
+      }
+    ]
+  },
+  {
+    "id": "tsinghua-university",
+    "name": "Tsinghua University",
+    "country": "China",
+    "city": "Beijing",
+    "ranking": 25,
+    "description": "Tsinghua University didirikan pada tahun 1911 dan merupakan universitas teknik terkemuka di China. Tsinghua sering disebut sebagai MIT-nya China dan unggul dalam teknik, ilmu komputer, dan bisnis.",
+    "website": "https://www.tsinghua.edu.cn",
+    "application_portal": "https://www.tsinghua.edu.cn/en/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ or TOEFL iBT 100+ for English programs; HSK 4+ for Chinese programs",
+    "avg_tuition_s2": "CNY 30,000-40,000/year",
+    "tags": ["public", "research-intensive", "stem", "elite"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Science and Technology",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan riset di bidang AI, jaringan, dan sistem terdistribusi.",
+        "language": "Chinese",
+        "duration": "2.5 years",
+        "tuition_fee": "CNY 32,000/year",
+        "department": "School of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Business Administration (Tsinghua-MIT Global MBA)",
+        "degree": "S2",
+        "description": "Program MBA bersama dengan MIT Sloan yang berfokus pada kewirausahaan global dan inovasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CNY 308,000 total",
+        "department": "School of Economics and Management",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "peking-university",
+    "name": "Peking University",
+    "country": "China",
+    "city": "Beijing",
+    "ranking": 17,
+    "description": "Didirikan pada tahun 1898, PKU adalah universitas tertua di China modern dan merupakan pusat riset komprehensif. PKU unggul dalam ilmu humaniora, hukum, ekonomi, dan ilmu alam.",
+    "website": "https://www.pku.edu.cn",
+    "application_portal": "https://www.pku.edu.cn/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ or TOEFL iBT 100+ for English programs; HSK 5+ for Chinese programs",
+    "avg_tuition_s2": "CNY 30,000-40,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "elite"],
+    "programs": [
+      {
+        "name": "Master of Laws (LL.M.) in Chinese Law",
+        "degree": "S2",
+        "description": "Program magister hukum yang memberikan pemahaman mendalam tentang sistem hukum China dan hukum internasional.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CNY 35,000/year",
+        "department": "School of Law",
+        "field": "Law"
+      },
+      {
+        "name": "Master of Economics",
+        "degree": "S2",
+        "description": "Program magister ekonomi dengan peminatan ekonomi pembangunan, ekonomi keuangan, dan ekonometrika.",
+        "language": "Chinese",
+        "duration": "2 years",
+        "tuition_fee": "CNY 32,000/year",
+        "department": "National School of Development",
+        "field": "Economics"
+      }
+    ]
+  },
+  {
+    "id": "seoul-national-university",
+    "name": "Seoul National University",
+    "country": "Korea Selatan",
+    "city": "Seoul",
+    "ranking": 31,
+    "description": "SNU didirikan pada tahun 1946 dan merupakan universitas nasional paling bergengsi di Korea Selatan. SNU unggul dalam bidang teknik, ilmu alam, kedokteran, dan studi Korea.",
+    "website": "https://www.snu.ac.kr",
+    "application_portal": "https://www.snu.ac.kr/admissions",
+    "intake_months": ["March", "September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 80+; TOPIK 3+ for Korean programs",
+    "avg_tuition_s2": "KRW 5,000,000-8,000,000/semester",
+    "tags": ["public", "national", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Science in Mechanical Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik mesin dengan riset di bidang robotika, nano-mekanik, dan energi terbarukan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 6,500,000/semester",
+        "department": "College of Engineering",
+        "field": "Mechanical Engineering"
+      },
+      {
+        "name": "Master of International Studies",
+        "degree": "S2",
+        "description": "Program magister studi internasional dengan konsentrasi hubungan internasional, ekonomi global, dan keamanan regional Asia.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 5,200,000/semester",
+        "department": "Graduate School of International Studies",
+        "field": "International Relations"
+      }
+    ]
+  },
+  {
+    "id": "kaist",
+    "name": "KAIST",
+    "country": "Korea Selatan",
+    "city": "Daejeon",
+    "ranking": 53,
+    "description": "KAIST didirikan pada tahun 1971 dan merupakan institut sains dan teknologi terdepan di Korea. KAIST dikenal sebagai pusat inovasi teknologi dan kewirausahaan berbasis sains di Asia.",
+    "website": "https://www.kaist.ac.kr",
+    "application_portal": "https://www.kaist.ac.kr/en/admissions",
+    "intake_months": ["March", "September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 83+; GRE recommended for engineering programs",
+    "avg_tuition_s2": "KRW 5,000,000-7,000,000/semester",
+    "tags": ["public", "research-intensive", "stem", "innovation"],
+    "programs": [
+      {
+        "name": "Master of Science in Electrical Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik elektro dengan riset di bidang sistem tertanam, komputasi cerdas, dan komunikasi nirkabel.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 5,500,000/semester",
+        "department": "School of Electrical Engineering",
+        "field": "Electrical Engineering"
+      },
+      {
+        "name": "Master of Science in AI",
+        "degree": "S2",
+        "description": "Program magister AI yang mencakup deep learning, pengolahan bahasa alami, dan sistem otonom.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 6,000,000/semester",
+        "department": "Graduate School of AI",
+        "field": "Artificial Intelligence"
+      }
+    ]
+  },
+  {
+    "id": "yonsei-university",
+    "name": "Yonsei University",
+    "country": "Korea Selatan",
+    "city": "Seoul",
+    "ranking": 76,
+    "description": "Yonsei University didirikan pada tahun 1885 dan merupakan universitas swasta tertua di Korea. Yonsei unggul dalam bidang kedokteran, bisnis, ilmu sosial, dan studi internasional.",
+    "website": "https://www.yonsei.ac.kr",
+    "application_portal": "https://www.yonsei.ac.kr/en/admissions",
+    "intake_months": ["March", "September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 80+; TOPIK 4+ for Korean programs",
+    "avg_tuition_s2": "KRW 6,000,000-9,000,000/semester",
+    "tags": ["private", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Business Administration",
+        "degree": "S2",
+        "description": "Program MBA di Yonsei School of Business yang terakreditasi AACSB dengan jejaring global yang kuat.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 12,000,000/semester",
+        "department": "Yonsei School of Business",
+        "field": "Business"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan konsentrasi epidemiologi, biostatistik, dan promosi kesehatan global.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "KRW 6,500,000/semester",
+        "department": "College of Medicine",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "national-taiwan-university",
+    "name": "National Taiwan University",
+    "country": "Taiwan",
+    "city": "Taipei",
+    "ranking": 68,
+    "description": "NTU didirikan pada tahun 1928 dan merupakan universitas paling bergengsi di Taiwan. NTU unggul dalam bidang teknik, ilmu alam, kedokteran, dan studi China dengan 11 kolese dan 54 departemen.",
+    "website": "https://www.ntu.edu.tw",
+    "application_portal": "https://www.ntu.edu.tw/admissions",
+    "intake_months": ["February", "September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 87+; TOCFL 4+ for Chinese programs",
+    "avg_tuition_s2": "NTD 60,000-120,000/semester",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Science in Physics",
+        "degree": "S2",
+        "description": "Program magister fisika dengan riset di bidang fisika partikel, fisika kondensasi, dan astrofisika.",
+        "language": "English",
+        "duration": "2-4 years",
+        "tuition_fee": "NTD 60,000/semester",
+        "department": "College of Science",
+        "field": "Physics"
+      },
+      {
+        "name": "Master of Arts in Economics",
+        "degree": "S2",
+        "description": "Program magister ekonomi dengan pendekatan kuantitatif dalam teori ekonomi, ekonometrika, dan ekonomi pembangunan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "NTD 60,000/semester",
+        "department": "College of Social Sciences",
+        "field": "Economics"
+      }
+    ]
+  },
+  {
+    "id": "university-of-melbourne",
+    "name": "University of Melbourne",
+    "country": "Australia",
+    "city": "Melbourne",
+    "ranking": 14,
+    "description": "Didirikan pada tahun 1853, University of Melbourne adalah universitas tertua kedua di Australia dan anggota Group of Eight. Melboune unggul dalam bidang kedokteran, hukum, dan ilmu sosial dengan 8 fakultas.",
+    "website": "https://www.unimelb.edu.au",
+    "application_portal": "https://study.unimelb.edu.au",
+    "intake_months": ["February", "July"],
+    "language_requirements": "IELTS 7.0+ (no band below 6.5) or TOEFL iBT 94+",
+    "avg_tuition_s2": "AUD 40,000-55,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "go8"],
+    "programs": [
+      {
+        "name": "Master of Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, komputasi awan, dan rekayasa perangkat lunak skala besar.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 52,000/year",
+        "department": "School of Computing and Information Systems",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat yang terakreditasi APHEA dengan fokus epidemiologi, biostatistik, dan kebijakan kesehatan global.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 45,000/year",
+        "department": "Melbourne School of Population and Global Health",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "university-of-sydney",
+    "name": "University of Sydney",
+    "country": "Australia",
+    "city": "Sydney",
+    "ranking": 19,
+    "description": "Didirikan pada tahun 1850, University of Sydney adalah universitas tertua di Australia. USyd terkenal akan risetnya di bidang kedokteran, teknik, bisnis, dan seni dengan kampus utama di Camperdown.",
+    "website": "https://www.sydney.edu.au",
+    "application_portal": "https://www.sydney.edu.au/study.html",
+    "intake_months": ["February", "July"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 85+; varies by program",
+    "avg_tuition_s2": "AUD 45,000-55,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "go8"],
+    "programs": [
+      {
+        "name": "Master of Engineering (Software Engineering)",
+        "degree": "S2",
+        "description": "Program magister teknik perangkat lunak yang terakreditasi Engineers Australia dengan proyek industri.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "AUD 53,000/year",
+        "department": "Faculty of Engineering",
+        "field": "Software Engineering"
+      },
+      {
+        "name": "Master of International Business",
+        "degree": "S2",
+        "description": "Program magister bisnis internasional dengan fokus strategi global, manajemen lintas budaya, dan perdagangan internasional.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "AUD 50,000/year",
+        "department": "Sydney Business School",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "australian-national-university",
+    "name": "Australian National University",
+    "country": "Australia",
+    "city": "Canberra",
+    "ranking": 30,
+    "description": "ANU didirikan pada tahun 1946 oleh parlemen Australia sebagai universitas riset nasional. ANU unggul dalam bidang studi Asia-Pasifik, fisika, astronomi, dan ilmu politik dengan 7 kolese.",
+    "website": "https://www.anu.edu.au",
+    "application_portal": "https://www.anu.edu.au/study",
+    "intake_months": ["February", "July"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 80+",
+    "avg_tuition_s2": "AUD 45,000-50,000/year",
+    "tags": ["public", "research-intensive", "national", "go8"],
+    "programs": [
+      {
+        "name": "Master of International Relations",
+        "degree": "S2",
+        "description": "Program magister hubungan internasional dengan analisis mendalam tentang politik global, keamanan internasional, dan diplomasi Asia-Pasifik.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 47,000/year",
+        "department": "College of Asia and the Pacific",
+        "field": "International Relations"
+      },
+      {
+        "name": "Master of Science in Astronomy and Astrophysics",
+        "degree": "S2",
+        "description": "Program magister astrofisika yang memanfaatkan Observatorium Siding Spring dan Mt. Stromlo milik ANU.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 48,000/year",
+        "department": "Research School of Astronomy and Astrophysics",
+        "field": "Astronomy"
+      }
+    ]
+  },
+  {
+    "id": "unsw-sydney",
+    "name": "UNSW Sydney",
+    "country": "Australia",
+    "city": "Sydney",
+    "ranking": 44,
+    "description": "UNSW didirikan pada tahun 1949 dan dikenal sebagai universitas riset terkemuka dengan fokus pada teknik, STEM, dan kewirausahaan. UNSW berada di peringkat 44 dunia QS WUR 2025.",
+    "website": "https://www.unsw.edu.au",
+    "application_portal": "https://www.unsw.edu.au/study",
+    "intake_months": ["February", "June", "September"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 90+",
+    "avg_tuition_s2": "AUD 45,000-55,000/year",
+    "tags": ["public", "research-intensive", "stem", "go8"],
+    "programs": [
+      {
+        "name": "Master of Engineering Science (Electrical Engineering)",
+        "degree": "S2",
+        "description": "Program magister teknik elektro dengan spesialisasi tenaga listrik, elektronika, dan telekomunikasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 50,000/year",
+        "department": "Faculty of Engineering",
+        "field": "Electrical Engineering"
+      },
+      {
+        "name": "Master of Data Science and Decisions",
+        "degree": "S2",
+        "description": "Program magister data sains yang menggabungkan matematika, statistik, dan ilmu komputer untuk pengambilan keputusan berbasis data.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "AUD 52,000/year",
+        "department": "School of Mathematics and Statistics",
+        "field": "Data Science"
+      }
+    ]
+  },
+  {
+    "id": "university-of-auckland",
+    "name": "University of Auckland",
+    "country": "Selandia Baru",
+    "city": "Auckland",
+    "ranking": 68,
+    "description": "Didirikan pada tahun 1883, University of Auckland adalah universitas terbesar dan paling bergengsi di Selandia Baru. UoA unggul dalam bidang teknik, kedokteran, hukum, bisnis, dan ilmu pendidikan.",
+    "website": "https://www.auckland.ac.nz",
+    "application_portal": "https://www.auckland.ac.nz/en/study.html",
+    "intake_months": ["February", "July"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 90+",
+    "avg_tuition_s2": "NZD 40,000-50,000/year",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Engineering Studies (Chemical Engineering)",
+        "degree": "S2",
+        "description": "Program magister teknik kimia dengan proyek riset di bidang bioproses, energi terbarukan, dan material.",
+        "language": "English",
+        "duration": "1-1.5 years",
+        "tuition_fee": "NZD 44,000/year",
+        "department": "Faculty of Engineering",
+        "field": "Chemical Engineering"
+      },
+      {
+        "name": "Master of Business Analytics",
+        "degree": "S2",
+        "description": "Program magister analitik bisnis yang mengintegrasikan data sains, statistik, dan strategi bisnis.",
+        "language": "English",
+        "duration": "15 months",
+        "tuition_fee": "NZD 48,000 total",
+        "department": "Business School",
+        "field": "Business Analytics"
+      }
+    ]
+  },
+  {
+    "id": "university-of-otago",
+    "name": "University of Otago",
+    "country": "Selandia Baru",
+    "city": "Dunedin",
+    "ranking": 206,
+    "description": "Didirikan pada tahun 1869, University of Otago adalah universitas tertua di Selandia Baru. Otago terkenal dalam bidang kedokteran, ilmu kesehatan, ilmu kelautan, dan antropologi.",
+    "website": "https://www.otago.ac.nz",
+    "application_portal": "https://www.otago.ac.nz/study",
+    "intake_months": ["February", "July"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 90+",
+    "avg_tuition_s2": "NZD 35,000-45,000/year",
+    "tags": ["public", "research-intensive", "health", "medical"],
+    "programs": [
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan konsentrasi epidemiologi, kesehatan Maori/Pasifik, dan kesehatan global.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "NZD 38,000/year",
+        "department": "Otago Medical School",
+        "field": "Public Health"
+      },
+      {
+        "name": "Master of Science in Marine Science",
+        "degree": "S2",
+        "description": "Program magister ilmu kelautan yang memanfaatkan lokasi Dunedin di pesisir Samudra Pasifik Selatan dengan akses ke ekosistem laut yang unik.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "NZD 40,000/year",
+        "department": "Department of Marine Science",
+        "field": "Marine Science"
+      }
+    ]
+  },
+  {
+    "id": "university-of-oxford",
+    "name": "University of Oxford",
+    "country": "Inggris",
+    "city": "Oxford",
+    "ranking": 3,
+    "description": "Didirikan pada tahun 1096, Oxford adalah universitas berbahasa Inggris tertua di dunia. Oxford terdiri dari 39 kolese otonom dan unggul hampir di semua bidang, terutama humaniora, sains, dan kedokteran.",
+    "website": "https://www.ox.ac.uk",
+    "application_portal": "https://www.ox.ac.uk/admissions/graduate",
+    "intake_months": ["October"],
+    "language_requirements": "IELTS 7.5+ (no band below 7.0) or TOEFL iBT 110+",
+    "avg_tuition_s2": "£30,000-50,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "elite", "oxbridge", "collegiate"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer yang mencakup algoritma, AI, verifikasi formal, dan komputasi kuantum.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£38,000/year",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in International Health and Tropical Medicine",
+        "degree": "S2",
+        "description": "Program magister kesehatan tropis yang mempelajari penyakit infeksi, epidemiologi global, dan sistem kesehatan di negara berkembang.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£42,000/year",
+        "department": "Nuffield Department of Medicine",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "university-of-cambridge",
+    "name": "University of Cambridge",
+    "country": "Inggris",
+    "city": "Cambridge",
+    "ranking": 5,
+    "description": "Didirikan pada tahun 1209, Cambridge adalah universitas tertua kedua di Inggris. Cambridge terkenal akan tradisi risetnya yang telah melahirkan 121 peraih Nobel dan unggul dalam ilmu alam, teknik, dan matematika.",
+    "website": "https://www.cam.ac.uk",
+    "application_portal": "https://www.graduate.study.cam.ac.uk",
+    "intake_months": ["October"],
+    "language_requirements": "IELTS 7.5+ (no band below 7.0) or TOEFL iBT 110+",
+    "avg_tuition_s2": "£35,000-55,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "elite", "oxbridge", "collegiate"],
+    "programs": [
+      {
+        "name": "MPhil in Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik dengan spesialisasi di bidang teknik mesin, sipil, elektro, atau kimia melalui riset dan coursework.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£40,000/year",
+        "department": "Department of Engineering",
+        "field": "Engineering"
+      },
+      {
+        "name": "MPhil in Development Studies",
+        "degree": "S2",
+        "description": "Program magister studi pembangunan interdisipliner yang mengkaji kemiskinan, ketimpangan, dan kebijakan pembangunan global.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£35,000/year",
+        "department": "Centre of Development Studies",
+        "field": "Development Studies"
+      }
+    ]
+  },
+  {
+    "id": "imperial-college-london",
+    "name": "Imperial College London",
+    "country": "Inggris",
+    "city": "London",
+    "ranking": 2,
+    "description": "Imperial College London didirikan pada tahun 1907 dan merupakan institut sains, teknik, dan kedokteran yang terpisah dari University of London. Imperial berada di peringkat 2 dunia QS WUR 2025.",
+    "website": "https://www.imperial.ac.uk",
+    "application_portal": "https://www.imperial.ac.uk/study",
+    "intake_months": ["October"],
+    "language_requirements": "IELTS 7.0+ (no band below 6.5) or TOEFL iBT 100+",
+    "avg_tuition_s2": "£35,000-50,000/year",
+    "tags": ["public", "research-intensive", "stem", "elite"],
+    "programs": [
+      {
+        "name": "MSc in Artificial Intelligence",
+        "degree": "S2",
+        "description": "Program magister AI yang mencakup machine learning, robotika, NLP, dan sistem otonom dengan akses ke laboratorium komputasi canggih.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£40,000/year",
+        "department": "Department of Computing",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "MSc in Climate Change, Management and Finance",
+        "degree": "S2",
+        "description": "Program interdisipliner yang menggabungkan ilmu iklim, manajemen risiko, dan keuangan berkelanjutan.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£36,000/year",
+        "department": "Grantham Institute",
+        "field": "Climate Science"
+      }
+    ]
+  },
+  {
+    "id": "university-college-london",
+    "name": "University College London",
+    "country": "Inggris",
+    "city": "London",
+    "ranking": 9,
+    "description": "UCL didirikan pada tahun 1826 sebagai universitas Inggris pertama yang menerima mahasiswa tanpa memandang agama. UCL adalah universitas riset komprehensif dengan keunggulan di bidang arsitektur, arkeologi, pendidikan, dan neurosains.",
+    "website": "https://www.ucl.ac.uk",
+    "application_portal": "https://www.ucl.ac.uk/prospective-students/graduate",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ (no band below 6.5) or TOEFL iBT 100+",
+    "avg_tuition_s2": "£30,000-45,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "elite"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program konversi magister ilmu komputer untuk lulusan non-CS yang mencakup pemrograman, algoritma, arsitektur komputer, dan machine learning.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£35,000/year",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Urban Planning",
+        "degree": "S2",
+        "description": "Program magister perencanaan kota yang terakreditasi RTPI dengan fokus pada pembangunan kota berkelanjutan dan kebijakan tata ruang.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£31,000/year",
+        "department": "Bartlett School of Planning",
+        "field": "Urban Planning"
+      }
+    ]
+  },
+  {
+    "id": "university-of-edinburgh",
+    "name": "University of Edinburgh",
+    "country": "Inggris",
+    "city": "Edinburgh",
+    "ranking": 22,
+    "description": "Didirikan pada tahun 1582, University of Edinburgh adalah universitas tertua keenam di dunia berbahasa Inggris. Edinburgh unggul dalam bidang AI, informatika, kedokteran, sastra, dan ilmu lingkungan dengan 20 fakultas.",
+    "website": "https://www.ed.ac.uk",
+    "application_portal": "https://www.ed.ac.uk/studying/postgraduate",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ (no band below 6.0) or TOEFL iBT 100+",
+    "avg_tuition_s2": "£27,000-40,000/year",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient-university"],
+    "programs": [
+      {
+        "name": "MSc in Artificial Intelligence",
+        "degree": "S2",
+        "description": "Program magister AI yang berfokus pada riset di bidang representasi pengetahuan, pembelajaran mesin, dan sistem cerdas dengan sejarah panjang AI di Edinburgh.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£35,000/year",
+        "department": "School of Informatics",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "MSc in Global Health Policy",
+        "degree": "S2",
+        "description": "Program magister kebijakan kesehatan global yang menganalisis sistem kesehatan, pembiayaan kesehatan, dan penentu sosial kesehatan di negara berkembang.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "£27,000/year",
+        "department": "School of Social and Political Science",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "university-of-amsterdam",
+    "name": "University of Amsterdam",
+    "country": "Belanda",
+    "city": "Amsterdam",
+    "ranking": 55,
+    "description": "UvA didirikan pada tahun 1632 dan merupakan universitas riset publik terbesar di Belanda. UvA dikenal unggul dalam bidang ilmu sosial, humaniora, hukum, dan sains dengan 7 fakultas.",
+    "website": "https://www.uva.nl",
+    "application_portal": "https://www.uva.nl/en/programmes/masters",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 92+",
+    "avg_tuition_s2": "€17,000-22,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "MSc in Artificial Intelligence",
+        "degree": "S2",
+        "description": "Program magister AI dengan spesialisasi deep learning, NLP, computer vision, dan sistem multi-agent.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "€18,000/year",
+        "department": "Faculty of Science",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "MSc in International Development Studies",
+        "degree": "S2",
+        "description": "Program magister studi pembangunan internasional dengan analisis kritis tentang kemiskinan, ketimpangan, dan keberlanjutan di negara Global South.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "€17,000/year",
+        "department": "Faculty of Social and Behavioural Sciences",
+        "field": "Development Studies"
+      }
+    ]
+  },
+  {
+    "id": "delft-university-of-technology",
+    "name": "Delft University of Technology",
+    "country": "Belanda",
+    "city": "Delft",
+    "ranking": 57,
+    "description": "TU Delft didirikan pada tahun 1842 dan merupakan institut teknologi tertua dan terbesar di Belanda. TU Delft terkenal di bidang teknik sipil, arsitektur, teknik kedirgantaraan, dan teknologi air.",
+    "website": "https://www.tudelft.nl",
+    "application_portal": "https://www.tudelft.nl/en/education/programmes/masters",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ (no band below 6.5) or TOEFL iBT 100+",
+    "avg_tuition_s2": "€19,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "stem", "technology"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan track AI, data science, dan software engineering di fakultas EEMCS.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€19,600/year",
+        "department": "Faculty of Electrical Engineering, Mathematics and Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Civil Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik sipil dengan spesialisasi struktur, teknik hidrolika, geoteknik, dan transportasi yang terintegrasi dengan pengelolaan air Belanda.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€19,600/year",
+        "department": "Faculty of Civil Engineering and Geosciences",
+        "field": "Civil Engineering"
+      }
+    ]
+  },
+  {
+    "id": "leiden-university",
+    "name": "Leiden University",
+    "country": "Belanda",
+    "city": "Leiden",
+    "ranking": 83,
+    "description": "Didirikan pada tahun 1575, Leiden adalah universitas tertua di Belanda. Leiden terkenal dalam bidang hukum internasional, arkeologi, studi Asia, dan kedokteran dengan hubungan kuat ke Universitas Indonesia.",
+    "website": "https://www.universiteitleiden.nl",
+    "application_portal": "https://www.universiteitleiden.nl/en/education/study-programmes/master",
+    "intake_months": ["September", "February"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 90+",
+    "avg_tuition_s2": "€18,000-22,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "MSc in International Relations and Diplomacy",
+        "degree": "S2",
+        "description": "Program magister hubungan internasional dan diplomasi yang dikelola bersama dengan Clingendael Institute di Den Haag.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "€19,000/year",
+        "department": "Faculty of Social and Behavioural Sciences",
+        "field": "International Relations"
+      },
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi data science, AI, dan bioinformatika.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€19,000/year",
+        "department": "Leiden Institute of Advanced Computer Science",
+        "field": "Computer Science"
+      }
+    ]
+  },
+  {
+    "id": "sciences-po",
+    "name": "Sciences Po",
+    "country": "Prancis",
+    "city": "Paris",
+    "ranking": 350,
+    "description": "Sciences Po didirikan pada tahun 1872 dan merupakan institut studi politik dan hubungan internasional paling bergengsi di Prancis. Sciences Po memiliki 7 kampus dan jaringan alumni yang kuat di bidang pemerintahan, diplomasi, dan bisnis.",
+    "website": "https://www.sciencespo.fr",
+    "application_portal": "https://www.sciencespo.fr/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ or TOEFL iBT 100+ for English programs; DELF B2+ for French programs",
+    "avg_tuition_s2": "€14,000-20,000/year",
+    "tags": ["public", "research-intensive", "social-sciences", "elite"],
+    "programs": [
+      {
+        "name": "Master in International Affairs",
+        "degree": "S2",
+        "description": "Program magister hubungan internasional dengan konsentrasi keamanan internasional, ekonomi global, dan diplomasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€18,000/year",
+        "department": "Paris School of International Affairs",
+        "field": "International Relations"
+      },
+      {
+        "name": "Master in Public Policy",
+        "degree": "S2",
+        "description": "Program magister kebijakan publik yang mempersiapkan karier di pemerintahan, organisasi internasional, dan sektor publik.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€18,000/year",
+        "department": "School of Public Affairs",
+        "field": "Public Policy"
+      }
+    ]
+  },
+  {
+    "id": "technical-university-of-munich",
+    "name": "Technical University of Munich",
+    "country": "Jerman",
+    "city": "Munich",
+    "ranking": 28,
+    "description": "TUM didirikan pada tahun 1868 dan merupakan universitas teknik terkemuka di Jerman. TUM unggul dalam bidang teknik, ilmu alam, kedokteran, dan ilmu hayati dengan status Excellence University.",
+    "website": "https://www.tum.de",
+    "application_portal": "https://www.tum.de/en/studies/degree-programs",
+    "intake_months": ["April", "October"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 88+ for English programs; TestDaF 4+ or DSH-2 for German programs",
+    "avg_tuition_s2": "€2,000-6,000/semester (non-EU; Bayern tuition fee)",
+    "tags": ["public", "research-intensive", "stem", "excellence-university"],
+    "programs": [
+      {
+        "name": "MSc in Informatics",
+        "degree": "S2",
+        "description": "Program magister informatika dengan spesialisasi algoritma, AI, rekayasa perangkat lunak, dan sistem informasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€4,000/semester",
+        "department": "Department of Informatics",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Sustainable Resource Management",
+        "degree": "S2",
+        "description": "Program magister manajemen sumber daya berkelanjutan dengan fokus pada siklus material, energi terbarukan, dan ekonomi sirkular.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€4,000/semester",
+        "department": "TUM School of Life Sciences",
+        "field": "Environmental Science"
+      }
+    ]
+  },
+  {
+    "id": "heidelberg-university",
+    "name": "Heidelberg University",
+    "country": "Jerman",
+    "city": "Heidelberg",
+    "ranking": 60,
+    "description": "Didirikan pada tahun 1386, Heidelberg adalah universitas tertua di Jerman dan salah satu Excellence Universities. Heidelberg terkenal dalam bidang kedokteran, ilmu alam, hukum, dan ilmu humaniora.",
+    "website": "https://www.uni-heidelberg.de",
+    "application_portal": "https://www.uni-heidelberg.de/en/study",
+    "intake_months": ["April", "October"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+ for English programs; TestDaF 4+ or DSH-2 for German programs",
+    "avg_tuition_s2": "€1,500/semester (admin fee; no tuition in Baden-Württemberg for most programs)",
+    "tags": ["public", "research-intensive", "comprehensive", "excellence-university", "ancient"],
+    "programs": [
+      {
+        "name": "MSc in Physics",
+        "degree": "S2",
+        "description": "Program magister fisika dengan riset di bidang fisika partikel, fisika kondensasi, dan astrofisika di pusat riset internasional.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€1,500/semester",
+        "department": "Faculty of Physics and Astronomy",
+        "field": "Physics"
+      },
+      {
+        "name": "MA in Development, Environment, Societies, and History in South Asia",
+        "degree": "S2",
+        "description": "Program magister studi Asia Selatan yang unik dengan fokus pada sejarah, politik, dan lingkungan kawasan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€1,500/semester",
+        "department": "Heidelberg Centre for South Asian Studies",
+        "field": "Development Studies"
+      }
+    ]
+  },
+  {
+    "id": "eth-zurich",
+    "name": "ETH Zurich",
+    "country": "Swiss",
+    "city": "Zurich",
+    "ranking": 7,
+    "description": "ETH Zurich didirikan pada tahun 1855 oleh Konfederasi Swiss dan merupakan universitas sains dan teknologi terdepan di Eropa. ETH telah melahirkan 21 peraih Nobel, termasuk Albert Einstein, dan unggul dalam teknik, sains, dan arsitektur.",
+    "website": "https://ethz.ch",
+    "application_portal": "https://ethz.ch/en/studies/master.html",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ or TOEFL iBT 100+ for English programs; C1 German for some programs",
+    "avg_tuition_s2": "CHF 730/semester (Swiss standard, very low for all students)",
+    "tags": ["public", "research-intensive", "stem", "elite", "federal-institute"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, distributed systems, security, dan visual computing.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CHF 730/semester",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Environmental Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik lingkungan dengan fokus pada pengelolaan air, polusi udara, dan infrastruktur berkelanjutan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CHF 730/semester",
+        "department": "Department of Civil, Environmental and Geomatic Engineering",
+        "field": "Environmental Engineering"
+      }
+    ]
+  },
+  {
+    "id": "epfl",
+    "name": "EPFL",
+    "country": "Swiss",
+    "city": "Lausanne",
+    "ranking": 26,
+    "description": "EPFL didirikan pada tahun 1969 dan merupakan institut teknologi federal di kawasan Prancis Swiss. EPFL terkenal dalam bidang teknik, ilmu komputer, nanoteknologi, dan arsitektur dengan kampus tepi danau Jenewa.",
+    "website": "https://www.epfl.ch",
+    "application_portal": "https://www.epfl.ch/education/master",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.0+ or TOEFL iBT 95+; French B2 recommended",
+    "avg_tuition_s2": "CHF 780/semester",
+    "tags": ["public", "research-intensive", "stem", "federal-institute"],
+    "programs": [
+      {
+        "name": "MSc in Data Science",
+        "degree": "S2",
+        "description": "Program magister data sains yang mengintegrasikan statistika, machine learning, dan sistem data besar.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CHF 780/semester",
+        "department": "School of Computer and Communication Sciences",
+        "field": "Data Science"
+      },
+      {
+        "name": "MSc in Life Sciences Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik ilmu hayati yang menggabungkan bioteknologi, bioinformatika, dan neuroengineering.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CHF 780/semester",
+        "department": "School of Life Sciences",
+        "field": "Biotechnology"
+      }
+    ]
+  },
+  {
+    "id": "ku-leuven",
+    "name": "KU Leuven",
+    "country": "Belgia",
+    "city": "Leuven",
+    "ranking": 63,
+    "description": "KU Leuven didirikan pada tahun 1425 dan merupakan universitas Katolik tertua di dunia yang masih aktif. KU Leuven adalah universitas riset terdepan di Belgia dengan keunggulan dalam bidang teknik, kedokteran, bioteknologi, dan hukum.",
+    "website": "https://www.kuleuven.be",
+    "application_portal": "https://www.kuleuven.be/programmes",
+    "intake_months": ["September", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+ for English programs; Dutch B2 for Flemish programs",
+    "avg_tuition_s2": "€6,000-10,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "MSc in Artificial Intelligence",
+        "degree": "S2",
+        "description": "Program magister AI yang komprehensif dengan track engineering, data science, dan cognitive science.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "€6,000/year",
+        "department": "Faculty of Engineering Science",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "Master of Science in Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan peminatan epidemiologi, promosi kesehatan, dan manajemen kesehatan internasional.",
+        "language": "English",
+        "duration": "1 year",
+        "tuition_fee": "€8,000/year",
+        "department": "Faculty of Medicine",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "kth-royal-institute-of-technology",
+    "name": "KTH Royal Institute of Technology",
+    "country": "Swedia",
+    "city": "Stockholm",
+    "ranking": 74,
+    "description": "KTH didirikan pada tahun 1827 dan merupakan institut teknologi tertua dan terbesar di Swedia. KTH mencakup 5 sekolah dengan fokus pada teknik, arsitektur, teknologi informasi, dan energi berkelanjutan.",
+    "website": "https://www.kth.se",
+    "application_portal": "https://www.kth.se/en/studies",
+    "intake_months": ["August"],
+    "language_requirements": "IELTS 6.5+ (no band below 5.5) or TOEFL iBT 90+",
+    "avg_tuition_s2": "SEK 155,000-190,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "stem", "engineering"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, machine learning, dan komputasi terdistribusi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "SEK 186,000/year",
+        "department": "School of Electrical Engineering and Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Sustainable Energy Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik energi berkelanjutan dengan fokus pada sistem energi terbarukan, efisiensi energi, dan kebijakan iklim.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "SEK 155,000/year",
+        "department": "School of Industrial Engineering and Management",
+        "field": "Energy Engineering"
+      }
+    ]
+  },
+  {
+    "id": "lund-university",
+    "name": "Lund University",
+    "country": "Swedia",
+    "city": "Lund",
+    "ranking": 95,
+    "description": "Didirikan pada tahun 1666, Lund University adalah universitas komprehensif terbesar di Skandinavia dengan 8 fakultas. Lund terkenal dalam bidang teknik, kedokteran, hukum, dan ilmu sosial dengan 40.000 mahasiswa.",
+    "website": "https://www.lunduniversity.lu.se",
+    "application_portal": "https://www.lunduniversity.lu.se/admissions",
+    "intake_months": ["August"],
+    "language_requirements": "IELTS 6.5+ (no band below 5.5) or TOEFL iBT 90+",
+    "avg_tuition_s2": "SEK 120,000-160,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "MSc in Data Analytics and Business Economics",
+        "degree": "S2",
+        "description": "Program magister analitik data dan ekonomi bisnis dengan fokus pada pengambilan keputusan berbasis data di perusahaan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "SEK 140,000/year",
+        "department": "School of Economics and Management",
+        "field": "Business Analytics"
+      },
+      {
+        "name": "MSc in Environmental Sciences",
+        "degree": "S2",
+        "description": "Program magister ilmu lingkungan dengan spesialisasi ekologi, kimia lingkungan, dan manajemen sumber daya alam.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "SEK 130,000/year",
+        "department": "Faculty of Science",
+        "field": "Environmental Science"
+      }
+    ]
+  },
+  {
+    "id": "university-of-copenhagen",
+    "name": "University of Copenhagen",
+    "country": "Denmark",
+    "city": "Copenhagen",
+    "ranking": 79,
+    "description": "Didirikan pada tahun 1479, University of Copenhagen adalah universitas tertua di Denmark dan salah satu yang tertua di Skandinavia. KU unggul dalam bidang kedokteran, ilmu alam, hukum, dan ilmu sosial dengan 100+ program master berbahasa Inggris.",
+    "website": "https://www.ku.dk",
+    "application_portal": "https://studier.ku.dk/masters",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 88+",
+    "avg_tuition_s2": "DKK 125,000-140,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan riset di bidang AI, algoritma, dan teori komputasi di DIKU.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "DKK 135,000/year",
+        "department": "Department of Computer Science (DIKU)",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Global Development",
+        "degree": "S2",
+        "description": "Program magister pembangunan global interdisipliner yang mengkaji ketimpangan, kemiskinan, dan keberlanjutan di negara berkembang.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "DKK 125,000/year",
+        "department": "Faculty of Social Sciences",
+        "field": "Development Studies"
+      }
+    ]
+  },
+  {
+    "id": "technical-university-of-denmark",
+    "name": "Technical University of Denmark",
+    "country": "Denmark",
+    "city": "Kongens Lyngby",
+    "ranking": 109,
+    "description": "DTU didirikan pada tahun 1829 oleh fisikawan H.C. Ørsted dan merupakan institut teknik terkemuka di Denmark. DTU berfokus pada sains dan teknik dengan keunggulan dalam bioteknologi, energi, dan teknologi lingkungan.",
+    "website": "https://www.dtu.dk",
+    "application_portal": "https://www.dtu.dk/english/education",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 88+",
+    "avg_tuition_s2": "DKK 150,000-160,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "stem", "engineering"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science and Engineering",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dan teknik dengan peminatan komputasi cerdas, sistem siber-fisik, dan rekayasa perangkat lunak.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "DKK 150,000/year",
+        "department": "Department of Applied Mathematics and Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Sustainable Energy",
+        "degree": "S2",
+        "description": "Program magister energi berkelanjutan yang mencakup konversi energi, sistem tenaga, dan analisis kebijakan energi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "DKK 155,000/year",
+        "department": "Department of Energy Conversion and Storage",
+        "field": "Energy Engineering"
+      }
+    ]
+  },
+  {
+    "id": "aalto-university",
+    "name": "Aalto University",
+    "country": "Finlandia",
+    "city": "Espoo",
+    "ranking": 134,
+    "description": "Aalto University didirikan pada tahun 2010 melalui merger tiga institut terkemuka: Helsinki School of Economics, Helsinki University of Technology, dan University of Art and Design Helsinki. Aalto unggul dalam bidang teknik, bisnis, dan desain.",
+    "website": "https://www.aalto.fi",
+    "application_portal": "https://www.aalto.fi/en/admission-services",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 6.5+ (no band below 5.5) or TOEFL iBT 92+",
+    "avg_tuition_s2": "€12,000-18,000/year (non-EU)",
+    "tags": ["public", "research-intensive", "stem", "design", "innovation"],
+    "programs": [
+      {
+        "name": "MSc in Machine Learning, Data Science and AI",
+        "degree": "S2",
+        "description": "Program magister interdisipliner yang menggabungkan machine learning, statistik, dan AI untuk industri dan riset.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€15,000/year",
+        "department": "School of Science",
+        "field": "Artificial Intelligence"
+      },
+      {
+        "name": "MSc in International Design Business Management",
+        "degree": "S2",
+        "description": "Program magister unik yang menggabungkan desain, bisnis, dan teknologi untuk inovasi produk dan jasa.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€18,000/year",
+        "department": "School of Arts, Design and Architecture",
+        "field": "Design"
+      }
+    ]
+  },
+  {
+    "id": "university-of-oslo",
+    "name": "University of Oslo",
+    "country": "Norwegia",
+    "city": "Oslo",
+    "ranking": 119,
+    "description": "Didirikan pada tahun 1811, University of Oslo adalah universitas tertua dan terbesar di Norwegia. UiO unggul dalam bidang hukum, kedokteran, ilmu sosial, dan humaniora dengan 8 fakultas.",
+    "website": "https://www.uio.no",
+    "application_portal": "https://www.uio.no/english/studies/admission",
+    "intake_months": ["August"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 90+",
+    "avg_tuition_s2": "Free (no tuition for all students at public universities in Norway)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "MSc in Informatics",
+        "degree": "S2",
+        "description": "Program magister informatika dengan spesialisasi AI, robotika, jaringan, dan interaksi manusia-komputer.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Free",
+        "department": "Department of Informatics",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat dengan fokus pada epidemiologi, kesehatan global, dan sistem kesehatan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "Free",
+        "department": "Institute of Health and Society",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "university-of-warsaw",
+    "name": "University of Warsaw",
+    "country": "Polandia",
+    "city": "Warsaw",
+    "ranking": 262,
+    "description": "Didirikan pada tahun 1816, University of Warsaw adalah universitas terbesar di Polandia dengan 20 fakultas. UW unggul dalam bidang humaniora, ilmu sosial, hukum, dan sains dengan reputasi internasional yang kuat.",
+    "website": "https://www.uw.edu.pl",
+    "application_portal": "https://www.uw.edu.pl/en/admissions",
+    "intake_months": ["October", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 87+; B2 Polish for Polish programs",
+    "avg_tuition_s2": "€1,500-4,000/year (depending on program)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "MA in International Relations",
+        "degree": "S2",
+        "description": "Program magister hubungan internasional dengan fokus pada keamanan Eropa, politik global, dan studi kawasan Asia.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€3,500/year",
+        "department": "Faculty of Political Science and International Studies",
+        "field": "International Relations"
+      },
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi bioinformatika, komputasi awan, dan AI.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€3,800/year",
+        "department": "Faculty of Mathematics, Informatics and Mechanics",
+        "field": "Computer Science"
+      }
+    ]
+  },
+  {
+    "id": "charles-university",
+    "name": "Charles University",
+    "country": "Republik Ceko",
+    "city": "Prague",
+    "ranking": 246,
+    "description": "Didirikan pada tahun 1348, Charles University adalah universitas tertua di Eropa Tengah dan Timur. Universitas ini memiliki 17 fakultas dan unggul dalam bidang kedokteran, hukum, humaniora, dan ilmu alam.",
+    "website": "https://www.cuni.cz",
+    "application_portal": "https://www.cuni.cz/UK-347.html",
+    "intake_months": ["October", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 80+ for English programs; B2 Czech for Czech programs",
+    "avg_tuition_s2": "€3,000-7,000/year (depending on program)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "Master in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi perangkat lunak, jaringan, dan kecerdasan buatan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€6,800/year",
+        "department": "Faculty of Mathematics and Physics",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program magister kesehatan masyarakat yang berfokus pada epidemiologi, biostatistik, dan manajemen kesehatan populasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€5,000/year",
+        "department": "First Faculty of Medicine",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "jagiellonian-university",
+    "name": "Jagiellonian University",
+    "country": "Polandia",
+    "city": "Krakow",
+    "ranking": 310,
+    "description": "Didirikan pada tahun 1364, Jagiellonian University adalah universitas tertua di Polandia dan salah satu yang tertua di Eropa. UJ terkenal dalam bidang hukum, kedokteran, farmasi, dan studi Polandia dengan kampus indah di pusat Krakow.",
+    "website": "https://www.uj.edu.pl",
+    "application_portal": "https://www.uj.edu.pl/en/admissions",
+    "intake_months": ["October", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 87+; B2 Polish for Polish programs",
+    "avg_tuition_s2": "€1,500-5,000/year (depending on program)",
+    "tags": ["public", "research-intensive", "comprehensive", "ancient"],
+    "programs": [
+      {
+        "name": "Master of Arts in European Studies",
+        "degree": "S2",
+        "description": "Program magister studi Eropa yang menganalisis integrasi Eropa, kebijakan UE, dan hubungan transatlantik.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€3,000/year",
+        "department": "Faculty of International and Political Studies",
+        "field": "European Studies"
+      },
+      {
+        "name": "Master of Science in Biotechnology",
+        "degree": "S2",
+        "description": "Program magister bioteknologi dengan fokus pada biologi molekuler, bioteknologi medis, dan bioinformatika.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "€4,200/year",
+        "department": "Faculty of Biochemistry, Biophysics and Biotechnology",
+        "field": "Biotechnology"
+      }
+    ]
+  },
+  {
+    "id": "harvard-university",
+    "name": "Harvard University",
+    "country": "Amerika Serikat",
+    "city": "Cambridge",
+    "ranking": 4,
+    "description": "Didirikan pada tahun 1636, Harvard adalah institusi pendidikan tinggi tertua di Amerika Serikat. Harvard terdiri dari 13 sekolah dan 1 fakultas, dengan keunggulan di bidang hukum, bisnis, kedokteran, dan kebijakan publik.",
+    "website": "https://www.harvard.edu",
+    "application_portal": "https://www.harvard.edu/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "IELTS 7.5+ or TOEFL iBT 100+; GRE/GMAT required for most programs",
+    "avg_tuition_s2": "$50,000-60,000/year",
+    "tags": ["private", "research-intensive", "comprehensive", "ivy-league", "elite"],
+    "programs": [
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program MPH di Harvard T.H. Chan School of Public Health dengan spesialisasi epidemiologi, biostatistik, dan kesehatan global.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "$58,000/year",
+        "department": "Harvard T.H. Chan School of Public Health",
+        "field": "Public Health"
+      },
+      {
+        "name": "Master in Public Policy",
+        "degree": "S2",
+        "description": "Program MPP di Harvard Kennedy School yang mempersiapkan pemimpin untuk kebijakan publik di sektor publik dan nirlaba.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$55,000/year",
+        "department": "Harvard Kennedy School",
+        "field": "Public Policy"
+      }
+    ]
+  },
+  {
+    "id": "massachusetts-institute-of-technology",
+    "name": "Massachusetts Institute of Technology",
+    "country": "Amerika Serikat",
+    "city": "Cambridge",
+    "ranking": 1,
+    "description": "MIT didirikan pada tahun 1861 dan merupakan institut sains dan teknologi paling bergengsi di dunia. MIT unggul dalam bidang teknik, ilmu komputer, fisika, biologi, dan ekonomi dengan 5 sekolah.",
+    "website": "https://www.mit.edu",
+    "application_portal": "https://mitadmissions.org",
+    "intake_months": ["September"],
+    "language_requirements": "TOEFL iBT 100+ or IELTS 7.5+; GRE required for most programs",
+    "avg_tuition_s2": "$55,000-60,000/year",
+    "tags": ["private", "research-intensive", "stem", "elite"],
+    "programs": [
+      {
+        "name": "Master of Engineering in Computer Science and Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik ilmu komputer dan rekayasa dengan riset di bidang AI, sistem, teori, dan biologi komputasi.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "$58,000/year",
+        "department": "Department of Electrical Engineering and Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Science in Mechanical Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik mesin dengan riset di bidang robotika, nanoengineering, dan desain berkelanjutan.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "$58,000/year",
+        "department": "Department of Mechanical Engineering",
+        "field": "Mechanical Engineering"
+      }
+    ]
+  },
+  {
+    "id": "stanford-university",
+    "name": "Stanford University",
+    "country": "Amerika Serikat",
+    "city": "Stanford",
+    "ranking": 6,
+    "description": "Stanford University didirikan pada tahun 1885 dan merupakan universitas riset swasta terkemuka di Silicon Valley. Stanford unggul dalam bidang teknik, ilmu komputer, bisnis, hukum, dan kedokteran dengan semangat kewirausahaan yang kuat.",
+    "website": "https://www.stanford.edu",
+    "application_portal": "https://gradadmissions.stanford.edu",
+    "intake_months": ["September"],
+    "language_requirements": "TOEFL iBT 100+ or IELTS 7.5+; GRE required for most programs",
+    "avg_tuition_s2": "$55,000-60,000/year",
+    "tags": ["private", "research-intensive", "comprehensive", "elite", "entrepreneurial"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, teori, sistem, grafika, dan interaksi manusia-komputer.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "$58,000/year",
+        "department": "School of Engineering",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Business Administration",
+        "degree": "S2",
+        "description": "Program MBA dua tahun di Stanford Graduate School of Business dengan fokus pada kepemimpinan dan kewirausahaan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$74,000/year",
+        "department": "Stanford Graduate School of Business",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "university-of-california-berkeley",
+    "name": "University of California, Berkeley",
+    "country": "Amerika Serikat",
+    "city": "Berkeley",
+    "ranking": 10,
+    "description": "UC Berkeley didirikan pada tahun 1868 dan merupakan universitas publik unggulan yang terkenal sebagai pusat aktivisme dan inovasi. Berkeley unggul dalam bidang teknik, ilmu komputer, fisika, kimia, ekonomi, dan hukum.",
+    "website": "https://www.berkeley.edu",
+    "application_portal": "https://grad.berkeley.edu/admissions",
+    "intake_months": ["August"],
+    "language_requirements": "TOEFL iBT 90+ or IELTS 7.0+; GRE required for some programs",
+    "avg_tuition_s2": "$14,000-16,000/year (in-state) / $30,000-35,000/year (out-of-state)",
+    "tags": ["public", "research-intensive", "comprehensive", "elite"],
+    "programs": [
+      {
+        "name": "Master of Science in Electrical Engineering and Computer Science",
+        "degree": "S2",
+        "description": "Program MS EECS dengan riset di bidang AI, sistem, jaringan, dan arsitektur komputasi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$33,000/year",
+        "department": "Department of Electrical Engineering and Computer Sciences",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Policy",
+        "degree": "S2",
+        "description": "Program MPP dua tahun di Goldman School of Public Policy yang berfokus pada analisis kebijakan berbasis bukti dan kepemimpinan sektor publik.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$33,000/year",
+        "department": "Goldman School of Public Policy",
+        "field": "Public Policy"
+      }
+    ]
+  },
+  {
+    "id": "princeton-university",
+    "name": "Princeton University",
+    "country": "Amerika Serikat",
+    "city": "Princeton",
+    "ranking": 17,
+    "description": "Didirikan pada tahun 1746, Princeton adalah salah satu Ivy League tertua dan paling bergengsi di AS. Princeton unggul dalam bidang matematika, fisika, ekonomi, hubungan internasional, dan teknik dengan kampus bersejarah di New Jersey.",
+    "website": "https://www.princeton.edu",
+    "application_portal": "https://gradschool.princeton.edu",
+    "intake_months": ["September"],
+    "language_requirements": "TOEFL iBT 100+ or IELTS 7.5+; GRE required for most programs",
+    "avg_tuition_s2": "$56,000/year",
+    "tags": ["private", "research-intensive", "comprehensive", "ivy-league", "elite"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan riset di bidang teori, sistem, AI, dan komputasi kuantum.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "$56,000/year",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master in Public Affairs (MPA)",
+        "degree": "S2",
+        "description": "Program MPA di Princeton School of Public and International Affairs dengan fokus pada kebijakan domestik dan internasional.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$56,000/year",
+        "department": "Princeton School of Public and International Affairs",
+        "field": "Public Policy"
+      }
+    ]
+  },
+  {
+    "id": "yale-university",
+    "name": "Yale University",
+    "country": "Amerika Serikat",
+    "city": "New Haven",
+    "ranking": 16,
+    "description": "Didirikan pada tahun 1701, Yale adalah universitas Ivy League tertua ketiga di AS. Yale terkenal dalam bidang hukum, drama, kedokteran, manajemen lingkungan, dan teologi dengan 14 sekolah.",
+    "website": "https://www.yale.edu",
+    "application_portal": "https://gradschool.yale.edu/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "TOEFL iBT 100+ or IELTS 7.5+; GRE required for most programs",
+    "avg_tuition_s2": "$47,000-55,000/year",
+    "tags": ["private", "research-intensive", "comprehensive", "ivy-league", "elite"],
+    "programs": [
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program MPH di Yale School of Public Health dengan konsentrasi epidemiologi, kesehatan global, dan ilmu kesehatan lingkungan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$47,000/year",
+        "department": "Yale School of Public Health",
+        "field": "Public Health"
+      },
+      {
+        "name": "Master of Environmental Management",
+        "degree": "S2",
+        "description": "Program MEM di Yale School of the Environment dengan spesialisasi ekosistem, kebijakan lingkungan, dan energi berkelanjutan.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$48,000/year",
+        "department": "Yale School of the Environment",
+        "field": "Environmental Science"
+      }
+    ]
+  },
+  {
+    "id": "university-of-toronto",
+    "name": "University of Toronto",
+    "country": "Kanada",
+    "city": "Toronto",
+    "ranking": 21,
+    "description": "Didirikan pada tahun 1827, University of Toronto adalah universitas terbesar dan paling bergengsi di Kanada. U of T unggul dalam bidang kedokteran, teknik, ilmu komputer, bisnis, dan hukum dengan 3 kampus di Toronto.",
+    "website": "https://www.utoronto.ca",
+    "application_portal": "https://www.sgs.utoronto.ca/admissions",
+    "intake_months": ["September", "January", "May"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 100+",
+    "avg_tuition_s2": "CAD 30,000-50,000/year (international)",
+    "tags": ["public", "research-intensive", "comprehensive", "elite"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Science",
+        "degree": "S2",
+        "description": "Program MSc dengan spesialisasi AI, machine learning, visi komputer, dan interaksi manusia-komputer.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CAD 44,000/year",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Public Health",
+        "degree": "S2",
+        "description": "Program MPH di Dalla Lana School of Public Health yang terakreditasi CEPH dengan fokus kesehatan global dan epidemiologi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CAD 38,000/year",
+        "department": "Dalla Lana School of Public Health",
+        "field": "Public Health"
+      }
+    ]
+  },
+  {
+    "id": "university-of-british-columbia",
+    "name": "University of British Columbia",
+    "country": "Kanada",
+    "city": "Vancouver",
+    "ranking": 34,
+    "description": "UBC didirikan pada tahun 1908 dan merupakan universitas riset terkemuka di Kanada bagian barat. UBC unggul dalam bidang ilmu kelautan, kehutanan, teknik, dan studi Asia dengan kampus yang menghadap Samudra Pasifik.",
+    "website": "https://www.ubc.ca",
+    "application_portal": "https://www.grad.ubc.ca/admissions",
+    "intake_months": ["September", "January", "May"],
+    "language_requirements": "IELTS 6.5+ (no band below 6.0) or TOEFL iBT 90+",
+    "avg_tuition_s2": "CAD 25,000-45,000/year (international)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Engineering in Civil Engineering",
+        "degree": "S2",
+        "description": "Program MEng teknik sipil dengan spesialisasi teknik struktur, geoteknik, hidrolika, dan manajemen konstruksi.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "CAD 35,000/year",
+        "department": "Faculty of Applied Science",
+        "field": "Civil Engineering"
+      },
+      {
+        "name": "Master of Science in Forestry",
+        "degree": "S2",
+        "description": "Program magister kehutanan dengan fokus pada manajemen hutan berkelanjutan, konservasi, dan perubahan iklim.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "CAD 28,000/year",
+        "department": "Faculty of Forestry",
+        "field": "Environmental Science"
+      }
+    ]
+  },
+  {
+    "id": "mcgill-university",
+    "name": "McGill University",
+    "country": "Kanada",
+    "city": "Montreal",
+    "ranking": 30,
+    "description": "Didirikan pada tahun 1821 di Montreal, McGill adalah universitas tertua di Kanada. McGill terkenal dalam bidang kedokteran, teknik, hukum, dan ilmu saraf dengan 11 fakultas dan kampus yang ikonik di pusat Montreal.",
+    "website": "https://www.mcgill.ca",
+    "application_portal": "https://www.mcgill.ca/gradapplicants",
+    "intake_months": ["September", "January", "May"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 86+; French recommended but not required",
+    "avg_tuition_s2": "CAD 25,000-45,000/year (international)",
+    "tags": ["public", "research-intensive", "comprehensive"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan riset di bidang AI, sistem, teori, dan bioinformatika.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "CAD 32,000/year",
+        "department": "School of Computer Science",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Business Administration (MBA)",
+        "degree": "S2",
+        "description": "Program MBA di Desautels Faculty of Management dengan fokus kepemimpinan global, kewirausahaan, dan inovasi sosial.",
+        "language": "English",
+        "duration": "1-2 years",
+        "tuition_fee": "CAD 48,000/year",
+        "department": "Desautels Faculty of Management",
+        "field": "Business"
+      }
+    ]
+  },
+  {
+    "id": "university-of-chicago",
+    "name": "University of Chicago",
+    "country": "Amerika Serikat",
+    "city": "Chicago",
+    "ranking": 11,
+    "description": "Didirikan pada tahun 1890 oleh John D. Rockefeller, University of Chicago adalah universitas riset swasta yang terkenal dengan tradisi intelektual yang ketat dan kontribusi besar di bidang ekonomi, hukum, sosiologi, dan fisika.",
+    "website": "https://www.uchicago.edu",
+    "application_portal": "https://grad.uchicago.edu/admissions",
+    "intake_months": ["September"],
+    "language_requirements": "TOEFL iBT 104+ or IELTS 7.5+; GRE required for most programs",
+    "avg_tuition_s2": "$60,000-65,000/year",
+    "tags": ["private", "research-intensive", "comprehensive", "elite"],
+    "programs": [
+      {
+        "name": "Master of Public Policy (MPP)",
+        "degree": "S2",
+        "description": "Program MPP di Harris School of Public Policy dengan analisis kebijakan berbasis data dan ekonomi.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "$60,000/year",
+        "department": "Harris School of Public Policy",
+        "field": "Public Policy"
+      },
+      {
+        "name": "Master of Science in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan spesialisasi AI, data science, dan komputasi berkinerja tinggi.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "$62,000/year",
+        "department": "Department of Computer Science",
+        "field": "Computer Science"
+      }
+    ]
+  },
+  {
+    "id": "bogazici-university",
+    "name": "Bogazici University",
+    "country": "Turki",
+    "city": "Istanbul",
+    "ranking": 431,
+    "description": "Didirikan pada tahun 1863 sebagai Robert College, Bogazici University adalah universitas negeri unggulan Turki yang berlokasi di tepi Bosphorus. Bogazici unggul dalam bidang teknik, ilmu sosial, dan ekonomi dengan pengantar bahasa Inggris penuh.",
+    "website": "https://www.boun.edu.tr",
+    "application_portal": "https://www.boun.edu.tr/en/academics/graduate-programs",
+    "intake_months": ["September", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 87+; YOKS for Turkish programs",
+    "avg_tuition_s2": "TRY 30,000-60,000/year (≈$1,000-2,000)",
+    "tags": ["public", "research-intensive", "comprehensive", "english-medium"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik komputer dengan riset di bidang AI, jaringan, dan rekayasa perangkat lunak.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "TRY 40,000/year",
+        "department": "Department of Computer Engineering",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Arts in Economics",
+        "degree": "S2",
+        "description": "Program magister ekonomi dengan pendekatan kuantitatif dalam teori ekonomi, ekonometrika, dan ekonomi pembangunan.",
+        "language": "English",
+        "duration": "1.5 years",
+        "tuition_fee": "TRY 30,000/year",
+        "department": "Department of Economics",
+        "field": "Economics"
+      }
+    ]
+  },
+  {
+    "id": "king-abdullah-university-of-science-and-technology",
+    "name": "King Abdullah University of Science and Technology",
+    "country": "Arab Saudi",
+    "city": "Thuwal",
+    "ranking": 200,
+    "description": "KAUST didirikan pada tahun 2009 sebagai universitas riset pascasarjana yang berfokus pada STEM. KAUST menawarkan beasiswa penuh untuk semua mahasiswa dengan laboratorium riset kelas dunia di tepi Laut Merah.",
+    "website": "https://www.kaust.edu.sa",
+    "application_portal": "https://www.kaust.edu.sa/admissions",
+    "intake_months": ["January", "August"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 79+",
+    "avg_tuition_s2": "Free (full scholarship for all admitted students)",
+    "tags": ["public", "research-intensive", "stem", "graduate-only", "fully-funded"],
+    "programs": [
+      {
+        "name": "MSc in Computer Science",
+        "degree": "S2",
+        "description": "Program magister ilmu komputer dengan riset di bidang AI, visi komputer, jaringan, dan sistem terdistribusi.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "Free (with full scholarship)",
+        "department": "Computer, Electrical and Mathematical Science and Engineering Division",
+        "field": "Computer Science"
+      },
+      {
+        "name": "MSc in Environmental Science and Engineering",
+        "degree": "S2",
+        "description": "Program magister ilmu dan teknik lingkungan dengan fokus pada desalinasi, ekologi laut, dan energi terbarukan.",
+        "language": "English",
+        "duration": "1.5-2 years",
+        "tuition_fee": "Free (with full scholarship)",
+        "department": "Biological and Environmental Science and Engineering Division",
+        "field": "Environmental Science"
+      }
+    ]
+  },
+  {
+    "id": "middle-east-technical-university",
+    "name": "Middle East Technical University",
+    "country": "Turki",
+    "city": "Ankara",
+    "ranking": 285,
+    "description": "METU didirikan pada tahun 1956 dan merupakan universitas teknik negeri terkemuka di Turki. METU dikenal unggul dalam bidang teknik, arsitektur, dan ilmu sosial dengan kampus seluas 4.500 hektar di Ankara dan pengantar bahasa Inggris penuh.",
+    "website": "https://www.metu.edu.tr",
+    "application_portal": "https://www.metu.edu.tr/en/graduate-admissions",
+    "intake_months": ["September", "February"],
+    "language_requirements": "IELTS 6.5+ or TOEFL iBT 87+; ALES/YDS required for some programs",
+    "avg_tuition_s2": "TRY 20,000-50,000/year (≈$700-1,700)",
+    "tags": ["public", "research-intensive", "stem", "english-medium"],
+    "programs": [
+      {
+        "name": "Master of Science in Computer Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik komputer dengan riset di bidang AI, jaringan komputer, dan rekayasa perangkat lunak.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "TRY 35,000/year",
+        "department": "Department of Computer Engineering",
+        "field": "Computer Science"
+      },
+      {
+        "name": "Master of Science in Civil Engineering",
+        "degree": "S2",
+        "description": "Program magister teknik sipil dengan peminatan struktur, teknik geoteknik, transportasi, dan sumber daya air.",
+        "language": "English",
+        "duration": "2 years",
+        "tuition_fee": "TRY 30,000/year",
+        "department": "Department of Civil Engineering",
+        "field": "Civil Engineering"
+      }
+    ]
+  }
+]
