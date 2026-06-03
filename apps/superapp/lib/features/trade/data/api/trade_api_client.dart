@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
+import '../models/briefing_model.dart';
 import '../models/models.dart';
+import '../models/regime_model.dart';
+import '../models/signal_model.dart';
 
 /// Exception thrown by the Trade API client.
 class TradeApiException implements Exception {
@@ -302,6 +305,91 @@ class TradeApiClient {
       }
     }
     return json;
+  }
+
+  // ─── Events ────────────────────────────────────────────────────────
+
+  // ─── Signals ────────────────────────────────────────────────────────
+
+  /// Fetches trading signals for the given asset class (idx | us | crypto).
+  Future<List<SignalModel>> getSignals(String asset) async {
+    try {
+      final response = await _dio.get('/signals/$asset');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) return [];
+      final rawList = (json['signals'] as List<dynamic>?) ?? [];
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(SignalModel.fromJson)
+          .toList();
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  // ─── Regime ─────────────────────────────────────────────────────────
+
+  /// Fetches the current market regime report.
+  Future<RegimeReport> getRegime() async {
+    try {
+      final response = await _dio.get('/regime');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const RegimeReport(
+          globalRegime: Regime.bull,
+          perAsset: [],
+          allocation: [],
+          maxLossTolerancePct: 3.0,
+          currentDrawdownPct: 0.0,
+        );
+      }
+      return RegimeReport.fromJson(_unwrapDegraded(json));
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  // ─── Briefing ───────────────────────────────────────────────────────
+
+  /// Fetches today's morning briefing.
+  Future<BriefingModel> getBriefing() async {
+    try {
+      final response = await _dio.get('/briefing/today');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const BriefingModel(date: '', body: '', sizeBytes: 0);
+      }
+      return BriefingModel.fromJson(json);
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
   }
 
   // ─── Events ────────────────────────────────────────────────────────

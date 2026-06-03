@@ -22,6 +22,20 @@ class AppRoutes {
   static const String tradePlanDetail = '$trade/plan/:id';
   static String tradePlanDetailFor(String id) => '$trade/plan/$id';
 
+  // Daily trading reports list.
+  static const String tradeReports = '$trade/reports';
+
+  // Research reports (broker research) list and detail.
+  static const String tradeResearch = '$trade/research';
+  static const String tradeResearchDetail = '$trade/research/:id';
+  static String tradeResearchDetailFor(String id) =>
+      '$trade/research/$id';
+
+  // ── Trade Intelligence sub-routes ────────────────────────────────
+  static const String tradeSignals = '$trade/signals';
+  static const String tradeRegime = '$trade/regime';
+  static const String tradeBriefing = '$trade/briefing';
+
   // ── Scholarship sub-routes ─────────────────────────────────────────
   static const String scholarshipSaved = '$scholarship/saved';
   static const String scholarshipStats = '$scholarship/stats';

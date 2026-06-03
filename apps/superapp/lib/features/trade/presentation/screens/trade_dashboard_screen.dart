@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/errors/friendly_error.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 import '../providers/trade_providers.dart';
+import '../widgets/charts/charts.dart';
+import '../widgets/latest_report_banner.dart';
 import '../widgets/plan_card.dart';
 import '../widgets/stat_card.dart';
 
@@ -26,6 +29,7 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
   String? _error;
   PlansSummary? _summary;
   List<TradingPlan> _activePlans = [];
+  List<TradingPlan> _closedPlans = [];
   List<AppEvent> _events = [];
   bool _dismissed = false;
 
@@ -46,16 +50,18 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
         repo.getPlansSummary(),
         repo.getPlans(status: 'ACTIVE'),
         repo.getEvents(),
+        repo.getPlans(status: 'CLOSED'),
       ]);
       setState(() {
         _summary = results[0] as PlansSummary;
         _activePlans = results[1] as List<TradingPlan>;
         _events = results[2] as List<AppEvent>;
+        _closedPlans = results[3] as List<TradingPlan>;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _isLoading = false;
       });
     }
@@ -113,6 +119,10 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
           _buildStaleBanner(),
           const SizedBox(height: 12),
 
+          // ── Today's Report banner (gated by `new_report` preference) ───
+          const LatestReportBanner(),
+          const SizedBox(height: 12),
+
           if (_summary != null)
             Row(
               children: [
@@ -164,26 +174,28 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: SleekButton.gradient(
-                  label: 'Trading Plans',
-                  onPressed: () => context.go(AppRoutes.tradePlans),
-                  icon: Icons.assignment,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SleekButton(
-                  label: 'Market News',
-                  variant: SleekButtonVariant.secondary,
-                  onPressed: () => context.go(AppRoutes.tradeNews),
-                  icon: Icons.newspaper,
-                ),
-              ),
-            ],
+          _buildQuickActionsGrid(),
+
+          // ── Performance Analytics ──────────────────────────────────────────
+          const SizedBox(height: 16),
+          Text(
+            'Performance Analytics',
+            style: AppTextStyles.title.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const SizedBox(height: 8),
+          if (_closedPlans.length >= 2) ...[
+            PnlCurveChart(closedPlans: _closedPlans),
+            const SizedBox(height: 16),
+            DrawdownChart(closedPlans: _closedPlans),
+            const SizedBox(height: 16),
+            WinRateDonut(closedPlans: _closedPlans),
+          ] else
+            const EmptyChartPlaceholder(
+              message: 'Charts appear after your first 2 closed trades.',
+              height: 200,
+            ),
 
           const SizedBox(height: 16),
           Text(
@@ -216,6 +228,58 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
           ..._events.take(5).map(_buildEventTile),
         ],
       ),
+    );
+  }
+
+  /// 2x2 grid of trade-section entry points.  The first cell stays
+  /// gradient-styled (Trading Plans is the most-trafficked action);
+  /// the other three use the secondary variant for visual rhythm.
+  Widget _buildQuickActionsGrid() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: SleekButton.gradient(
+                label: 'Live Signals',
+                onPressed: () => context.go(AppRoutes.tradeSignals),
+                icon: Icons.signal_cellular_alt,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SleekButton(
+                label: 'Market Regime',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradeRegime),
+                icon: Icons.analytics_outlined,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: SleekButton(
+                label: 'Trading Plans',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradePlans),
+                icon: Icons.assignment,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SleekButton(
+                label: 'Market News',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradeNews),
+                icon: Icons.newspaper,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -263,8 +327,8 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.warning.withOpacity(0.12),
-            border: Border.all(color: AppColors.warning.withOpacity(0.35)),
+            color: AppColors.warning.withValues(alpha: 0.12),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(

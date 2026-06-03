@@ -1,9 +1,15 @@
 export 'app_event.dart';
+export 'briefing_model.dart';
+export 'daily_report.dart';
 export 'market_quote.dart';
 export 'news_item.dart';
 export 'news_result.dart';
 export 'news_status.dart';
 export 'plans_summary.dart';
+export 'regime_model.dart';
+export 'research_report.dart';
+export 'research_report_source.dart';
 export 'scraper_health.dart';
+export 'signal_model.dart';
 export 'source_health.dart';
 export 'trading_plan.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../auth/auth_state.dart';
 import '../../features/lpdp/presentation/screens/lpdp_dashboard_screen.dart';
 import '../../features/lpdp/presentation/screens/lpdp_university_list_screen.dart';
 import '../../features/lpdp/presentation/screens/lpdp_university_detail_screen.dart';
@@ -18,6 +19,11 @@ import '../../features/trade/presentation/screens/trade_dashboard_screen.dart';
 import '../../features/trade/presentation/screens/trade_plans_screen.dart';
 import '../../features/trade/presentation/screens/trade_news_screen.dart';
 import '../../features/trade/presentation/screens/trade_plan_detail_screen.dart';
+import '../../features/trade/presentation/screens/daily_reports_screen.dart';
+import '../../features/trade/presentation/screens/research_reports_screen.dart';
+import '../../features/trade/presentation/screens/research_report_detail_screen.dart';
+import '../../features/trade/presentation/screens/signals_screen.dart';
+import '../../features/trade/presentation/screens/regime_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -41,9 +47,24 @@ CustomTransitionPage<T> _fadePage<T>(LocalKey key, Widget child) {
 /// The post-login router (the auth-router is defined in `app.dart`).
 ///
 /// All route paths come from [AppRoutes] so refactors stay in one place.
+///
+/// Uses `refreshListenable` + a `redirect` callback so that a user who
+/// lands here after being logged out (e.g. session expired) is kicked
+/// back to `/login` even on a deep link — no race window where the
+/// stale router is still on screen.
 final appRouter = GoRouter(
   initialLocation: AppRoutes.scholarship,
   debugLogDiagnostics: false,
+  refreshListenable: authRefreshListenable,
+  redirect: (context, state) {
+    // The post-login router should only show post-login routes. If
+    // the user has been logged out (e.g. token expired), kick to
+    // `/login` so the auth flow takes over.
+    if (!authRefreshListenable.value) {
+      return AppRoutes.login;
+    }
+    return null;
+  },
   errorBuilder: (context, state) => _NotFoundScreen(
     attemptedPath: state.uri.path,
   ),
@@ -92,6 +113,26 @@ final appRouter = GoRouter(
               pageBuilder: (_, __) =>
                   const NoTransitionPage(child: TradeNewsScreen()),
             ),
+            GoRoute(
+              path: 'reports',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: DailyReportsScreen()),
+            ),
+            GoRoute(
+              path: 'research',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: ResearchReportsListScreen()),
+            ),
+            GoRoute(
+              path: 'signals',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: SignalsScreen()),
+            ),
+            GoRoute(
+              path: 'regime',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: RegimeScreen()),
+            ),
           ],
         ),
         GoRoute(
@@ -138,6 +179,16 @@ final appRouter = GoRouter(
         return _fadePage(
           ValueKey('trade_plan_$id'),
           TradePlanDetailScreen(planId: id),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.tradeResearchDetail,
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return _fadePage(
+          ValueKey('trade_research_$id'),
+          ResearchReportDetailScreen(reportId: id),
         );
       },
     ),

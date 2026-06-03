@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
+import '../../data/models/briefing_model.dart';
+import '../../data/models/regime_model.dart';
+import '../../data/models/signal_model.dart';
 import '../../data/repository/repository.dart';
 
 /// Provides the [TradeApiClient] singleton using the shared auth-aware Dio.
@@ -26,4 +29,23 @@ final newsStatusProvider = FutureProvider.autoDispose((ref) async {
 final scrapersHealthProvider = FutureProvider.autoDispose((ref) async {
   final repo = ref.watch(tradeRepositoryProvider);
   return repo.getScrapersHealth();
+});
+
+/// Signals provider for a given asset class.
+final signalsProvider =
+    FutureProvider.autoDispose.family<List<SignalModel>, String>((ref, asset) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getSignals(asset);
+});
+
+/// Regime report provider, polled every 5 minutes.
+final regimeProvider = FutureProvider.autoDispose<RegimeReport>((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getRegime();
+});
+
+/// Morning briefing provider.
+final briefingProvider = FutureProvider.autoDispose<BriefingModel>((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getBriefing();
 });
