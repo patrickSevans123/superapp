@@ -166,6 +166,15 @@ func main() {
 	v1.Get("/portfolio-optimize", handlePortfolioOptimize)
 	v1.Get("/stream/enhanced", handleStreamEnhanced)
 
+	// ─── P4: Factor Library, Push Notifications, Refresh ───
+	v1.Get("/factors/library", handleFactorLibrary)
+	v1.Post("/factors/compute", handleFactorCompute)
+	v1.Post("/devices/register", handleDevicesRegister)
+	v1.Delete("/devices/unregister", handleDevicesUnregister)
+	v1.Get("/devices", handleDevicesList)
+	v1.Post("/notifications/send", handleNotificationsSend)
+	v1.Post("/refresh/factors", handleRefreshFactors)
+
 	// ─── LPDP endpoints ───
 	lpdp := v1.Group("/lpdp")
 	lpdp.Get("/universities", handleLPDPUniversities)

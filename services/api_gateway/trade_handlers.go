@@ -666,3 +666,153 @@ func handleStream(c *fiber.Ctx) error {
 
 	return nil
 }
+
+// ─── P4: Factor Library ──────────────────────────────────────────────
+
+// handleFactorLibrary proxies to the self-trade factor library endpoint.
+// GET /api/v1/factors/library
+func handleFactorLibrary(c *fiber.Ctx) error {
+	return proxyGet(selfTradePythonBase+"/api/factors/library", c)
+}
+
+// handleFactorCompute triggers factor miner computation.
+// POST /api/v1/factors/compute
+func handleFactorCompute(c *fiber.Ctx) error {
+	target := selfTradePythonBase + "/api/factors/compute"
+	req, err := http.NewRequest(http.MethodPost, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("upstream unavailable: %v", err), "degraded": true})
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return c.Status(resp.StatusCode).Send(body)
+}
+
+// ─── P4: Device Registration ─────────────────────────────────────────
+
+// handleDevicesRegister registers a device token for push notifications.
+// POST /api/v1/devices/register?user_id=xxx&token=xxx&platform=android
+func handleDevicesRegister(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	token := c.Query("token")
+	platform := c.Query("platform", "android")
+
+	if userID == "" || token == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id and token are required"})
+	}
+
+	target := fmt.Sprintf("%s/api/devices/register?user_id=%s&token=%s&platform=%s",
+		selfTradePythonBase,
+		url.QueryEscape(userID),
+		url.QueryEscape(token),
+		url.QueryEscape(platform),
+	)
+
+	req, err := http.NewRequest(http.MethodPost, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("User-Agent", userAgent)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("upstream unavailable: %v", err), "degraded": true})
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return c.Status(resp.StatusCode).Send(body)
+}
+
+// handleDevicesUnregister removes a device token.
+// DELETE /api/v1/devices/unregister?user_id=xxx
+func handleDevicesUnregister(c *fiber.Ctx) error {
+	userID := c.Query("user_id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "user_id is required"})
+	}
+	target := fmt.Sprintf("%s/api/devices/unregister?user_id=%s", selfTradePythonBase, url.QueryEscape(userID))
+	req, err := http.NewRequest(http.MethodDelete, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("User-Agent", userAgent)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("upstream unavailable: %v", err), "degraded": true})
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return c.Status(resp.StatusCode).Send(body)
+}
+
+// handleDevicesList lists all registered device tokens.
+// GET /api/v1/devices
+func handleDevicesList(c *fiber.Ctx) error {
+	return proxyGet(selfTradePythonBase+"/api/devices", c)
+}
+
+// ─── P4: Push Notifications ──────────────────────────────────────────
+
+// handleNotificationsSend sends push notifications via FCM.
+// POST /api/v1/notifications/send?title=xxx&body=xxx&user_id=xxx&data=xxx
+func handleNotificationsSend(c *fiber.Ctx) error {
+	title := c.Query("title")
+	body := c.Query("body")
+	userID := c.Query("user_id")
+	data := c.Query("data")
+
+	if title == "" || body == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "title and body are required"})
+	}
+
+	target := fmt.Sprintf("%s/api/notifications/send?title=%s&body=%s",
+		selfTradePythonBase,
+		url.QueryEscape(title),
+		url.QueryEscape(body),
+	)
+	if userID != "" {
+		target += "&user_id=" + url.QueryEscape(userID)
+	}
+	if data != "" {
+		target += "&data=" + url.QueryEscape(data)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("User-Agent", userAgent)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("upstream unavailable: %v", err), "degraded": true})
+	}
+	defer resp.Body.Close()
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	return c.Status(resp.StatusCode).Send(bodyBytes)
+}
+
+// ─── P4: Refresh ─────────────────────────────────────────────────────
+
+// handleRefreshFactors manually triggers factor cache refresh.
+// POST /api/v1/refresh/factors
+func handleRefreshFactors(c *fiber.Ctx) error {
+	target := selfTradePythonBase + "/api/refresh/factors"
+	req, err := http.NewRequest(http.MethodPost, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("User-Agent", userAgent)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": fmt.Sprintf("upstream unavailable: %v", err), "degraded": true})
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return c.Status(resp.StatusCode).Send(body)
+}

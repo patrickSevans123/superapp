@@ -62,6 +62,12 @@ dependencies:
   flutter_markdown: ^0.7.3
   url_launcher: ^6.3.0
 
+  # ─── Push Notifications (P4) ───
+  # Requires Firebase project setup: add google-services.json (Android)
+  # and GoogleService-Info.plist (iOS) to respective platform folders.
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

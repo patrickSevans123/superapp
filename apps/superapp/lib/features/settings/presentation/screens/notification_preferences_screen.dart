@@ -149,6 +149,44 @@ class _NotificationPreferencesScreenState
             ],
           ),
         ),
+
+        // ─── Trading Intelligence ───
+        const SizedBox(height: 16),
+        const _SectionHeader(title: 'Trading Intelligence'),
+        const SizedBox(height: 8),
+        GlassCard(
+          child: Column(
+            children: [
+              _buildSwitchTile(
+                title: 'Regime Changes',
+                subtitle: 'Market regime transitions (risk-on/risk-off)',
+                value: true, // TODO: wire to real preference
+                onChanged: (v) {},
+              ),
+              const Divider(),
+              _buildSwitchTile(
+                title: 'Signal Alerts',
+                subtitle: 'New trading signals from AI agents',
+                value: true,
+                onChanged: (v) {},
+              ),
+              const Divider(),
+              _buildSwitchTile(
+                title: 'Morning Briefing',
+                subtitle: 'Daily pre-market intelligence briefing',
+                value: true,
+                onChanged: (v) {},
+              ),
+              const Divider(),
+              _buildSwitchTile(
+                title: 'Portfolio Alerts',
+                subtitle: 'Portfolio optimization updates',
+                value: true,
+                onChanged: (v) {},
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
