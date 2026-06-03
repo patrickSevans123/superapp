@@ -314,7 +314,14 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(child: SizedBox()), // Placeholder for future button
+            Expanded(
+              child: SleekButton(
+                label: 'Portfolio',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradePortfolioOptimize),
+                icon: Icons.pie_chart_outline,
+              ),
+            ),
           ],
         ),
       ],

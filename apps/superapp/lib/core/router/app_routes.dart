@@ -44,6 +44,9 @@ class AppRoutes {
   // ── P2: Factor Lab ────────────────────────────────────────────
   static const String tradeFactorLab = '$trade/factor-lab';
 
+  // ── P3: Portfolio Optimization ────────────────────────────────
+  static const String tradePortfolioOptimize = '$trade/portfolio-optimize';
+
   // ── Scholarship sub-routes ─────────────────────────────────────────
   static const String scholarshipSaved = '$scholarship/saved';
   static const String scholarshipStats = '$scholarship/stats';

@@ -529,6 +529,83 @@ func handleFactors(c *fiber.Ctx) error {
 	return proxyGet(selfTradePythonBase+"/api/factors", c)
 }
 
+// ─── P3: Portfolio Optimization ────────────────────────────────────────
+
+// handlePortfolioOptimize proxies to the self-trade portfolio optimization endpoint.
+// GET /api/v1/portfolio-optimize?tickers=BBCA,BBRI&risk_free_rate=0.06&n_portfolios=5000
+func handlePortfolioOptimize(c *fiber.Ctx) error {
+	tickers := c.Query("tickers")
+	riskFreeRate := c.Query("risk_free_rate", "0.06")
+	nPortfolios := c.Query("n_portfolios", "5000")
+	targetReturn := c.Query("target_return")
+
+	target := fmt.Sprintf("%s/api/portfolio-optimize?risk_free_rate=%s&n_portfolios=%s",
+		selfTradePythonBase, riskFreeRate, nPortfolios)
+	if tickers != "" {
+		target += "&tickers=" + url.QueryEscape(tickers)
+	}
+	if targetReturn != "" {
+		target += "&target_return=" + url.QueryEscape(targetReturn)
+	}
+	return proxyGet(target, c)
+}
+
+// ─── P3: Enhanced SSE Streaming ────────────────────────────────────────
+
+// handleStreamEnhanced proxies the enhanced SSE stream with real regime/signal events.
+// GET /api/v1/stream/enhanced
+func handleStreamEnhanced(c *fiber.Ctx) error {
+	target := selfTradePythonBase + "/api/stream/enhanced"
+
+	req, err := http.NewRequest(http.MethodGet, target, nil)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "failed to build upstream request"})
+	}
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+
+	sseClient := &http.Client{
+		Timeout: 0,
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 5,
+			IdleConnTimeout:     300 * time.Second,
+		},
+	}
+
+	resp, err := sseClient.Do(req)
+	if err != nil {
+		log.Printf("WARN enhanced SSE upstream %s unavailable: %v", target, err)
+		return c.Status(502).JSON(fiber.Map{
+			"error":    fmt.Sprintf("upstream unavailable: %v", err),
+			"degraded": true,
+		})
+	}
+	defer resp.Body.Close()
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("X-Accel-Buffering", "no")
+
+	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+		buf := make([]byte, 4096)
+		for {
+			n, readErr := resp.Body.Read(buf)
+			if n > 0 {
+				w.Write(buf[:n])
+				w.Flush()
+			}
+			if readErr != nil {
+				break
+			}
+		}
+	})
+
+	return nil
+}
+
 // ─── P2: SSE Streaming ────────────────────────────────────────────────
 
 // handleStream proxies the SSE stream from the self-trade Python API.

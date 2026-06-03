@@ -162,6 +162,10 @@ func main() {
 	v1.Get("/factors", handleFactors)
 	v1.Get("/stream", handleStream)
 
+	// ─── P3: Portfolio Optimization & Enhanced SSE ───
+	v1.Get("/portfolio-optimize", handlePortfolioOptimize)
+	v1.Get("/stream/enhanced", handleStreamEnhanced)
+
 	// ─── LPDP endpoints ───
 	lpdp := v1.Group("/lpdp")
 	lpdp.Get("/universities", handleLPDPUniversities)

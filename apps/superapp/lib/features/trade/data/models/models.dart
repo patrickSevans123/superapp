@@ -14,5 +14,6 @@ export 'scraper_health.dart';
 export 'signal_model.dart';
 export 'source_health.dart';
 export 'decision_model.dart';
+export 'portfolio_model.dart';
 export 'strategy_performance.dart';
 export 'trading_plan.dart';

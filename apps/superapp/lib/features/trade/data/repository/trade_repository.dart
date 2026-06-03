@@ -9,6 +9,7 @@ import '../models/plans_summary.dart';
 import '../models/regime_model.dart';
 import '../models/scraper_health.dart';
 import '../models/decision_model.dart';
+import '../models/portfolio_model.dart';
 import '../models/signal_model.dart';
 import '../models/trading_plan.dart';
 
@@ -96,4 +97,18 @@ class TradeRepository {
 
   /// Fetches composite factor scores for IDX stocks.
   Future<FactorResponse> getFactors() => _api.getFactors();
+
+  // ─── P3: Portfolio Optimization ──────────────────────────────────
+
+  /// Fetches portfolio optimization results.
+  Future<PortfolioOptimizeResponse> getPortfolioOptimize({
+    List<String>? tickers,
+    double riskFreeRate = 0.06,
+    int nPortfolios = 5000,
+  }) =>
+      _api.getPortfolioOptimize(
+        tickers: tickers,
+        riskFreeRate: riskFreeRate,
+        nPortfolios: nPortfolios,
+      );
 }

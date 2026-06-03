@@ -27,6 +27,7 @@ import '../../features/trade/presentation/screens/regime_screen.dart';
 import '../../features/trade/presentation/screens/ticker_detail_screen.dart';
 import '../../features/trade/presentation/screens/decision_journal_screen.dart';
 import '../../features/trade/presentation/screens/factor_lab_screen.dart';
+import '../../features/trade/presentation/screens/portfolio_optimize_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -145,6 +146,11 @@ final appRouter = GoRouter(
               path: 'factor-lab',
               pageBuilder: (_, __) =>
                   const NoTransitionPage(child: FactorLabScreen()),
+            ),
+            GoRoute(
+              path: 'portfolio-optimize',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: PortfolioOptimizeScreen()),
             ),
           ],
         ),

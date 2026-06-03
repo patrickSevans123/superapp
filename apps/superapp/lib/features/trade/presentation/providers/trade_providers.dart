@@ -5,6 +5,7 @@ import '../../data/api/api.dart';
 import '../../data/models/briefing_model.dart';
 import '../../data/models/decision_model.dart';
 import '../../data/models/factor_model.dart';
+import '../../data/models/portfolio_model.dart';
 import '../../data/models/regime_model.dart';
 import '../../data/models/signal_model.dart';
 import '../../data/models/strategy_performance.dart';
@@ -89,4 +90,13 @@ final strategyPerformanceProvider =
 final factorsProvider = FutureProvider.autoDispose<FactorResponse>((ref) async {
   final repo = ref.watch(tradeRepositoryProvider);
   return repo.getFactors();
+});
+
+// ─── P3: Portfolio Optimization ──────────────────────────────────────
+
+/// Portfolio optimization provider — runs mean-variance optimization.
+final portfolioOptimizeProvider =
+    FutureProvider.autoDispose<PortfolioOptimizeResponse>((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getPortfolioOptimize();
 });

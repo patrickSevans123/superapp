@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../models/briefing_model.dart';
 import '../models/decision_model.dart';
 import '../models/models.dart';
+import '../models/portfolio_model.dart';
 import '../models/regime_model.dart';
 import '../models/signal_model.dart';
 
@@ -525,6 +526,45 @@ class TradeApiClient {
         );
       }
       return FactorResponse.fromJson(json);
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  // ─── P3: Portfolio Optimization ────────────────────────────────────
+
+  /// Fetches portfolio optimization results.
+  Future<PortfolioOptimizeResponse> getPortfolioOptimize({
+    List<String>? tickers,
+    double riskFreeRate = 0.06,
+    int nPortfolios = 5000,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'risk_free_rate': riskFreeRate,
+        'n_portfolios': nPortfolios,
+      };
+      if (tickers != null && tickers.isNotEmpty) {
+        queryParams['tickers'] = tickers.join(',');
+      }
+      final response = await _dio.get('/portfolio-optimize', queryParameters: queryParams);
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        throw TradeApiException('Invalid response format');
+      }
+      if (json.containsKey('error')) {
+        throw TradeApiException(json['error'] as String);
+      }
+      return PortfolioOptimizeResponse.fromJson(json);
     } on DioException catch (e) {
       throw TradeApiException(
         e.message ?? 'Network error',
