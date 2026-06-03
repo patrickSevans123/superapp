@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -79,19 +79,21 @@ var yahooSuffixes = []string{".JK", ".SI", ".L", ".AX", ".HK", ".SS", ".T", ".KS
 
 // yahooQuoteURL builds the Yahoo Finance v8 chart URL for a given symbol.
 // It only appends .JK (Indonesia Stock Exchange) if the symbol doesn't already
-// have a recognized exchange suffix.
+// have a recognized exchange suffix. The symbol is path-escaped so that any
+// special characters (e.g. ".", "-", "/") are properly encoded for the URL.
+// Callers are expected to uppercase the symbol (see handleMarketQuote).
 func yahooQuoteURL(symbol string) string {
 	for _, suffix := range yahooSuffixes {
 		if strings.HasSuffix(symbol, suffix) {
 			return fmt.Sprintf(
 				"https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=1d",
-				symbol,
+				url.PathEscape(symbol),
 			)
 		}
 	}
 	return fmt.Sprintf(
 		"https://query1.finance.yahoo.com/v8/finance/chart/%s.JK?interval=1d&range=1d",
-		symbol,
+		url.PathEscape(symbol),
 	)
 }
 
@@ -326,7 +328,7 @@ func handlePlans(c *fiber.Ctx) error {
 	status := c.Query("status")
 	target := selfTradeBase + "/api/plans"
 	if status != "" {
-		target += "?status=" + status
+		target += "?status=" + url.QueryEscape(status)
 	}
 	return proxyGet(target, c)
 }
@@ -351,7 +353,7 @@ func handleNews(c *fiber.Ctx) error {
 		limit = 200
 	}
 
-	target := fmt.Sprintf("%s/api/news?source=%s&limit=%d", selfTradeBase, source, limit)
+	target := fmt.Sprintf("%s/api/news?source=%s&limit=%d", selfTradeBase, url.QueryEscape(source), limit)
 	return proxyGet(target, c)
 }
 
@@ -376,7 +378,105 @@ func handleNewsStatus(c *fiber.Ctx) error {
 	return proxyGet(selfTradeBase+"/api/news/status", c)
 }
 
-// errUpstreamUnavailable is returned by handlers that depend on the self-trade
-// service when it is unreachable. Kept as a sentinel so future callers can
-// distinguish upstream failures from bad input.
-var errUpstreamUnavailable = errors.New("self-trade service unavailable")
+// handleDailyReports proxies to the self-trade daily reports endpoint.
+// Supports filtering by date (YYYY-MM-DD) and limiting the result count.
+// GET /api/v1/reports?date=YYYY-MM-DD&limit=20
+func handleDailyReports(c *fiber.Ctx) error {
+	date := strings.TrimSpace(c.Query("date"))
+	limitStr := c.Query("limit", "20")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 20
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	target := fmt.Sprintf("%s/api/reports?limit=%d", selfTradeBase, limit)
+	if date != "" {
+		target += "&date=" + url.QueryEscape(date)
+	}
+	return proxyGet(target, c)
+}
+
+// handleResearchReports proxies to the self-trade research reports list.
+// Supports filtering by source and limiting the result count.
+// GET /api/v1/research-reports?source=&limit=20
+func handleResearchReports(c *fiber.Ctx) error {
+	source := c.Query("source")
+	limitStr := c.Query("limit", "20")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 20
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	target := fmt.Sprintf("%s/api/research-reports?source=%s&limit=%d", selfTradeBase, url.QueryEscape(source), limit)
+	return proxyGet(target, c)
+}
+
+// handleResearchReportByID proxies to the self-trade research report detail.
+// GET /api/v1/research-reports/:id
+func handleResearchReportByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "id path parameter is required"})
+	}
+	// Reject obvious path-traversal attempts before forwarding to upstream
+	if strings.Contains(id, "/") || strings.Contains(id, "..") {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+	}
+	target := fmt.Sprintf("%s/api/research-reports/%s", selfTradeBase, url.PathEscape(id))
+	return proxyGet(target, c)
+}
+
+// handleSignals proxies to the self-trade signals endpoint.
+// GET /api/v1/signals/:asset   (asset = idx | us | crypto)
+func handleSignals(c *fiber.Ctx) error {
+	asset := strings.ToLower(strings.TrimSpace(c.Params("asset")))
+	if asset == "" {
+		asset = "idx"
+	}
+	// Validate asset class
+	switch asset {
+	case "idx", "us", "crypto":
+		// valid
+	default:
+		return c.Status(400).JSON(fiber.Map{"error": "invalid asset; use idx, us, or crypto"})
+	}
+	target := fmt.Sprintf("%s/api/signals/%s", selfTradeBase, asset)
+	return proxyGet(target, c)
+}
+
+// handleRegime proxies to the self-trade regime detection endpoint.
+// GET /api/v1/regime
+func handleRegime(c *fiber.Ctx) error {
+	return proxyGet(selfTradeBase+"/api/regime", c)
+}
+
+// handleMorningBriefing proxies to the self-trade morning briefing endpoint.
+// GET /api/v1/briefing/today
+func handleMorningBriefing(c *fiber.Ctx) error {
+	return proxyGet(selfTradeBase+"/api/briefing/today", c)
+}
+
+// handleSentiment proxies to the self-trade sentiment endpoint.
+// GET /api/v1/sentiment
+func handleSentiment(c *fiber.Ctx) error {
+	return proxyGet(selfTradeBase+"/api/sentiment", c)
+}
+
+// handleTechnical proxies to the self-trade technical analysis endpoint.
+// GET /api/v1/technical/:ticker
+func handleTechnical(c *fiber.Ctx) error {
+	ticker := strings.ToUpper(strings.TrimSpace(c.Params("ticker")))
+	if ticker == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "ticker path parameter is required"})
+	}
+	target := fmt.Sprintf("%s/api/technical/%s", selfTradeBase, url.PathEscape(ticker))
+	return proxyGet(target, c)
+}

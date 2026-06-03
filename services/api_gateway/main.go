@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -144,6 +145,16 @@ func main() {
 	v1.Get("/news/status", handleNewsStatus)
 	v1.Get("/events", handleEvents)
 	v1.Get("/scrapers/health", handleScrapersHealth)
+	v1.Get("/reports", handleDailyReports)
+	v1.Get("/research-reports", handleResearchReports)
+	v1.Get("/research-reports/:id", handleResearchReportByID)
+
+	// ─── Trade Intelligence endpoints (signals, regime, briefing) ───
+	v1.Get("/signals/:asset", handleSignals)
+	v1.Get("/regime", handleRegime)
+	v1.Get("/briefing/today", handleMorningBriefing)
+	v1.Get("/sentiment", handleSentiment)
+	v1.Get("/technical/:ticker", handleTechnical)
 
 	// ─── LPDP endpoints ───
 	lpdp := v1.Group("/lpdp")
@@ -175,9 +186,26 @@ func main() {
 	wardrobe.Post("/:id/worn", HandleMarkWorn)
 
 	// ─── Try-On ───
+	// VTON upstream (Replicate / Fashn) is expensive — ~5-15s per call and
+	// costs real money. Cap each user to 10 try-on requests per minute to
+	// prevent abuse and runaway cost. Falls back to IP keying for unauth'd
+	// requests (defence in depth — auth middleware should run first).
+	tryonLimiter := limiter.New(limiter.Config{
+		Max:        10,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			if uid, ok := c.Locals("user_id").(string); ok && uid != "" {
+				return uid
+			}
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{"error": "try-on rate limit exceeded, please slow down"})
+		},
+	})
 	tryon := v1.Group("/tryon")
 	tryon.Get("/history", HandleGetTryonHistory)
-	tryon.Post("/", HandleCreateTryon)
+	tryon.Post("/", tryonLimiter, HandleCreateTryon)
 	tryon.Delete("/:id", HandleDeleteTryonResult)
 
 	// ─── OOTD ───
@@ -242,13 +270,25 @@ func main() {
 		port = "8080"
 	}
 
+	// ─── TLS configuration ────────────────────────────────────────────────
+	// For production, use a reverse proxy (nginx/Caddy) for TLS termination,
+	// OR provide TLS_CERT_FILE + TLS_KEY_FILE for direct TLS.
+	certFile := os.Getenv("TLS_CERT_FILE")
+	keyFile := os.Getenv("TLS_KEY_FILE")
+	useTLS := certFile != "" && keyFile != ""
+
 	// Graceful shutdown — server runs in a goroutine so we can select on
 	// either a startup error or an OS signal. Without this, a port conflict
 	// would block indefinitely.
 	errCh := make(chan error, 1)
 	go func() {
-		log.Printf("🚀 API Gateway starting on :%s", port)
-		errCh <- app.Listen(":" + port)
+		if useTLS {
+			log.Printf("🔒 API Gateway starting with TLS on :%s", port)
+			errCh <- app.ListenTLS(":"+port, certFile, keyFile)
+		} else {
+			log.Printf("🚀 API Gateway starting on :%s", port)
+			errCh <- app.Listen(":" + port)
+		}
 	}()
 
 	quit := make(chan os.Signal, 1)
@@ -371,8 +411,7 @@ func handleUploadPhoto(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "only .jpg, .jpeg, .png, .webp files are allowed"})
 	}
 
-	// Save to data/uploads/
-	ext = filepath.Ext(file.Filename)
+	// Save to data/uploads/ — keep the lowercased extension for consistency
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 	uploadDir := filepath.Join("data", "uploads")
 	os.MkdirAll(uploadDir, 0755)
@@ -384,13 +423,36 @@ func handleUploadPhoto(c *fiber.Ctx) error {
 	}
 	defer src.Close()
 
+	// ─── Magic-byte validation ─────────────────────────────────────────
+	// Extension can be spoofed; sniff the first 512 bytes and reject
+	// anything that isn't a real JPEG/PNG/WebP. Prevents uploading e.g.
+	// an .exe renamed to .jpg.
+	header := make([]byte, 512)
+	n, _ := io.ReadFull(src, header)
+	detectedMIME := http.DetectContentType(header[:n])
+	allowedMIMEs := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedMIMEs[detectedMIME] {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "file content does not match allowed types (image/jpeg, image/png, image/webp)",
+		})
+	}
+
+	// Replay the bytes we already read, then continue with the rest of the file.
+	// Use a separate variable so `src` keeps its multipart.File type for Close().
+	body := io.MultiReader(bytes.NewReader(header[:n]), src)
+
 	dstFile, err := os.Create(dst)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to save file"})
 	}
 	defer dstFile.Close()
 
-	if _, err := io.Copy(dstFile, src); err != nil {
+	if _, err := io.Copy(dstFile, body); err != nil {
+		os.Remove(dst) // best-effort cleanup of partial file
 		return c.Status(500).JSON(fiber.Map{"error": "failed to write file"})
 	}
 
