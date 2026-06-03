@@ -8,6 +8,7 @@ import '../models/news_status.dart';
 import '../models/plans_summary.dart';
 import '../models/regime_model.dart';
 import '../models/scraper_health.dart';
+import '../models/decision_model.dart';
 import '../models/signal_model.dart';
 import '../models/trading_plan.dart';
 
@@ -74,4 +75,14 @@ class TradeRepository {
 
   /// Fetches app events.
   Future<List<AppEvent>> getEvents() => _api.getEvents();
+
+  // ─── Decisions ───────────────────────────────────────────────────────
+
+  /// Fetches trading decisions from the AI decision memory.
+  Future<({List<DecisionModel> decisions, LearningStats stats})> getDecisions({
+    String? ticker,
+    int limit = 20,
+    bool withReflections = false,
+  }) =>
+      _api.getDecisions(ticker: ticker, limit: limit, withReflections: withReflections);
 }

@@ -24,6 +24,8 @@ import '../../features/trade/presentation/screens/research_reports_screen.dart';
 import '../../features/trade/presentation/screens/research_report_detail_screen.dart';
 import '../../features/trade/presentation/screens/signals_screen.dart';
 import '../../features/trade/presentation/screens/regime_screen.dart';
+import '../../features/trade/presentation/screens/ticker_detail_screen.dart';
+import '../../features/trade/presentation/screens/decision_journal_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -133,6 +135,11 @@ final appRouter = GoRouter(
               pageBuilder: (_, __) =>
                   const NoTransitionPage(child: RegimeScreen()),
             ),
+            GoRoute(
+              path: 'decisions',
+              pageBuilder: (_, __) =>
+                  const NoTransitionPage(child: DecisionJournalScreen()),
+            ),
           ],
         ),
         GoRoute(
@@ -189,6 +196,16 @@ final appRouter = GoRouter(
         return _fadePage(
           ValueKey('trade_research_$id'),
           ResearchReportDetailScreen(reportId: id),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.tradeTickerDetail,
+      pageBuilder: (context, state) {
+        final symbol = state.pathParameters['symbol']!;
+        return _fadePage(
+          ValueKey('trade_ticker_$symbol'),
+          TickerDetailScreen(ticker: symbol),
         );
       },
     ),

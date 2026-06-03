@@ -36,6 +36,11 @@ class AppRoutes {
   static const String tradeRegime = '$trade/regime';
   static const String tradeBriefing = '$trade/briefing';
 
+  // ── Trade Detail routes ────────────────────────────────────────
+  static const String tradeTickerDetail = '$trade/ticker/:symbol';
+  static String tradeTickerDetailFor(String symbol) => '$trade/ticker/$symbol';
+  static const String tradeDecisions = '$trade/decisions';
+
   // ── Scholarship sub-routes ─────────────────────────────────────────
   static const String scholarshipSaved = '$scholarship/saved';
   static const String scholarshipStats = '$scholarship/stats';

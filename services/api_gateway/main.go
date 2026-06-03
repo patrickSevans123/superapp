@@ -155,6 +155,7 @@ func main() {
 	v1.Get("/briefing/today", handleMorningBriefing)
 	v1.Get("/sentiment", handleSentiment)
 	v1.Get("/technical/:ticker", handleTechnical)
+	v1.Get("/decisions", handleDecisions)
 
 	// ─── LPDP endpoints ───
 	lpdp := v1.Group("/lpdp")

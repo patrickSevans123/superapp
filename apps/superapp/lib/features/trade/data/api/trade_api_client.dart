@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../models/briefing_model.dart';
+import '../models/decision_model.dart';
 import '../models/models.dart';
 import '../models/regime_model.dart';
 import '../models/signal_model.dart';
@@ -424,6 +425,52 @@ class TradeApiClient {
         dataList = [];
       }
       return dataList;
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  // ─── Decisions ──────────────────────────────────────────────────────
+
+  /// Fetches trading decisions from the AI decision memory.
+  Future<({List<DecisionModel> decisions, LearningStats stats})> getDecisions({
+    String? ticker,
+    int limit = 20,
+    bool withReflections = false,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'limit': limit,
+        'with_reflections': withReflections.toString(),
+      };
+      if (ticker != null && ticker.isNotEmpty) {
+        queryParams['ticker'] = ticker;
+      }
+
+      final response = await _dio.get('/decisions', queryParameters: queryParams);
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return (decisions: <DecisionModel>[], stats: const LearningStats(
+          totalDecisions: 0, totalWithOutcomes: 0, winRate: 0, avgReturn: 0, avgAlpha: 0,
+        ));
+      }
+      final rawList = (json['decisions'] as List<dynamic>?) ?? [];
+      final decisions = rawList
+          .whereType<Map<String, dynamic>>()
+          .map(DecisionModel.fromJson)
+          .toList();
+      final statsJson = json['learningStats'] as Map<String, dynamic>? ?? {};
+      final stats = LearningStats.fromJson(statsJson);
+      return (decisions: decisions, stats: stats);
     } on DioException catch (e) {
       throw TradeApiException(
         e.message ?? 'Network error',

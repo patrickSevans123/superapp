@@ -5,6 +5,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 import '../../../../core/errors/friendly_error.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../data/models/briefing_model.dart';
 import '../../data/models/models.dart';
 import '../providers/trade_providers.dart';
 import '../widgets/charts/charts.dart';
@@ -279,33 +280,102 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: SleekButton(
+                label: 'AI Journal',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradeDecisions),
+                icon: Icons.psychology_outlined,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SleekButton(
+                label: 'Research',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradeResearch),
+                icon: Icons.menu_book_outlined,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildHeader() {
-    return GlassBox(
-      radius: 14,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Self-Trade',
-            style: AppTextStyles.headline.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.ink,
-            ),
+    return Column(
+      children: [
+        GlassBox(
+          radius: 14,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Self-Trade',
+                style: AppTextStyles.headline.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'AI Trading Intelligence',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.stone,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            'Trading Plan Monitor',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.stone,
-            ),
+        ),
+        const SizedBox(height: 8),
+        _buildBriefingCard(),
+      ],
+    );
+  }
+
+  Widget _buildBriefingCard() {
+    final briefing = ref.watch(briefingProvider);
+    return briefing.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (b) {
+        if (b.isEmpty) return const SizedBox.shrink();
+        return GlassCard(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.wb_sunny_outlined, size: 16, color: AppColors.accent),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Morning Briefing',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(b.date, style: AppTextStyles.caption),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                b.body.length > 200 ? '${b.body.substring(0, 200)}...' : b.body,
+                style: AppTextStyles.body.copyWith(fontSize: 13),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

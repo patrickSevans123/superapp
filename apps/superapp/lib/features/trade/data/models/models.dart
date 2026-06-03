@@ -12,4 +12,5 @@ export 'research_report_source.dart';
 export 'scraper_health.dart';
 export 'signal_model.dart';
 export 'source_health.dart';
+export 'decision_model.dart';
 export 'trading_plan.dart';

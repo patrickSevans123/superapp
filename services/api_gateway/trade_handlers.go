@@ -489,3 +489,25 @@ func handleTechnical(c *fiber.Ctx) error {
 	target := fmt.Sprintf("%s/api/technical/%s", selfTradePythonBase, url.PathEscape(ticker))
 	return proxyGet(target, c)
 }
+
+// handleDecisions proxies to the self-trade decision memory endpoint.
+// GET /api/v1/decisions?ticker=BBCA&limit=20&with_reflections=true
+func handleDecisions(c *fiber.Ctx) error {
+	ticker := strings.TrimSpace(c.Query("ticker"))
+	limitStr := c.Query("limit", "20")
+	withReflections := c.Query("with_reflections", "false")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 20
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	target := fmt.Sprintf("%s/api/decisions?limit=%d&with_reflections=%s", selfTradePythonBase, limit, withReflections)
+	if ticker != "" {
+		target += "&ticker=" + url.QueryEscape(strings.ToUpper(ticker))
+	}
+	return proxyGet(target, c)
+}

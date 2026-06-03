@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
 import '../../data/models/briefing_model.dart';
+import '../../data/models/decision_model.dart';
 import '../../data/models/regime_model.dart';
 import '../../data/models/signal_model.dart';
 import '../../data/repository/repository.dart';
@@ -48,4 +49,25 @@ final regimeProvider = FutureProvider.autoDispose<RegimeReport>((ref) async {
 final briefingProvider = FutureProvider.autoDispose<BriefingModel>((ref) async {
   final repo = ref.watch(tradeRepositoryProvider);
   return repo.getBriefing();
+});
+
+/// Decisions provider with optional ticker filter.
+final decisionsProvider = FutureProvider.autoDispose
+    .family<({List<DecisionModel> decisions, LearningStats stats}), String?>(
+        (ref, ticker) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getDecisions(ticker: ticker, limit: 20);
+});
+
+/// Technical analysis provider for a specific ticker.
+final technicalProvider =
+    FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, ticker) async {
+  final dio = ref.read(authDioProvider);
+  try {
+    final response = await dio.get('/technical/$ticker');
+    if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+      return response.data as Map<String, dynamic>;
+    }
+  } catch (_) {}
+  return {};
 });
