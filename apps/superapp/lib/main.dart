@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/auth/auth_state.dart';
+import 'core/notifications/notification_service.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 
 void main() async {
@@ -27,6 +28,9 @@ void main() async {
   await runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
     usePathUrlStrategy();
+
+    // Initialize Firebase (required for FCM on Android/iOS)
+    await Firebase.initializeApp();
 
     // Pre-load SharedPreferences so the `has_secure_token` boolean hint
     // is read synchronously on cold start (no microtask gap). The
@@ -54,6 +58,12 @@ void main() async {
       final notifier = container.read(authStateProvider.notifier);
       await notifier.loadToken();
       notifier.scheduleExpiryLogout();
+
+      // Initialize push notifications after auth is loaded
+      final notificationService = container.read(notificationServiceProvider);
+      final authState = container.read(authStateProvider);
+      final userId = authState.user?.id;
+      await notificationService.initialize(userId: userId);
     });
   }, (error, stack) {
     debugPrint('Uncaught zoned error: $error\n$stack');
