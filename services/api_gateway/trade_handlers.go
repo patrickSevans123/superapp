@@ -310,15 +310,24 @@ func handleMarketQuotes(c *fiber.Ctx) error {
 	})
 }
 
-// selfTradeBase is the base URL for the self-trade Python API.
+// selfTradeBase is the base URL for the self-trade Go backend.
 // Reads from TRADE_API_BASE_URL env var at startup; falls back to
 // host.docker.internal:8081 for Docker, localhost:8081 for local dev.
 var selfTradeBase string
+
+// selfTradePythonBase is the base URL for the self-trade Python FastAPI
+// which serves intelligence endpoints (signals, regime, briefing, etc).
+// Reads from TRADE_PYTHON_BASE_URL env var; falls back to localhost:8766.
+var selfTradePythonBase string
 
 func init() {
 	selfTradeBase = os.Getenv("TRADE_API_BASE_URL")
 	if selfTradeBase == "" {
 		selfTradeBase = "http://host.docker.internal:8081"
+	}
+	selfTradePythonBase = os.Getenv("TRADE_PYTHON_BASE_URL")
+	if selfTradePythonBase == "" {
+		selfTradePythonBase = "http://localhost:8766"
 	}
 }
 
@@ -448,26 +457,26 @@ func handleSignals(c *fiber.Ctx) error {
 	default:
 		return c.Status(400).JSON(fiber.Map{"error": "invalid asset; use idx, us, or crypto"})
 	}
-	target := fmt.Sprintf("%s/api/signals/%s", selfTradeBase, asset)
+	target := fmt.Sprintf("%s/api/signals/%s", selfTradePythonBase, asset)
 	return proxyGet(target, c)
 }
 
 // handleRegime proxies to the self-trade regime detection endpoint.
 // GET /api/v1/regime
 func handleRegime(c *fiber.Ctx) error {
-	return proxyGet(selfTradeBase+"/api/regime", c)
+	return proxyGet(selfTradePythonBase+"/api/regime", c)
 }
 
 // handleMorningBriefing proxies to the self-trade morning briefing endpoint.
 // GET /api/v1/briefing/today
 func handleMorningBriefing(c *fiber.Ctx) error {
-	return proxyGet(selfTradeBase+"/api/briefing/today", c)
+	return proxyGet(selfTradePythonBase+"/api/briefing/today", c)
 }
 
 // handleSentiment proxies to the self-trade sentiment endpoint.
 // GET /api/v1/sentiment
 func handleSentiment(c *fiber.Ctx) error {
-	return proxyGet(selfTradeBase+"/api/sentiment", c)
+	return proxyGet(selfTradePythonBase+"/api/sentiment", c)
 }
 
 // handleTechnical proxies to the self-trade technical analysis endpoint.
@@ -477,6 +486,6 @@ func handleTechnical(c *fiber.Ctx) error {
 	if ticker == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "ticker path parameter is required"})
 	}
-	target := fmt.Sprintf("%s/api/technical/%s", selfTradeBase, url.PathEscape(ticker))
+	target := fmt.Sprintf("%s/api/technical/%s", selfTradePythonBase, url.PathEscape(ticker))
 	return proxyGet(target, c)
 }
