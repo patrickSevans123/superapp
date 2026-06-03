@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+// TODO(layering): `core/` should not import from `features/`. The
+// banner is the only widget in the codebase that needs cross-feature
+// data (scraper health from `features/trade/`), and there is no
+// natural home for it elsewhere. Options to consider in a future
+// refactor: (a) move the global banner into `features/notifications/`
+// itself, or (b) introduce a `core/data/health/` provider that both
+// `features/trade/` and the banner consume.
 import '../../features/trade/data/models/scraper_health.dart';
 import '../../features/trade/presentation/providers/trade_providers.dart';
 import '../notifications/in_app_notifications_notifier.dart';
@@ -28,6 +35,22 @@ import '../notifications/in_app_notifications_notifier.dart';
 /// The widget also watches [scrapersHealthProvider] and, whenever the
 /// set of stale scrapers changes, pushes a single deduplicated warning
 /// notification (see [_ScraperHealthWatcher]).
+///
+/// ────────────────────────────────────────────────────────────────────
+/// `new_report` notification preference
+/// ────────────────────────────────────────────────────────────────────
+/// The `NotificationPreferences.newReport` flag is honoured by the
+/// trade feature itself (see
+/// `apps/superapp/lib/features/trade/presentation/widgets/
+///  latest_report_banner.dart`), which renders a contextual banner
+/// on the trade dashboard when a daily report is available *and* the
+/// user has opted in.  We deliberately do NOT push it through this
+/// global in-app notification stream because (a) it should only
+/// surface on the trade tab, not globally, and (b) it should respect
+/// per-day dedup rather than rely on this notifier's stable-id dedup.
+/// If we ever decide to also surface research-report alerts here,
+/// follow the `_ScraperHealthWatcher` pattern (below) — build a
+/// watcher class with its own stable id and a Set-based dedup rule.
 class GlobalAppBanner extends ConsumerStatefulWidget {
   const GlobalAppBanner({super.key, required this.child});
 
@@ -357,12 +380,12 @@ class _BannerCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
             decoration: BoxDecoration(
               // Tinted-glass background — solid colour at 12% opacity.
-              color: color.withOpacity(0.12),
-              border: Border.all(color: color.withOpacity(0.40), width: 1),
+              color: color.withValues(alpha: 0.12),
+              border: Border.all(color: color.withValues(alpha: 0.40), width: 1),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.30),
+                  color: Colors.black.withValues(alpha: 0.30),
                   blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),
@@ -377,7 +400,7 @@ class _BannerCard extends StatelessWidget {
                   height: 32,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.18),
+                    color: color.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(_icon, color: color, size: 18),

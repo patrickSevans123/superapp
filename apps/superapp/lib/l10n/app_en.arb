@@ -1,0 +1,12 @@
+{
+    "@@locale": "en",
+    "appTitle": "Superapp",
+    "navScholarship": "Scholarship",
+    "navFashion": "Fashion",
+    "navTrade": "Trade",
+    "navProfile": "Profile",
+    "loginWelcome": "Welcome Back",
+    "loginSignIn": "Sign In",
+    "loginRegister": "Create Account",
+    "errorGeneric": "Something went wrong. Please try again."
+}

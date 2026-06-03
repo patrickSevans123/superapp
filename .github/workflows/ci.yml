@@ -6,9 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   DEPLOY_HOST     — e.g., deploy.example.com  (NOT an IP)
+#   DEPLOY_USER     — SSH username
+#   DEPLOY_SSH_KEY  — contents of the SSH private key
+#   DEPLOY_PATH     — absolute path on the server, e.g., /home/deploy/superapp
+
 env:
   FLUTTER_VERSION: '3.44.0'
-  GO_VERSION: '1.26.0'
+  GO_VERSION: '1.23.0'
 
 jobs:
   # ─── Flutter lint + test ─────────────────────────────────────────────────
@@ -70,14 +76,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: SSH and deploy
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 100.110.59.78
-          username: evans
-          key: ${{ secrets.DEPLOY_KEY }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: false
           script: |
-            cd /home/evans/Project/superapp
+            cd ${{ secrets.DEPLOY_PATH }}
             git pull
-            cd services/api_gateway
-            go build -o api_gateway .
-            sudo systemctl restart superapp-api.service
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build

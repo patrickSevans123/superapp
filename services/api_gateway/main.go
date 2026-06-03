@@ -157,6 +157,11 @@ func main() {
 	v1.Get("/technical/:ticker", handleTechnical)
 	v1.Get("/decisions", handleDecisions)
 
+	// ─── P2: Strategy Performance & Factor Lab ───
+	v1.Get("/strategy-performance", handleStrategyPerformance)
+	v1.Get("/factors", handleFactors)
+	v1.Get("/stream", handleStream)
+
 	// ─── LPDP endpoints ───
 	lpdp := v1.Group("/lpdp")
 	lpdp.Get("/universities", handleLPDPUniversities)

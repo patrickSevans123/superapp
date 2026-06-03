@@ -1,5 +1,6 @@
 export 'daily_reports_screen.dart';
 export 'decision_journal_screen.dart';
+export 'factor_lab_screen.dart';
 export 'research_report_detail_screen.dart';
 export 'research_reports_screen.dart';
 export 'ticker_detail_screen.dart';

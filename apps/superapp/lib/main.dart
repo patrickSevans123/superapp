@@ -1,26 +1,61 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'core/auth/auth_state.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  usePathUrlStrategy();
+  // Catch all uncaught Flutter framework errors.
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('Uncaught FlutterError: ${details.exception}\n${details.stack}');
+  };
 
-  await dotenv.load();
+  // Catch all uncaught async errors that escape the Flutter framework.
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Uncaught async error: $error\n$stack');
+    return true;
+  };
 
-  // Pre-load SharedPreferences so token reads in AuthNotifier are synchronous
-  // (no microtask gap on cold start).
-  final prefs = await SharedPreferences.getInstance();
+  await runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    usePathUrlStrategy();
 
-  runApp(ProviderScope(
-    overrides: [
-      sharedPrefsProvider.overrideWithValue(prefs),
-    ],
-    child: const Superapp(),
-  ));
+    // Pre-load SharedPreferences so the `has_secure_token` boolean hint
+    // is read synchronously on cold start (no microtask gap). The
+    // actual JWT lives in flutter_secure_storage and is loaded
+    // asynchronously by [AuthNotifier.loadToken] after the first frame.
+    final prefs = await SharedPreferences.getInstance();
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+        coreAuthNotifierProvider.overrideWith(createCoreAuthNotifier),
+      ],
+    );
+
+    runApp(UncontrolledProviderScope(
+      container: container,
+      child: const Superapp(),
+    ));
+
+    // After the first frame, hydrate the JWT from secure storage and
+    // (if applicable) schedule a proactive logout at the token's
+    // expiry time. We can't read from secure storage on the first
+    // frame synchronously — the plugin is async.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final notifier = container.read(authStateProvider.notifier);
+      await notifier.loadToken();
+      notifier.scheduleExpiryLogout();
+    });
+  }, (error, stack) {
+    debugPrint('Uncaught zoned error: $error\n$stack');
+  });
 }

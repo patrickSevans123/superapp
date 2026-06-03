@@ -16,13 +16,19 @@ import duckdb
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-JSON_PATH = Path(
-    r"C:\Users\patri\Documents\Individuel\beasiswa\data\scholarships.json"
+# Paths default to the repo layout but can be overridden via env vars.
+# Override examples:
+#   JSON_PATH=/path/to/scholarships.json DB_PATH=/path/to/out.duckdb
+DEFAULT_JSON_PATH = (
+    Path(__file__).resolve().parents[3]  # superapp/ root
+    / "data" / "scholarships.json"
 )
-DB_DIR = Path(
-    r"C:\Users\patri\Documents\Individuel\superapp\services\beasiswa_crawler\data"
-)
-DB_PATH = DB_DIR / "scholarships.duckdb"
+DEFAULT_DB_DIR = Path(__file__).resolve().parents[1] / "data"  # services/beasiswa_crawler/data
+DEFAULT_DB_PATH = DEFAULT_DB_DIR / "scholarships.duckdb"
+
+JSON_PATH = Path(os.environ.get("BEASISWA_JSON_PATH", str(DEFAULT_JSON_PATH)))
+DB_DIR = Path(os.environ.get("BEASISWA_DB_DIR", str(DEFAULT_DB_DIR)))
+DB_PATH = DB_DIR / Path(os.environ.get("BEASISWA_DB_NAME", DEFAULT_DB_PATH.name)).name
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -77,17 +83,23 @@ def main() -> None:
 
     print(f"Loaded {len(scholarships)} entries from JSON")
 
-    # Remove existing database so we start fresh
-    if DB_PATH.exists():
-        DB_PATH.unlink()
-        print(f"Removed existing database: {DB_PATH}")
-
     # Ensure output directory exists
     DB_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Connect (creates the database)
+    # Connect (creates the database if it does not exist)
     conn = duckdb.connect(str(DB_PATH))
     conn.execute("PRAGMA enable_progress_bar;")
+
+    # Idempotency guard: a migration_marker table is created on first run.
+    # Re-running will skip the destructive DROP and preserve data.
+    MIGRATION_MARKER_TABLE = "_migration_log"
+    already_migrated = conn.execute(
+        f"SELECT COUNT(*) FROM information_schema.tables "
+        f"WHERE table_name = '{MIGRATION_MARKER_TABLE}'"
+    ).fetchone()[0] > 0
+
+    if already_migrated:
+        print(f"Migration already completed previously; refreshing {len(scholarships)} rows via UPSERT")
 
     # ------------------------------------------------------------------
     # Create table
@@ -171,7 +183,7 @@ def main() -> None:
         ))
 
     # ------------------------------------------------------------------
-    # Insert using executemany
+    # Upsert rows (idempotent — safe to re-run)
     # ------------------------------------------------------------------
     conn.executemany(
         """
@@ -181,9 +193,54 @@ def main() -> None:
             ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?
         )
+        ON CONFLICT (id) DO UPDATE SET
+            title = EXCLUDED.title,
+            provider = EXCLUDED.provider,
+            description = EXCLUDED.description,
+            "level" = EXCLUDED."level",
+            destination = EXCLUDED.destination,
+            country = EXCLUDED.country,
+            coverage = EXCLUDED.coverage,
+            cd_tuition = EXCLUDED.cd_tuition,
+            cd_monthly_stipend = EXCLUDED.cd_monthly_stipend,
+            cd_currency = EXCLUDED.cd_currency,
+            cd_travel = EXCLUDED.cd_travel,
+            cd_accommodation = EXCLUDED.cd_accommodation,
+            cd_insurance = EXCLUDED.cd_insurance,
+            cd_language_course = EXCLUDED.cd_language_course,
+            cd_other = EXCLUDED.cd_other,
+            deadline = EXCLUDED.deadline,
+            opening_date = EXCLUDED.opening_date,
+            url = EXCLUDED.url,
+            source_url = EXCLUDED.source_url,
+            requirements = EXCLUDED.requirements,
+            field_of_study = EXCLUDED.field_of_study,
+            tags = EXCLUDED.tags,
+            funding_type = EXCLUDED.funding_type,
+            tips = EXCLUDED.tips,
+            version = EXCLUDED.version,
+            checksum = EXCLUDED.checksum,
+            found_at = EXCLUDED.found_at,
+            updated_at = EXCLUDED.updated_at
         """,
         rows,
     )
+
+    # Mark migration complete (only on first run)
+    if not already_migrated:
+        conn.execute(
+            f"CREATE TABLE {MIGRATION_MARKER_TABLE} ("
+            f"  ran_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+            f"  source_json VARCHAR,"
+            f"  row_count INTEGER"
+            f")"
+        )
+        conn.execute(
+            f"INSERT INTO {MIGRATION_MARKER_TABLE} (source_json, row_count) "
+            f"VALUES (?, ?)",
+            [str(JSON_PATH), len(scholarships)],
+        )
+        print(f"Created migration marker: {MIGRATION_MARKER_TABLE}")
 
     # ------------------------------------------------------------------
     # Verify
@@ -201,7 +258,7 @@ def main() -> None:
         print(f"  {row[0]:18s} | {row[1]:45s} | {str(row[2] or ''):12s} | {row[3]}")
 
     conn.close()
-    print("\nMigration complete.")
+    print(f"\nMigration complete ({'refreshed' if already_migrated else 'initial'} run).")
 
 
 if __name__ == "__main__":

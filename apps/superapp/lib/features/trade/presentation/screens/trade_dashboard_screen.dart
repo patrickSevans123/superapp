@@ -302,6 +302,21 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: SleekButton(
+                label: 'Factor Lab',
+                variant: SleekButtonVariant.secondary,
+                onPressed: () => context.go(AppRoutes.tradeFactorLab),
+                icon: Icons.science_outlined,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: SizedBox()), // Placeholder for future button
+          ],
+        ),
       ],
     );
   }

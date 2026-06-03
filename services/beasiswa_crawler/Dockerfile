@@ -2,15 +2,17 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl && \
-    rm -rf /var/lib/apt/lists/*
-
+# `schedule` is already declared in pyproject.toml — no need to re-install.
+# gcc/libc are NOT needed at runtime (we only run pure-Python code here).
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e . && pip install schedule
+RUN pip install --no-cache-dir -e .
 
 COPY src/ ./src/
-COPY scheduler_entry.py ./
 COPY data/ ./data/
 
-CMD ["python", "scheduler_entry.py"]
+# Healthcheck-friendly: this process runs forever, so pgrep confirms liveness.
+HEALTHCHECK --interval=60s --timeout=5s --start-period=30s --retries=3 \
+  CMD pgrep -f "beasiswa_scraper" >/dev/null || exit 1
+
+# Run the consolidated scheduler module (was scheduler_entry.py, which was deleted).
+CMD ["python", "-m", "beasiswa_scraper.scheduler"]

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -95,6 +96,11 @@ func setupTestApp() *fiber.App {
 
 	// Trade proxy endpoint (used by fallback shape tests)
 	v1.Get("/plans", handlePlans)
+
+	// Trade proxy endpoints for daily + research reports
+	v1.Get("/reports", handleDailyReports)
+	v1.Get("/research-reports", handleResearchReports)
+	v1.Get("/research-reports/:id", handleResearchReportByID)
 
 	return app
 }
@@ -1116,4 +1122,385 @@ func TestAuthRefresh_ValidToken(t *testing.T) {
 	if profileResp.StatusCode == fiber.StatusUnauthorized {
 		t.Fatal("new token was rejected by auth middleware")
 	}
+}
+
+// ─── Daily Reports Proxy ──────────────────────────────────────────────────
+
+// TestDailyReportsProxy verifies that the /api/v1/reports gateway handler
+// correctly proxies to the self-trade service: forwards upstream JSON when
+// the upstream is healthy, marks the response `degraded: true` when the
+// upstream fails (404 or unreachable), and passes through `?date=` and
+// `?limit=` query parameters unchanged.
+func TestDailyReportsProxy(t *testing.T) {
+	setupTestDB(t)
+	app := setupTestApp()
+
+	// Register and get token
+	regPayload := `{"email":"daily-reports@example.com","password":"secret123"}`
+	req := httptest.NewRequest("POST", "/api/v1/auth/register", strings.NewReader(regPayload))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req, 1000)
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	if resp.StatusCode != fiber.StatusCreated {
+		t.Fatalf("register: expected 201, got %d", resp.StatusCode)
+	}
+	var regResult map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&regResult); err != nil {
+		t.Fatalf("decode register response: %v", err)
+	}
+	token, ok := regResult["token"].(string)
+	if !ok || token == "" {
+		t.Fatal("register did not return a token")
+	}
+
+	t.Run("happy path forwards upstream JSON and preserves degraded=false", func(t *testing.T) {
+		var lastReq *http.Request
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lastReq = r
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"count":1,"reports":[{"date":"2026-06-01","preview":"..."}],"echo_path":%q,"echo_query":%q}`,
+				r.URL.Path, r.URL.RawQuery)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/reports?date=2026-06-01&limit=5", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/reports: %v", err)
+		}
+		if rr.StatusCode != fiber.StatusOK {
+			t.Fatalf("expected 200, got %d", rr.StatusCode)
+		}
+
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+
+		if degraded, _ := body["degraded"].(bool); degraded {
+			t.Errorf("expected degraded=false on happy path, got %v", body["degraded"])
+		}
+		if cnt, _ := body["count"].(float64); cnt != 1 {
+			t.Errorf("expected count=1, got %v", body["count"])
+		}
+		reports, ok := body["reports"].([]interface{})
+		if !ok {
+			t.Fatalf("response missing 'reports' array: %v", body["reports"])
+		}
+		if len(reports) != 1 {
+			t.Errorf("expected 1 report, got %d", len(reports))
+		}
+
+		// Verify URL forwarding to upstream
+		if lastReq == nil {
+			t.Fatal("upstream was never called")
+		}
+		if lastReq.URL.Path != "/api/reports" {
+			t.Errorf("expected upstream path /api/reports, got %q", lastReq.URL.Path)
+		}
+		if got := lastReq.URL.Query().Get("date"); got != "2026-06-01" {
+			t.Errorf("expected upstream ?date=2026-06-01, got %q", got)
+		}
+		if got := lastReq.URL.Query().Get("limit"); got != "5" {
+			t.Errorf("expected upstream ?limit=5, got %q", got)
+		}
+	})
+
+	t.Run("upstream 404 returns degraded response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/reports", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/reports: %v", err)
+		}
+		// proxyGet forwards upstream status code; body is marked degraded=true
+		if rr.StatusCode != fiber.StatusNotFound {
+			t.Errorf("expected 404, got %d", rr.StatusCode)
+		}
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if degraded, _ := body["degraded"].(bool); !degraded {
+			t.Errorf("expected degraded=true when upstream returns 404, got %v", body["degraded"])
+		}
+		if _, ok := body["error"]; !ok {
+			t.Error("response missing 'error' key on degraded response")
+		}
+	})
+
+	t.Run("unreachable upstream returns 502 degraded", func(t *testing.T) {
+		originalBase := selfTradeBase
+		selfTradeBase = "http://127.0.0.1:1"
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/reports", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/reports: %v", err)
+		}
+		if rr.StatusCode != fiber.StatusBadGateway {
+			t.Fatalf("expected 502, got %d", rr.StatusCode)
+		}
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if degraded, _ := body["degraded"].(bool); !degraded {
+			t.Errorf("expected degraded=true when upstream is down, got %v", body["degraded"])
+		}
+		if _, ok := body["error"]; !ok {
+			t.Error("response missing 'error' key on degraded response")
+		}
+	})
+}
+
+// ─── Research Reports Proxy (list) ───────────────────────────────────────
+
+// TestResearchReportsProxy verifies that the /api/v1/research-reports gateway
+// handler correctly proxies to the self-trade service with the ?source= and
+// ?limit= query parameters forwarded unchanged.
+func TestResearchReportsProxy(t *testing.T) {
+	setupTestDB(t)
+	app := setupTestApp()
+
+	// Register and get token
+	regPayload := `{"email":"research-reports-list@example.com","password":"secret123"}`
+	req := httptest.NewRequest("POST", "/api/v1/auth/register", strings.NewReader(regPayload))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req, 1000)
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	if resp.StatusCode != fiber.StatusCreated {
+		t.Fatalf("register: expected 201, got %d", resp.StatusCode)
+	}
+	var regResult map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&regResult); err != nil {
+		t.Fatalf("decode register response: %v", err)
+	}
+	token, ok := regResult["token"].(string)
+	if !ok || token == "" {
+		t.Fatal("register did not return a token")
+	}
+
+	t.Run("forwards ?source=samuel&limit=5 unchanged", func(t *testing.T) {
+		var lastReq *http.Request
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lastReq = r
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"items":[],"echo_path":%q,"echo_query":%q}`, r.URL.Path, r.URL.RawQuery)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/research-reports?source=samuel&limit=5", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/research-reports: %v", err)
+		}
+		if rr.StatusCode != fiber.StatusOK {
+			t.Fatalf("expected 200, got %d", rr.StatusCode)
+		}
+
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if degraded, _ := body["degraded"].(bool); degraded {
+			t.Errorf("expected degraded=false on happy path, got %v", body["degraded"])
+		}
+
+		if lastReq == nil {
+			t.Fatal("upstream was never called")
+		}
+		if lastReq.URL.Path != "/api/research-reports" {
+			t.Errorf("expected upstream path /api/research-reports, got %q", lastReq.URL.Path)
+		}
+		if got := lastReq.URL.Query().Get("source"); got != "samuel" {
+			t.Errorf("expected upstream ?source=samuel, got %q", got)
+		}
+		if got := lastReq.URL.Query().Get("limit"); got != "5" {
+			t.Errorf("expected upstream ?limit=5, got %q", got)
+		}
+	})
+
+	t.Run("passes through empty ?source= unchanged", func(t *testing.T) {
+		var lastReq *http.Request
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lastReq = r
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"items":[],"echo_query":%q}`, r.URL.RawQuery)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/research-reports?source=", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/research-reports: %v", err)
+		}
+		if rr.StatusCode != fiber.StatusOK {
+			t.Fatalf("expected 200, got %d", rr.StatusCode)
+		}
+
+		if lastReq == nil {
+			t.Fatal("upstream was never called")
+		}
+		// Empty source value is forwarded as-is; handler does not filter empty params
+		if !lastReq.URL.Query().Has("source") {
+			t.Error("expected upstream request to have 'source' query param")
+		}
+		if got := lastReq.URL.Query().Get("source"); got != "" {
+			t.Errorf("expected upstream ?source= (empty), got %q", got)
+		}
+	})
+}
+
+// ─── Research Report by ID Proxy ──────────────────────────────────────────
+
+// TestResearchReportByIDProxy verifies that the /api/v1/research-reports/:id
+// gateway handler correctly forwards the id to the self-trade service URL
+// path and degrades gracefully when the upstream returns 404.
+func TestResearchReportByIDProxy(t *testing.T) {
+	setupTestDB(t)
+	app := setupTestApp()
+
+	// Register and get token
+	regPayload := `{"email":"research-report-by-id@example.com","password":"secret123"}`
+	req := httptest.NewRequest("POST", "/api/v1/auth/register", strings.NewReader(regPayload))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req, 1000)
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	if resp.StatusCode != fiber.StatusCreated {
+		t.Fatalf("register: expected 201, got %d", resp.StatusCode)
+	}
+	var regResult map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&regResult); err != nil {
+		t.Fatalf("decode register response: %v", err)
+	}
+	token, ok := regResult["token"].(string)
+	if !ok || token == "" {
+		t.Fatal("register did not return a token")
+	}
+
+	t.Run("forwards id 'samuel:abc123' to upstream URL path", func(t *testing.T) {
+		var lastReq *http.Request
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lastReq = r
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"id":"samuel:abc123","echo_path":%q}`, r.URL.Path)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/research-reports/samuel:abc123", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/research-reports/samuel:abc123: %v", err)
+		}
+		if rr.StatusCode != fiber.StatusOK {
+			t.Fatalf("expected 200, got %d", rr.StatusCode)
+		}
+
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if degraded, _ := body["degraded"].(bool); degraded {
+			t.Errorf("expected degraded=false on happy path, got %v", body["degraded"])
+		}
+		if id, _ := body["id"].(string); id != "samuel:abc123" {
+			t.Errorf("expected echoed id 'samuel:abc123', got %q", id)
+		}
+
+		if lastReq == nil {
+			t.Fatal("upstream was never called")
+		}
+		expectedPath := "/api/research-reports/samuel:abc123"
+		if lastReq.URL.Path != expectedPath {
+			t.Errorf("expected upstream path %q, got %q", expectedPath, lastReq.URL.Path)
+		}
+	})
+
+	t.Run("upstream 404 returns degraded response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+		}))
+		defer ts.Close()
+
+		originalBase := selfTradeBase
+		selfTradeBase = ts.URL
+		t.Cleanup(func() {
+			selfTradeBase = originalBase
+		})
+
+		r := httptest.NewRequest("GET", "/api/v1/research-reports/nonexistent-id", nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		rr, err := app.Test(r, 5000)
+		if err != nil {
+			t.Fatalf("GET /api/v1/research-reports/nonexistent-id: %v", err)
+		}
+		// proxyGet forwards upstream status code; body is marked degraded=true
+		if rr.StatusCode != fiber.StatusNotFound {
+			t.Errorf("expected 404, got %d", rr.StatusCode)
+		}
+		var body map[string]interface{}
+		if err := json.NewDecoder(rr.Body).Decode(&body); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if degraded, _ := body["degraded"].(bool); !degraded {
+			t.Errorf("expected degraded=true when upstream returns 404, got %v", body["degraded"])
+		}
+		if _, ok := body["error"]; !ok {
+			t.Error("response missing 'error' key on degraded response")
+		}
+	})
 }

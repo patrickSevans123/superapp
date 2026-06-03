@@ -41,6 +41,9 @@ class AppRoutes {
   static String tradeTickerDetailFor(String symbol) => '$trade/ticker/$symbol';
   static const String tradeDecisions = '$trade/decisions';
 
+  // ── P2: Factor Lab ────────────────────────────────────────────
+  static const String tradeFactorLab = '$trade/factor-lab';
+
   // ── Scholarship sub-routes ─────────────────────────────────────────
   static const String scholarshipSaved = '$scholarship/saved';
   static const String scholarshipStats = '$scholarship/stats';

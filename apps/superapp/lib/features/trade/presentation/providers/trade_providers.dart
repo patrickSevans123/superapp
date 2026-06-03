@@ -4,8 +4,10 @@ import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
 import '../../data/models/briefing_model.dart';
 import '../../data/models/decision_model.dart';
+import '../../data/models/factor_model.dart';
 import '../../data/models/regime_model.dart';
 import '../../data/models/signal_model.dart';
+import '../../data/models/strategy_performance.dart';
 import '../../data/repository/repository.dart';
 
 /// Provides the [TradeApiClient] singleton using the shared auth-aware Dio.
@@ -70,4 +72,21 @@ final technicalProvider =
     }
   } catch (_) {}
   return {};
+});
+
+// ─── P2: Strategy Performance ─────────────────────────────────────────
+
+/// Strategy performance provider — fetches all backtest results.
+final strategyPerformanceProvider =
+    FutureProvider.autoDispose<List<StrategyPerformance>>((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getStrategyPerformance();
+});
+
+// ─── P2: Factor Scores ───────────────────────────────────────────────
+
+/// Factor scores provider — fetches composite factor data for IDX stocks.
+final factorsProvider = FutureProvider.autoDispose<FactorResponse>((ref) async {
+  final repo = ref.watch(tradeRepositoryProvider);
+  return repo.getFactors();
 });

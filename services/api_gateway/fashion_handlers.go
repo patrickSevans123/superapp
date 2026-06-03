@@ -29,6 +29,22 @@ func getUserID(c *fiber.Ctx) (string, error) {
 	return uid, nil
 }
 
+// vtonHTTPClient is reused across all VTON proxy calls. Creating a new
+// http.Client per request is wasteful: each new client gets its own
+// Transport, its own connection pool, its own DNS resolver — none of which
+// can be reused. The shared transport enables connection reuse and
+// keep-alive to the VTON upstream, dramatically reducing latency and
+// socket exhaustion.
+var vtonHTTPClient = &http.Client{
+	Timeout: 30 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+		DisableCompression:  false,
+	},
+}
+
 // randomID generates a simple unique identifier using crypto/rand.
 func randomID() string {
 	b := make([]byte, 16)
@@ -567,7 +583,7 @@ func HandleCreateTryon(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to marshal VTON request"})
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := vtonHTTPClient
 	resp, err := client.Post(vtonURL+"/call/tryon", "application/json", bytes.NewReader(payloadBytes))
 	if err != nil {
 		database.DB.ExecContext(c.Context(), "UPDATE tryon_results SET status = 'error' WHERE id = ?", id)

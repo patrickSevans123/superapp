@@ -8,7 +8,7 @@ import 'settings_state.dart';
 
 /// Provides the [SettingsApiClient] singleton using the shared auth-aware Dio.
 final settingsApiClientProvider = Provider<SettingsApiClient>((ref) {
-  return SettingsApiClient(dio: ref.read(authDioProvider));
+  return SettingsApiClient(dio: ref.watch(authDioProvider));
 });
 
 /// Provides the [SettingsRepository] singleton.

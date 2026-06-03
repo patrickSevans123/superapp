@@ -6,7 +6,7 @@ import '../../data/repository/profile_repository.dart';
 
 /// Provides the [ProfileApiClient] singleton using the shared auth-aware Dio.
 final profileApiClientProvider = Provider<ProfileApiClient>((ref) {
-  return ProfileApiClient(dio: ref.read(authDioProvider));
+  return ProfileApiClient(dio: ref.watch(authDioProvider));
 });
 
 /// Provides the [ProfileRepository] singleton.

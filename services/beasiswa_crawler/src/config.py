@@ -8,7 +8,10 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── LLM enrichment via 9Router ───────────────────────────
 LLM_ENABLED = os.environ.get("BEASISWA_LLM_ENABLED", "1") == "1"
-LLM_ENDPOINT = os.environ.get("BEASISWA_LLM_ENDPOINT", "http://100.110.59.78:20128/v1")
+# Defaults to localhost so we don't leak the developer's home IP.
+# In production, set BEASISWA_LLM_ENDPOINT to e.g. http://9router:20128/v1
+# (use the Docker service name, not an external IP).
+LLM_ENDPOINT = os.environ.get("BEASISWA_LLM_ENDPOINT", "http://localhost:20128/v1")
 LLM_API_KEY = os.environ.get("BEASISWA_LLM_API_KEY", "")
 LLM_MODEL = os.environ.get("BEASISWA_LLM_MODEL", "ag/claude-sonnet-4-6")
 LLM_BATCH_SIZE = int(os.environ.get("BEASISWA_LLM_BATCH_SIZE", "5"))

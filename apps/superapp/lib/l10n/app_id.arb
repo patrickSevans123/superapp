@@ -1,0 +1,12 @@
+{
+    "@@locale": "id",
+    "appTitle": "Superapp",
+    "navScholarship": "Beasiswa",
+    "navFashion": "Fashion",
+    "navTrade": "Perdagangan",
+    "navProfile": "Profil",
+    "loginWelcome": "Selamat Datang Kembali",
+    "loginSignIn": "Masuk",
+    "loginRegister": "Daftar",
+    "errorGeneric": "Terjadi kesalahan. Silakan coba lagi."
+}

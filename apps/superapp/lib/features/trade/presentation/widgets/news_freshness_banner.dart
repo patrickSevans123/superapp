@@ -61,8 +61,8 @@ class _StaleBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.12),
-        border: Border.all(color: AppColors.warning.withOpacity(0.35)),
+        color: AppColors.warning.withValues(alpha: 0.12),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -19,8 +20,11 @@ func Init(dbPath string) error {
 		return fmt.Errorf("open sqlite: %w", err)
 	}
 
-	DB.SetMaxOpenConns(1)
-	DB.SetMaxIdleConns(1)
+	// Multiple conns are safe with WAL mode for reads; writes still serialize.
+	// 5 conns gives a small concurrent-read pool without contention on writes.
+	DB.SetMaxOpenConns(5)
+	DB.SetMaxIdleConns(5)
+	DB.SetConnMaxIdleTime(5 * time.Minute)
 
 	// WAL mode for better concurrent reads
 	if _, err := DB.Exec("PRAGMA journal_mode=WAL"); err != nil {

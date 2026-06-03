@@ -14,17 +14,14 @@ class SettingsApiException implements Exception {
 /// API client for the settings backend.
 ///
 /// Communicates with the Go REST API that returns snake_case JSON objects.
+///
+/// Callers should inject the shared auth-aware [Dio] via
+/// `ref.watch(authDioProvider)` so that JWT tokens and 401 handling are
+/// applied consistently.
 class SettingsApiClient {
   final Dio _dio;
 
-  SettingsApiClient({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              baseUrl: 'http://100.110.59.78:8080/api/v1',
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              headers: {'Content-Type': 'application/json'},
-            ));
+  SettingsApiClient({required Dio dio}) : _dio = dio;
 
   /// Fetches the settings for the given [userId].
   Future<Map<String, dynamic>> getSettings(String userId) async {

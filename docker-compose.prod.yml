@@ -1,0 +1,49 @@
+# Production overrides for superapp
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# All secrets must be provided via environment or .env.prod file (NOT committed).
+
+services:
+  api-gateway:
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    # In production, no host bind — let nginx/caddy reverse-proxy it
+    ports: []
+    expose:
+      - "8080"
+    # ─── TLS (direct, in-container termination) ──────────────────────
+    # For most production deployments, prefer TLS termination at the
+    # reverse proxy (nginx/Caddy). Set these env vars + mount cert files
+    # ONLY if you want the api-gateway itself to serve TLS directly.
+    environment:
+      # - TLS_CERT_FILE=/etc/ssl/certs/api-gateway.crt
+      # - TLS_KEY_FILE=/etc/ssl/private/api-gateway.key
+      # Bcrypt cost: 10-15, default 12. Higher = slower login + more secure.
+      - BCRYPT_COST=12
+    # Uncomment to mount certs (e.g. via Docker secrets or host bind):
+    # volumes:
+    #   - /etc/ssl/certs/api-gateway.crt:/etc/ssl/certs/api-gateway.crt:ro
+    #   - /etc/ssl/private/api-gateway.key:/etc/ssl/private/api-gateway.key:ro
+
+  vton-proxy:
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    ports: []
+    expose:
+      - "8001"
+
+  beasiswa-scheduler:
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"

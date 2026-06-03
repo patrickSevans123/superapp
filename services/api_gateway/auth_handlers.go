@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -195,6 +196,32 @@ const (
 	maxEmailLength  = 254
 )
 
+// getBcryptCost returns the bcrypt cost factor to use when hashing passwords.
+// The value is read from the BCRYPT_COST env var, with a default of 12.
+// We clamp the result to a safe range [10, 15]: below 10 is insecure (hashes
+// are brute-forceable in seconds), above 15 is slow enough to DoS the login
+// endpoint. Invalid values (non-numeric, < 4) fall back to the default.
+func getBcryptCost() int {
+	v := os.Getenv("BCRYPT_COST")
+	if v == "" {
+		return 12
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n < 4 {
+		log.Printf("WARN: invalid BCRYPT_COST %q, using 12", v)
+		return 12
+	}
+	if n < 10 {
+		log.Printf("WARN: BCRYPT_COST %d is too low (min 10), clamping to 10", n)
+		return 10
+	}
+	if n > 15 {
+		log.Printf("WARN: BCRYPT_COST %d is too high (max 15), clamping to 15", n)
+		return 15
+	}
+	return n
+}
+
 // ─── Auth Handlers ──────────────────────────────────────────────────────────
 
 // handleRegister creates a new user account.
@@ -240,7 +267,7 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 
 	// Hash password
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
+	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), getBcryptCost())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to hash password"})
 	}

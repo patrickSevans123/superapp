@@ -1,22 +1,28 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../data/models/weather_model.dart';
 
 /// Fetches current weather via OpenWeatherMap.
 ///
-/// Uses [dotenv] for the API key. Falls back to mock data when no key is set.
+/// The API key is provided at build time via `--dart-define`:
+///   flutter run --dart-define=OPENWEATHER_API_KEY=your-key
+///
+/// Falls back to mock data when no key is set.
 class WeatherDatasource {
   WeatherDatasource(this._dio);
 
   final Dio _dio;
 
+  static const String _apiKey = String.fromEnvironment(
+    'OPENWEATHER_API_KEY',
+    defaultValue: '',
+  );
+
   Future<WeatherModel> fetchWeather({
     double? latitude,
     double? longitude,
   }) async {
-    final apiKey = dotenv.env['OPENWEATHER_API_KEY'] ?? '';
-    if (apiKey.isEmpty || apiKey == 'your-openweather-key-here') {
+    if (_apiKey.isEmpty || _apiKey == 'your-openweather-key-here') {
       return _mockWeather();
     }
 
@@ -30,7 +36,7 @@ class WeatherDatasource {
           'lat': lat,
           'lon': lon,
           'units': 'metric',
-          'appid': apiKey,
+          'appid': _apiKey,
         },
       );
 

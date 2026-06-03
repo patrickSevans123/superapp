@@ -44,10 +44,20 @@ services/api_gateway/test-build
 
 # Local api_gateway runtime data (uploads, sqlite test DB)
 services/api_gateway/data/uploads/
+services/api_gateway/data/test.db
 services/api_gateway/data/*.db
 services/api_gateway/api.err
 services/api_gateway/api.log
 services/api_gateway/run-test.ps1
+
+# Local mcp_trade Python service (logs, venvs, caches)
+services/mcp_trade/log/
+services/mcp_trade/.venv/
+services/mcp_trade/venv/
+services/mcp_trade/**/__pycache__/
+services/mcp_trade/.env
+services/mcp_trade/.env.local
+services/mcp_trade/src/*.egg-info/
 
 # ─── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store

@@ -207,9 +207,9 @@ class _PlanDetailContent extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.10),
+              color: AppColors.accent.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.accent.withOpacity(0.20)),
+              border: Border.all(color: AppColors.accent.withValues(alpha: 0.20)),
             ),
             child: Center(
               child: Text(
@@ -277,9 +277,9 @@ class _PlanDetailContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.30)),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
       ),
       child: Text(
         plan.status,
@@ -432,9 +432,9 @@ class _PlanDetailContent extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: color.withOpacity(0.30)),
+                  border: Border.all(color: color.withValues(alpha: 0.30)),
                 ),
                 child: Text(
                   plan.outcome ?? 'CLOSED',

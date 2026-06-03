@@ -478,4 +478,58 @@ class TradeApiClient {
       );
     }
   }
+
+  // ─── P2: Strategy Performance ───────────────────────────────────────
+
+  /// Fetches all strategy backtest performance results.
+  Future<List<StrategyPerformance>> getStrategyPerformance() async {
+    try {
+      final response = await _dio.get('/strategy-performance');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) return [];
+      final rawList = (json['strategies'] as List<dynamic>?) ?? [];
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(StrategyPerformance.fromJson)
+          .toList();
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  // ─── P2: Factor Scores ─────────────────────────────────────────────
+
+  /// Fetches composite factor scores for IDX stocks.
+  Future<FactorResponse> getFactors() async {
+    try {
+      final response = await _dio.get('/factors');
+      if (response.statusCode != 200 || response.data == null) {
+        throw TradeApiException(
+          'Unexpected response: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+      final json = response.data;
+      if (json is! Map<String, dynamic>) {
+        return const FactorResponse(
+          factors: [], count: 0, factorNames: [], methodology: '',
+        );
+      }
+      return FactorResponse.fromJson(json);
+    } on DioException catch (e) {
+      throw TradeApiException(
+        e.message ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
 }

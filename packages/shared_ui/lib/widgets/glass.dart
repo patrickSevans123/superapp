@@ -314,16 +314,17 @@ class GlassTextField extends StatelessWidget {
 // ─── GlassAppBar ─────────────────────────────────────────────────────────────
 
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const GlassAppBar({super.key, this.title, this.titleWidget, this.leading, this.actions, this.centerTitle = false});
+  const GlassAppBar({super.key, this.title, this.titleWidget, this.leading, this.actions, this.centerTitle = false, this.bottom});
 
   final String? title;
   final Widget? titleWidget;
   final Widget? leading;
   final List<Widget>? actions;
   final bool centerTitle;
+  final PreferredSizeWidget? bottom;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 1));
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +333,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: leading, actions: actions, centerTitle: centerTitle,
       backgroundColor: AppColors.canvas, elevation: 0, scrolledUnderElevation: 0,
       iconTheme: const IconThemeData(color: AppColors.ink),
-      bottom: PreferredSize(preferredSize: const Size.fromHeight(1), child: Container(height: 1, color: AppColors.border)),
+      bottom: bottom ?? PreferredSize(preferredSize: const Size.fromHeight(1), child: Container(height: 1, color: AppColors.border)),
     );
   }
 }

@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../core/errors/friendly_error.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../data/api/api.dart';
 import '../../data/models/models.dart';
+import '../../utils/image_utils.dart';
 import 'fashion_providers.dart';
 
 // ─── Tryon Phase Enum ──────────────────────────────────────────────────────
@@ -119,7 +121,12 @@ class TryonNotifier extends StateNotifier<TryonState> {
       imageQuality: 90,
     );
     if (xFile == null) return;
-    state = state.copyWith(personFile: File(xFile.path));
+    // Compress the picked image so the upload is smaller and faster
+    // (gallery images can be 5–10 MB on modern phones). Falls back to
+    // the original file if compression fails for any reason.
+    final compressed = await ImageUtils.compressImage(File(xFile.path)) ??
+        File(xFile.path);
+    state = state.copyWith(personFile: compressed);
   }
 
   Future<void> run() async {
@@ -163,7 +170,8 @@ class TryonNotifier extends StateNotifier<TryonState> {
         statusMessage: null,
       );
     } catch (e) {
-      state = state.copyWith(phase: TryonPhase.error, error: e.toString());
+      state = state.copyWith(
+          phase: TryonPhase.error, error: friendlyError(e));
     }
   }
 

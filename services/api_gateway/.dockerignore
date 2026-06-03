@@ -1,0 +1,20 @@
+# Build artifacts
+*.exe
+*.test
+*.out
+
+# Local data & logs (mounted as volumes in compose)
+data/uploads/
+data/*.db
+api.log
+api.err
+run-test.ps1
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git/
+.gitignore

@@ -1,0 +1,39 @@
+# ─── API gateway local gitignore ─────────────────────────────────────────────
+# The root .gitignore already covers most of these patterns; this file makes
+# the same rules explicit at the service level so they're discoverable when
+# working in this directory and so the service is self-describing if it is
+# ever moved out of the monorepo.
+
+# ─── Local runtime data ──────────────────────────────────────────────────────
+# Reference JSON datasets (university list, IDX, fashion, etc.) live next to
+# test.db and uploads/ in data/ — we only ignore the dynamic artefacts.
+data/test.db
+data/superapp.db
+data/superapp.db-journal
+data/*.db
+data/*.db-journal
+data/uploads/
+
+# ─── Go build artefacts ──────────────────────────────────────────────────────
+*.exe
+*.exe~
+*.test
+*.out
+api-gateway
+api-gateway-new
+test-build
+
+# ─── Local logs / scratch ────────────────────────────────────────────────────
+api.err
+api.log
+run-test.ps1
+
+# ─── Python (in case a tooling helper script is added later) ────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ─── Secrets / local env ────────────────────────────────────────────────────
+.env
+.env.local

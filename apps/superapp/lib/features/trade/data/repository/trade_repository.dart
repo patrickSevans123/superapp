@@ -85,4 +85,15 @@ class TradeRepository {
     bool withReflections = false,
   }) =>
       _api.getDecisions(ticker: ticker, limit: limit, withReflections: withReflections);
+
+  // ─── P2: Strategy Performance ──────────────────────────────────────
+
+  /// Fetches all strategy backtest performance results.
+  Future<List<StrategyPerformance>> getStrategyPerformance() =>
+      _api.getStrategyPerformance();
+
+  // ─── P2: Factor Scores ────────────────────────────────────────────
+
+  /// Fetches composite factor scores for IDX stocks.
+  Future<FactorResponse> getFactors() => _api.getFactors();
 }

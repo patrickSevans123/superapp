@@ -8,6 +8,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 import '../../../../core/network/network_providers.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../utils/image_utils.dart';
 import '../providers/fashion_providers.dart';
 
 const _categories = [
@@ -50,7 +51,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       imageQuality: 85,
     );
     if (picked != null) {
-      setState(() => _imageFile = File(picked.path));
+      // Compress before storing — gallery images are typically much
+      // larger than we need for a garment card preview. Falls back to
+      // the original file if compression fails.
+      final compressed = await ImageUtils.compressImage(File(picked.path)) ??
+          File(picked.path);
+      setState(() => _imageFile = compressed);
     }
   }
 

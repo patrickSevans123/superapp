@@ -4,7 +4,6 @@
 // running backend (the auth flow will fall through to the login screen).
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +16,6 @@ void main() {
       (WidgetTester tester) async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-    await dotenv.load(fileName: '.env');
 
     final prefs = await SharedPreferences.getInstance();
 

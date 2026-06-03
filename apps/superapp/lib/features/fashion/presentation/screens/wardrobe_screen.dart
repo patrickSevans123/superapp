@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import '../../../../core/errors/friendly_error.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../data/models/models.dart';
 import '../providers/fashion_providers.dart';
@@ -65,7 +66,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
       });
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _isLoading = false;
       });
     }

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../auth/auth_state.dart';
 
 /// Interceptor that attaches the JWT token to every request and handles 401
 /// responses.
@@ -16,7 +16,10 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = _ref.read(authTokenProvider);
+    // Read from the core notifier's state directly. This is sync and
+    // works even if the features `authStateProvider` is not yet
+    // initialised.
+    final token = _ref.read(coreAuthNotifierProvider).token;
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -27,12 +30,13 @@ class AuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final alreadyRetried = err.requestOptions.extra['auth_retry'] == true;
     if (err.response?.statusCode == 401 && !alreadyRetried) {
-      // Try to refresh token before giving up
-      final notifier = _ref.read(authStateProvider.notifier);
-      final success = await notifier.tryRefresh();
+      // Try to refresh token before giving up. The core notifier
+      // memoises concurrent callers, so even if 5 requests 401
+      // simultaneously, only ONE /auth/refresh hits the network.
+      final coreNot = _ref.read(coreAuthNotifierProvider.notifier);
+      final success = await coreNot.tryRefresh();
       if (success) {
-        // Retry the original request with the new token
-        final newToken = _ref.read(authTokenProvider);
+        final newToken = _ref.read(coreAuthNotifierProvider).token;
         if (newToken != null) {
           final retryRequest = err.requestOptions;
           retryRequest.extra['auth_retry'] = true;
@@ -46,7 +50,10 @@ class AuthInterceptor extends Interceptor {
           }
         }
       }
-      notifier.logout();
+      // Refresh failed — the request really was unauthorised.
+      // Clear the session so the UI reacts. The notifier flips
+      // `authRefreshListenable` itself.
+      await coreNot.clearSession();
     }
     handler.next(err);
   }

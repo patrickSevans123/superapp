@@ -1,5 +1,5 @@
 # ─── Build stage ──────────────────────────────────────────────────────────────
-FROM golang:1.26-bookworm AS builder
+FROM golang:1.23-bookworm AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ libc6-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 WORKDIR /app
 COPY --from=builder /app/api-gateway .
 COPY --from=builder /app/data ./static-data
+
+RUN useradd --system --uid 10001 --no-create-home --shell /sbin/nologin appuser
+USER appuser
 
 ENV STATIC_DATA_DIR=/app/static-data
 

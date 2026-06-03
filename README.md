@@ -61,7 +61,15 @@ make deploy      # Deploy to VPS
 
 ## See Also
 
-- [Architecture Plan](./SUPERAPP_PLAN.md)
+- [Architecture Plan](./docs/ARCHITECTURE.md)
 - [self-trade repo](https://github.com/patrickSevans123/self-trade)
 - [cloth-chooser repo](https://github.com/patrickSevans123/cloth-chooser)
 - [beasiswa repo](https://github.com/patrickSevans123/beasiswa)
+
+## License
+
+[MIT](./LICENSE)
+
+## Security
+
+See [SECURITY.md](./SECURITY.md) for how to report vulnerabilities.

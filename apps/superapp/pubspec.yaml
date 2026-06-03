@@ -32,11 +32,18 @@ dependencies:
   # ─── Network ───
   dio: ^5.6.0
 
-  # ─── Auth / Storage ───
-  shared_preferences: ^2.2.2
+  # ─── Charts ───
+  fl_chart: ^0.69.0
 
-  # ─── Config ───
-  flutter_dotenv: ^5.1.0
+  # ─── Auth / Storage ───
+  # shared_preferences is used for non-sensitive hints (e.g. "is the user
+  # likely logged in?"). The actual JWT lives in flutter_secure_storage.
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.2.2
+
+  # ─── Localisation ───
+  flutter_localizations:
+    sdk: flutter
 
   # ─── Image ───
   flutter_image_compress: ^2.4.0
@@ -68,6 +75,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
     - assets/images/
     - assets/animations/
