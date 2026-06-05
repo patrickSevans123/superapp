@@ -10,8 +10,7 @@
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Email security reports to: [your-security-email@example.com](mailto:your-security-email@example.com)
-(Replace with a real monitored address before publishing.)
+Email security reports to: [patricksevans123@gmail.com](mailto:patricksevans123@gmail.com)
 
 Include:
 - Description of the vulnerability

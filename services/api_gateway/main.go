@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"io"
@@ -84,20 +85,61 @@ func main() {
 
 	// ── Fiber app ───────────────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
-		AppName: "superapp-api",
+		AppName:   "superapp-api",
+		BodyLimit: 10 * 1024 * 1024, // 10 MB — matches upload handler limit
 	})
 
-	// Middleware
+	// ── Middleware stack (order matters) ──────────────────────────────────
+
+	// 1. Panic recovery — must be first so it wraps everything
 	app.Use(recover.New())
+
+	// 2. Request ID — propagate client X-Request-ID or generate one
+	app.Use(func(c *fiber.Ctx) error {
+		id := c.Get("X-Request-ID")
+		if id == "" {
+			b := make([]byte, 16)
+			_, _ = rand.Read(b)
+			id = fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+		}
+		c.Set("X-Request-ID", id)
+		c.Locals("request_id", id)
+		return c.Next()
+	})
+
+	// 3. Security headers — defence in depth
+	app.Use(func(c *fiber.Ctx) error {
+		c.Set("X-Content-Type-Options", "nosniff")
+		c.Set("X-Frame-Options", "DENY")
+		c.Set("X-XSS-Protection", "1; mode=block")
+		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		return c.Next()
+	})
+
+	// 4. Structured request logging
 	app.Use(logger.New())
 
+	// 5. CORS — configurable origins
 	corsOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
 	if corsOrigins == "" {
 		corsOrigins = "http://localhost:3000,http://localhost:5173"
 	}
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: corsOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Request-ID",
+	}))
+
+	// 6. Global rate limit — 100 req/min per IP (auth routes override to 20)
+	app.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{"error": "rate limit exceeded, please try again later"})
+		},
 	}))
 
 	// Health check (liveness — always returns 200 if process is up)

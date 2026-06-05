@@ -82,7 +82,7 @@ func generateJWT(userID, email string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"email":   email,
-		"exp":     now.Add(30 * 24 * time.Hour).Unix(),
+		"exp":     now.Add(2 * time.Hour).Unix(),
 		"iat":     now.Unix(),
 		"jti":     base64.RawURLEncoding.EncodeToString(jti),
 	}
