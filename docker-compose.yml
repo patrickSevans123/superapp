@@ -8,10 +8,13 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - DUCKDB_PATH=/app/data/scholarships.duckdb
+      - SQLITE_PATH=/app/data/superapp.db
+      - NEWS_PARQUET_DIR=/datasets/parquet/news
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set — generate with: openssl rand -hex 32}
       - PORT=8080
       - STATIC_DATA_DIR=/app/static-data
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,https://evans-thinkcentre-m720q.tail266f96.ts.net
       # Bcrypt cost factor for password hashing. Allowed range: 10-15. Default: 12.
       # - 10: faster, weaker (~100ms on modern CPU)
       # - 12: balanced, recommended for production (~400ms)

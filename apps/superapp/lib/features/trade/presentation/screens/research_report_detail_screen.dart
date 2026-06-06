@@ -41,7 +41,7 @@ class ResearchReportDetailScreen extends ConsumerWidget {
             ),
           ),
           error: (e, _) => _ErrorView(
-            message: e.toString(),
+            message: _ErrorView.friendlyError(e),
             onRetry: () => ref.invalidate(researchReportProvider(reportId)),
           ),
           data: (report) => _DetailContent(report: report),
@@ -189,6 +189,19 @@ class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
   const _ErrorView({required this.message, required this.onRetry});
+
+  /// Strip the verbose "ReportsApiException(404): ..." prefix from a
+  /// thrown exception so the user sees a clean message, not a stack
+  /// trace. Falls back to the raw toString if the message is already
+  /// friendly (no parenthesis prefix).
+  static String friendlyError(Object e) {
+    final s = e.toString();
+    final colon = s.indexOf(': ');
+    if (colon > 0 && s.startsWith('ReportsApiException')) {
+      return s.substring(colon + 2);
+    }
+    return s;
+  }
 
   @override
   Widget build(BuildContext context) {

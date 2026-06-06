@@ -13,7 +13,7 @@ final authDioProvider = Provider<Dio>((ref) {
   // The localhost default is for development only.
   const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8080/api/v1',
+    defaultValue: 'https://evans-thinkcentre-m720q.tail266f96.ts.net/api/v1',
   );
   final dio = Dio(BaseOptions(
     baseUrl: baseUrl,

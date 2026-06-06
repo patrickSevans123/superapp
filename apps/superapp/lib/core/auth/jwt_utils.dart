@@ -47,6 +47,31 @@ class JwtUtils {
     return !exp.isAfter(DateTime.now().toUtc());
   }
 
+  /// Extracts the `user_id` claim from [token]. The Go API gateway signs
+  /// JWTs with a `user_id` claim (see `auth_handlers.go:generateJWT`), so
+  /// this is the authoritative source for the current user ID — we don't
+  /// have to roundtrip to the server on cold start to figure out who we
+  /// are. Returns `null` if the claim is missing or the token is invalid.
+  static String? userId(String? token) {
+    if (token == null || token.isEmpty) return null;
+    final parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    try {
+      final payloadJson = _b64UrlDecode(parts[1]);
+      if (payloadJson == null || payloadJson.isEmpty) return null;
+      final decoded = json.decode(payloadJson);
+      if (decoded is! Map<String, dynamic>) return null;
+      final raw = decoded['user_id'];
+      if (raw is String && raw.isNotEmpty) return raw;
+      if (raw is num) return raw.toString();
+    } catch (_) {
+      // Any decode error — return null so the caller treats the token
+      // as "no user info" rather than crashing.
+    }
+    return null;
+  }
+
   /// Decode a base64url segment with padding recovery. Returns `null`
   /// on failure.
   static String? _b64UrlDecode(String segment) {

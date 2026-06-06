@@ -13,22 +13,22 @@ import '../providers/lpdp_providers.dart';
 // â”€â”€â”€ Country Flag Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const _countryFlags = <String, String>{
-  'Australia': 'ðŸ‡¦ðŸ‡º',
-  'Belanda': 'ðŸ‡³ðŸ‡±',
-  'Inggris': 'ðŸ‡¬ðŸ‡§',
-  'Jepang': 'ðŸ‡¯ðŸ‡µ',
-  'Jerman': 'ðŸ‡©ðŸ‡ª',
-  'Korea Selatan': 'ðŸ‡°ðŸ‡·',
-  'Perancis': 'ðŸ‡«ðŸ‡·',
-  'Singapura': 'ðŸ‡¸ðŸ‡¬',
-  'Swedia': 'ðŸ‡¸ðŸ‡ª',
-  'Swiss': 'ðŸ‡¨ðŸ‡­',
-  'Tiongkok': 'ðŸ‡¨ðŸ‡³',
-  'Amerika Serikat': 'ðŸ‡ºðŸ‡¸',
-  'Kanada': 'ðŸ‡¨ðŸ‡¦',
+  'Australia': '\u{1F1E6}\u{1F1FA}',
+  'Belanda': '\u{1F1F3}\u{1F1F1}',
+  'Inggris': '\u{1F1EC}\u{1F1E7}',
+  'Jepang': '\u{1F1EF}\u{1F1F5}',
+  'Jerman': '\u{1F1E9}\u{1F1EA}',
+  'Korea Selatan': '\u{1F1F0}\u{1F1F7}',
+  'Perancis': '\u{1F1EB}\u{1F1F7}',
+  'Singapura': '\u{1F1F8}\u{1F1EC}',
+  'Swedia': '\u{1F1F8}\u{1F1EA}',
+  'Swiss': '\u{1F1E8}\u{1F1ED}',
+  'Tiongkok': '\u{1F1E8}\u{1F1F3}',
+  'Amerika Serikat': '\u{1F1FA}\u{1F1F8}',
+  'Kanada': '\u{1F1E8}\u{1F1E6}',
 };
 
-String _countryFlag(String country) => _countryFlags[country] ?? 'ðŸŒ';
+String _countryFlag(String country) => _countryFlags[country] ?? '\u{1F30D}';
 
 // â”€â”€â”€ University List Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -229,7 +229,7 @@ class _LpdpUniversityListScreenState
             color: AppColors.accent.withValues(alpha: 0.2)),
       ),
       child: Text(
-        '$level Â· $count',
+        '$level \u00B7 $count',
         style: AppTextStyles.caption.copyWith(
           fontSize: 9,
           fontWeight: FontWeight.w600,

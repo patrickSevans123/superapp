@@ -36,9 +36,14 @@ final authApiClientProvider = Provider<AuthApiClient>((ref) {
 });
 
 /// Provider for user ID extracted from auth state (used by other providers).
+///
+/// Falls back to the `user_id` claim in the JWT when the [UserModel] has
+/// not been hydrated yet — this is the common case on cold start, where
+/// the token is read from secure storage before any user-data fetch has
+/// run (see [AuthNotifier.loadToken]).
 final currentUserIdProvider = Provider<String?>((ref) {
-  final user = ref.watch(authStateProvider).user;
-  return user?.id;
+  final auth = ref.watch(authStateProvider);
+  return auth.user?.id ?? JwtUtils.userId(auth.token);
 });
 
 // ─── Core Auth API wiring ────────────────────────────────────────────────────
@@ -167,10 +172,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         token: result.token,
         user: result.user,
       );
-      // Core notifier has already persisted the token (the repository
-      // does that). Just mirror into the core state and flip the
-      // listenable so GoRouter re-evaluates.
-      _ref.read(coreAuthNotifierProvider.notifier).setSession(
+      // Await so the core notifier's token state is updated BEFORE
+      // authRefreshListenable flips the router to the post-login view.
+      // Without await the AuthInterceptor would send requests without
+      // a JWT, causing 401s on every protected endpoint.
+      await _ref.read(coreAuthNotifierProvider.notifier).setSession(
             CoreAuthSession(token: result.token),
           );
       authRefreshListenable.value = true;
@@ -189,7 +195,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         token: result.token,
         user: result.user,
       );
-      _ref.read(coreAuthNotifierProvider.notifier).setSession(
+      await _ref.read(coreAuthNotifierProvider.notifier).setSession(
             CoreAuthSession(token: result.token),
           );
       authRefreshListenable.value = true;

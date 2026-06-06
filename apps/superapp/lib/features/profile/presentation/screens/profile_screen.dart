@@ -5,15 +5,19 @@ import 'package:shared_models/shared_models.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/sub_app/active_sub_app_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/mode_picker_sheet.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_tile.dart';
 
 /// Main profile landing screen.
 ///
-/// Displays the user's avatar, name, email, stats cards,
-/// and a menu list for profile-related actions.
+/// Displays the user's avatar, name, email, the active-mode card (which
+/// is the *only* place in the app where the user can switch the mode —
+/// per the product spec the bottom nav is intentionally mode-agnostic),
+/// stats row, and a menu list for profile-related actions.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -29,6 +33,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Re-fetch whenever the userId becomes available (e.g. cold start
+    // race where the profile screen mounts before [loadToken] finishes
+    // hydrating the JWT from secure storage).
+    ref.listenManual<String?>(currentUserIdProvider, (prev, next) {
+      if (next != null && (prev == null || prev != next) && mounted) {
+        _loadProfile();
+      }
+    });
     _loadProfile();
   }
 
@@ -62,7 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
+    return AuroraMeshBackground(
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildContent(),
@@ -108,14 +120,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return RefreshIndicator(
       onRefresh: _loadProfile,
       child: ListView(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 32),
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
-          // ─── Profile Header ────────────────────────────────────
+          // ─── Profile Header ───────────────────────────────────────
           ProfileHeader(user: user),
 
-          // ─── Stats Row ─────────────────────────────────────────
+          const SizedBox(height: 16),
+
+          // ─── Active Mode card (the "hidden" mode switcher) ────────
+          // Per product spec the bottom nav must NOT expose mode tabs,
+          // so this is the only place the user can switch the active
+          // mode. The card shows the current mode + a chevron to make
+          // it discoverable without being intrusive.
+          const _ActiveModeCard(),
+
+          const SizedBox(height: 16),
+
+          // ─── Stats Row ─────────────────────────────────────────────
           const Row(
             children: [
               Expanded(
@@ -145,17 +168,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // ─── Menu Items ────────────────────────────────────────
+          // ─── Menu Items ───────────────────────────────────────────
           ProfileMenuTile(
-            icon: Icons.person,
+            icon: Icons.person_rounded,
             title: 'Edit Profile',
             onTap: () => context.push(AppRoutes.profileEdit),
           ),
 
           ProfileMenuTile(
-            icon: Icons.bookmark_outline,
+            icon: Icons.bookmark_outline_rounded,
             title: 'Saved Scholarships',
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -170,8 +193,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onTap: () => context.push(AppRoutes.profileSettings),
           ),
 
+          const SizedBox(height: 8),
+
           ProfileMenuTile(
-            icon: Icons.logout,
+            icon: Icons.logout_rounded,
             title: 'Logout',
             iconColor: AppColors.error,
             onTap: () {
@@ -180,8 +205,96 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+}
 
-          const SizedBox(height: 24),
+/// "Active Mode" card. Tapping opens the [ModePickerSheet] so the user
+/// can switch between Scholarship / Fashion / Trade. The card is the
+/// *only* mode UI in the app, fulfilling the "hidden in profile" spec.
+class _ActiveModeCard extends ConsumerWidget {
+  const _ActiveModeCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(activeSubAppProvider);
+    final label = mode?.label ?? 'Pick a mode';
+    final description = mode?.description ?? 'Tap to choose what Home shows';
+    final icon = mode?.icon ?? Icons.swap_horiz_rounded;
+
+    // Per-mode gradient: scholarship=violet, fashion=pink, trade=cyan.
+    final List<Color> gradientColors = switch (mode) {
+      SubApp.scholarships => const [AppAccent.auroraViolet, AppAccent.auroraPink],
+      SubApp.fashion => const [AppAccent.auroraPink, AppAccent.auroraCyan],
+      SubApp.trade => const [AppAccent.auroraCyan, AppAccent.auroraViolet],
+      null => const [AppColors.elevated, AppColors.elevated],
+    };
+
+    return GlassCard.elevated(
+      onTap: () => ModePickerSheet.show(context),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: gradientColors.first.withValues(alpha: 0.30),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Active Mode',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppAdaptive.hint(context),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: AppTextStyles.title.copyWith(
+                    color: AppAdaptive.ink(context),
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  description,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppAdaptive.stone(context),
+                    fontSize: 11,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppAdaptive.hint(context),
+          ),
         ],
       ),
     );
@@ -223,7 +336,10 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: AppTextStyles.caption.copyWith(fontSize: 11),
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 11,
+              color: AppAdaptive.stone(context),
+            ),
           ),
         ],
       ),

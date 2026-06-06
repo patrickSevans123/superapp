@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,12 +10,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/marcboeker/go-duckdb"
 )
 
 // ─── Response types ────────────────────────────────────────────────────────
@@ -215,6 +219,32 @@ func proxyGet(targetURL string, c *fiber.Ctx) error {
 	return c.Status(resp.StatusCode).Send(body)
 }
 
+// proxyGetRaw is the inspectable variant of proxyGet: it returns the raw
+// upstream body, status code, and any error so callers can decide whether
+// the response is "good enough" to forward, or whether to fall back to a
+// local source. Used by handleNews / handleNewsStatus which need to peek
+// at the body to detect empty payloads.
+func proxyGetRaw(targetURL string) ([]byte, int, error) {
+	req, err := http.NewRequest(http.MethodGet, targetURL, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	return body, resp.StatusCode, nil
+}
+
 // ─── Trade Handlers ────────────────────────────────────────────────────────
 
 // handleMarketQuote returns a real-time stock quote from Yahoo Finance.
@@ -321,6 +351,55 @@ var selfTradeBase string
 // Reads from TRADE_PYTHON_BASE_URL env var; falls back to localhost:8766.
 var selfTradePythonBase string
 
+// newsParquetDir is the base directory containing per-source news parquet
+// subdirectories (e.g. ${newsParquetDir}/bloomberg_english/*.parquet).
+// Used as a local fallback when the self-trade Go backend is unreachable.
+// Reads from NEWS_PARQUET_DIR env var; falls back to the standard
+// self-trade dataset location.
+var newsParquetDir string
+
+// newsDB is an in-memory DuckDB connection used for parquet queries only.
+// It is intentionally separate from the scholarships DuckDB (which is
+// read-only on a .duckdb file) because parquet reading works best with
+// an in-memory engine that can glob across files with read_parquet().
+var newsDB *sql.DB
+
+// reportsParquetDir is the base directory containing per-source broker
+// research parquet files. The self-trade Go backend's /api/reports and
+// /api/research-reports endpoints are not always healthy (DuckDB binder
+// errors when source has no `date` column, 404s for missing routes), so
+// we read these parquet files directly as a graceful fallback. Reads
+// from REPORTS_PARQUET_DIR env var.
+var reportsParquetDir string
+
+// reportsDB is a SECOND in-memory DuckDB connection used for research
+// and daily reports parquet. We can't share the newsDB connection with
+// these because each holds its own global DuckDB state, and concurrent
+// schema discovery (read_parquet) on the same instance trips DuckDB.
+var reportsDB *sql.DB
+
+// validNewsSources restricts the local-parquet fallback to known scraper
+// names. Whitelisting prevents a caller from smuggling arbitrary glob
+// patterns (e.g. source="../../etc") into the filesystem read.
+var validNewsSources = map[string]bool{
+	"bloomberg_english": true,
+	"bloomberg_technoz": true,
+	"reuters":           true,
+}
+
+// validResearchSources is the whitelist for /api/v1/research-reports and
+// /api/v1/reports local fallbacks. The `rk` source has no local parquet
+// (and self-trade does not have a parquet file for it either) — we
+// whitelist it anyway so the request returns a graceful empty list
+// instead of "unknown source".
+var validResearchSources = map[string]bool{
+	"samuel":  true,
+	"kiwoom":  true,
+	"mandiri": true,
+	"revalue": true,
+	"rk":      true, // known but no local data
+}
+
 func init() {
 	selfTradeBase = os.Getenv("TRADE_API_BASE_URL")
 	if selfTradeBase == "" {
@@ -330,6 +409,835 @@ func init() {
 	if selfTradePythonBase == "" {
 		selfTradePythonBase = "http://localhost:8766"
 	}
+	newsParquetDir = os.Getenv("NEWS_PARQUET_DIR")
+	if newsParquetDir == "" {
+		newsParquetDir = "/home/evans/Projects/self-trade/datasets/parquet/news"
+	}
+	reportsParquetDir = os.Getenv("REPORTS_PARQUET_DIR")
+	if reportsParquetDir == "" {
+		// Default to the standard self-trade dataset layout.
+		reportsParquetDir = "/home/evans/Projects/self-trade/datasets/parquet"
+	}
+}
+
+// ─── News: local parquet fallback ───────────────────────────────────────────
+
+// initNewsDB opens an in-memory DuckDB connection for news parquet queries.
+// In-memory is intentional: parquet files are read on every request via
+// read_parquet('${dir}/${source}/*.parquet'), so there is no state to persist.
+// The single connection (SetMaxOpenConns(1)) prevents DuckDB from complaining
+// about concurrent access to the same in-memory instance.
+func initNewsDB() error {
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		return fmt.Errorf("open in-memory DuckDB: %w", err)
+	}
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return fmt.Errorf("ping in-memory DuckDB: %w", err)
+	}
+	db.SetMaxOpenConns(1)
+	if _, err := db.Exec("SET threads TO 2"); err != nil {
+		log.Printf("WARN: could not set DuckDB threads=2: %v", err)
+	}
+	newsDB = db
+	return nil
+}
+
+// buildNewsSelect returns the per-source SELECT projection that maps the
+// heterogeneous parquet schemas (bloomberg_english, bloomberg_technoz,
+// reuters) into a uniform shape matching the Flutter NewsItem contract:
+//
+//	id, title, summary, content, date, processed_at, url, source
+//
+// The query is built with %s-formatted literals because the path and source
+// name are validated against a hardcoded whitelist (validNewsSources),
+// so SQL injection from the path component is not possible. The single-
+// quote escape is belt-and-braces.
+func buildNewsSelect(source, pattern string, limit int) (string, error) {
+	escPattern := strings.ReplaceAll(pattern, "'", "''")
+	escSource := strings.ReplaceAll(source, "'", "''")
+
+	switch source {
+	case "bloomberg_english":
+		// Columns: title, publish_date, url, content, processed_at
+		return fmt.Sprintf(`
+			SELECT
+				NULL::VARCHAR                                       AS id,
+				title,
+				NULL::VARCHAR                                       AS summary,
+				content,
+				CAST(publish_date AS VARCHAR)                       AS date,
+				CAST(processed_at AS TIMESTAMP)                     AS processed_at,
+				url,
+				'%s'                                                AS source
+			FROM read_parquet('%s')
+			ORDER BY publish_date DESC
+			LIMIT %d
+		`, escSource, escPattern, limit), nil
+
+	case "bloomberg_technoz":
+		// Columns: id, date, title, url, content
+		// Note: this source uses `date` not `publish_date`.
+		return fmt.Sprintf(`
+			SELECT
+				CAST(id AS VARCHAR)                                 AS id,
+				title,
+				NULL::VARCHAR                                       AS summary,
+				content,
+				CAST(date AS VARCHAR)                               AS date,
+				NULL::TIMESTAMP                                     AS processed_at,
+				url,
+				'%s'                                                AS source
+			FROM read_parquet('%s')
+			ORDER BY date DESC
+			LIMIT %d
+		`, escSource, escPattern, limit), nil
+
+	case "reuters":
+		// Columns: title, publish_date, url, description, content
+		return fmt.Sprintf(`
+			SELECT
+				NULL::VARCHAR                                       AS id,
+				title,
+				description                                         AS summary,
+				content,
+				CAST(publish_date AS VARCHAR)                       AS date,
+				NULL::TIMESTAMP                                     AS processed_at,
+				url,
+				'%s'                                                AS source
+			FROM read_parquet('%s')
+			ORDER BY publish_date DESC
+			LIMIT %d
+		`, escSource, escPattern, limit), nil
+	}
+	return "", fmt.Errorf("unsupported source: %s", source)
+}
+
+// buildNewsDateColumn returns the parquet column that holds the news publish
+// timestamp for the given source. Used by the status endpoint to compute
+// "latest_mtime" for the freshness check.
+func buildNewsDateColumn(source string) string {
+	switch source {
+	case "bloomberg_technoz":
+		return "date"
+	default:
+		return "publish_date"
+	}
+}
+
+// fetchLocalNews reads up to `limit` news items from the local parquet
+// directory for the given whitelisted source. Returns a slice of plain
+// maps so callers can serialise directly to JSON without a Go struct
+// round-trip (parquet row shapes vary by source).
+func fetchLocalNews(source string, limit int) ([]map[string]any, error) {
+	if !validNewsSources[source] {
+		return nil, fmt.Errorf("invalid source: %s", source)
+	}
+	if newsDB == nil {
+		return nil, fmt.Errorf("news DB not initialized")
+	}
+	if newsParquetDir == "" {
+		return nil, fmt.Errorf("NEWS_PARQUET_DIR not configured")
+	}
+
+	pattern := filepath.Join(newsParquetDir, source, "*.parquet")
+	query, err := buildNewsSelect(source, pattern, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := newsDB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("duckdb query: %w", err)
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("duckdb columns: %w", err)
+	}
+
+	var results []map[string]any
+	for rows.Next() {
+		raw := make([]any, len(cols))
+		ptrs := make([]any, len(cols))
+		for i := range raw {
+			ptrs[i] = &raw[i]
+		}
+		if err := rows.Scan(ptrs...); err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
+		}
+		row := make(map[string]any, len(cols))
+		for i, col := range cols {
+			v := raw[i]
+			switch t := v.(type) {
+			case time.Time:
+				row[col] = t.UTC().Format(time.RFC3339)
+			case []byte:
+				row[col] = string(t)
+			case nil:
+				// leave the key out so JSON omits it
+			default:
+				row[col] = v
+			}
+		}
+		results = append(results, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iter: %w", err)
+	}
+	return results, nil
+}
+
+// fetchLocalNewsStatus returns the per-source freshness of the local
+// parquet directories. Mirrors the self-trade response shape so the
+// Flutter app can consume the fallback transparently.
+func fetchLocalNewsStatus() []map[string]any {
+	sources := []string{"bloomberg_english", "bloomberg_technoz", "reuters"}
+	results := make([]map[string]any, 0, len(sources))
+
+	for _, source := range sources {
+		row := map[string]any{
+			"source":  source,
+			"healthy": false,
+			"stale":   true,
+			"count":   0,
+		}
+
+		if newsDB == nil {
+			row["error"] = "news DB not initialized"
+			results = append(results, row)
+			continue
+		}
+
+		pattern := filepath.Join(newsParquetDir, source, "*.parquet")
+		esc := strings.ReplaceAll(pattern, "'", "''")
+		dateCol := buildNewsDateColumn(source)
+
+		query := fmt.Sprintf(`
+			SELECT COUNT(*) AS cnt, MAX(%s) AS latest
+			FROM read_parquet('%s')
+		`, dateCol, esc)
+
+		var count int64
+		var latest sql.NullString
+		if err := newsDB.QueryRow(query).Scan(&count, &latest); err != nil {
+			row["error"] = err.Error()
+			results = append(results, row)
+			continue
+		}
+
+		row["count"] = count
+		row["healthy"] = count > 0
+		row["stale"] = false
+		if latest.Valid {
+			row["latest_file_mtime"] = latest.String
+		}
+		results = append(results, row)
+	}
+	return results
+}
+
+// ─── News HTTP handlers (with local fallback) ───────────────────────────────
+
+// handleNews proxies to the self-trade Go backend, but transparently
+// falls back to local parquet files when the upstream is unreachable
+// or returns an empty payload. This means the Flutter News screen
+// keeps working even when the self-trade backend (saham-agentic) is down.
+func handleNews(c *fiber.Ctx) error {
+	source := c.Query("source")
+	limitStr := c.Query("limit", "20")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 20
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	target := fmt.Sprintf("%s/api/news?source=%s&limit=%d",
+		selfTradeBase, url.QueryEscape(source), limit)
+
+	// Attempt upstream first. We only short-circuit on a *successful*
+	// response that actually contains news items.
+	if body, status, perr := proxyGetRaw(target); perr == nil && status == 200 {
+		var probe struct {
+			News  []map[string]any `json:"news"`
+			Data  []map[string]any `json:"data"`
+			Count int              `json:"count"`
+		}
+		if jerr := json.Unmarshal(body, &probe); jerr == nil {
+			if len(probe.News) > 0 || len(probe.Data) > 0 || probe.Count > 0 {
+				c.Status(status)
+				return c.Send(body)
+			}
+		}
+	}
+
+	// Upstream empty or down — try local parquet fallback.
+	if validNewsSources[source] {
+		items, ferr := fetchLocalNews(source, limit)
+		if ferr == nil && len(items) > 0 {
+			log.Printf("INFO: serving news source=%s from local parquet fallback (%d items)",
+				source, len(items))
+			return c.JSON(fiber.Map{
+				"news":   items,
+				"count":  len(items),
+				"source": "local_parquet_fallback",
+			})
+		}
+		log.Printf("WARN: local parquet fallback for %s failed: %v", source, ferr)
+	}
+
+	// Both upstream and fallback failed — return whatever the proxy
+	// would have returned (degraded JSON), so the client gets a clear
+	// error rather than an empty success response.
+	return proxyGet(target, c)
+}
+
+// handleNewsStatus returns the per-source news freshness. Falls back to
+// the local parquet status when self-trade is unreachable.
+func handleNewsStatus(c *fiber.Ctx) error {
+	target := selfTradeBase + "/api/news/status"
+
+	if body, status, perr := proxyGetRaw(target); perr == nil && status == 200 {
+		var probe struct {
+			Sources []map[string]any `json:"sources"`
+		}
+		if jerr := json.Unmarshal(body, &probe); jerr == nil && len(probe.Sources) > 0 {
+			c.Status(status)
+			return c.Send(body)
+		}
+	}
+
+	// Local fallback: report freshness based on parquet mtimes / row counts.
+	sources := fetchLocalNewsStatus()
+	healthy := 0
+	for _, s := range sources {
+		if h, _ := s["healthy"].(bool); h {
+			healthy++
+		}
+	}
+	return c.JSON(fiber.Map{
+		"sources":       sources,
+		"total":         len(sources),
+		"healthy_count": healthy,
+		"stale_count":   len(sources) - healthy,
+		"all_ok":        healthy == len(sources),
+		"checked_at":    time.Now().UTC().Format(time.RFC3339),
+		"source":        "local_parquet_fallback",
+	})
+}
+
+// ─── Research/Daily reports: local parquet fallback ──────────────────────────
+//
+// The self-trade Go backend exposes /api/reports and /api/research-reports
+// but both can fail in unhelpful ways:
+//   - /api/reports hardcodes `ORDER BY date DESC` and crashes with a DuckDB
+//     Binder Error when the source parquet has no `date` column (e.g.
+//     sekuritas/*.parquet only have `released_at` and `processed_at`).
+//   - /api/research-reports is not implemented in the self-trade router
+//     at all (returns 404 "Cannot GET /api/research-reports").
+//
+// To keep the Flutter app functional regardless, we treat upstream 4xx/5xx
+// and empty payloads as a soft failure and serve a local parquet
+// fallback. The Flutter `ResearchReport` and `DailyReport` shapes are
+// matched exactly so the client can render the same widgets.
+
+// initReportsDB opens a SECOND in-memory DuckDB connection for parquet
+// queries on broker research and daily reports. We can't share the news
+// DuckDB because each connection holds its own session state.
+func initReportsDB() error {
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		return fmt.Errorf("open in-memory DuckDB (reports): %w", err)
+	}
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return fmt.Errorf("ping in-memory DuckDB (reports): %w", err)
+	}
+	db.SetMaxOpenConns(1)
+	if _, err := db.Exec("SET threads TO 2"); err != nil {
+		log.Printf("WARN: could not set DuckDB threads=2 (reports): %v", err)
+	}
+	reportsDB = db
+	return nil
+}
+
+// researchSourceParquet maps a whitelisted source to its parquet file
+// under reportsParquetDir. We try both `sekuritas/<source>_scraped_reports.parquet`
+// (the self-trade convention) and `kelas/<source>_reports.parquet` (the
+// revalue convention). Returns "" when the source is whitelisted but has
+// no known local file (e.g. "rk").
+func researchSourceParquet(source string) string {
+	candidates := []string{
+		filepath.Join(reportsParquetDir, "sekuritas", source+"_scraped_reports.parquet"),
+		filepath.Join(reportsParquetDir, "kelas", source+"_reports.parquet"),
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
+// buildResearchReportSelect returns the per-source SELECT projection
+// for the Flutter ResearchReport shape:
+//
+//	id, source, title, date, author, tickers, markdown_body, pdf_url
+//
+// The four data sources we serve have heterogeneous parquet schemas:
+//   - samuel:  (no columns known — likely title+content+date)
+//   - kiwoom:  seqno, title, released_at, pdf_url, content, processed_at
+//   - mandiri: url, title, released_at, content, pdf_url, slug, processed_at
+//   - revalue: title, pdf_url, processed_at, content
+//
+// We pick a common projection: id from seqno/slug, title, date from
+// released_at or processed_at, content as markdown_body, pdf_url. The
+// query is %s-formatted but the path and source are whitelisted, so
+// SQL injection is not possible.
+func buildResearchReportSelect(source, parquetPath string, limit int) (string, error) {
+	escPath := strings.ReplaceAll(parquetPath, "'", "''")
+	escSource := strings.ReplaceAll(source, "'", "''")
+
+	// Choose a date column based on the source. We COALESCE so files
+	// that only have one of the timestamps still get a usable date.
+	var dateExpr string
+	switch source {
+	case "kiwoom", "mandiri":
+		dateExpr = "COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR))"
+	case "revalue":
+		dateExpr = "CAST(processed_at AS VARCHAR)"
+	case "samuel":
+		// samuel parquet has no `date` column (only url, title, released_at,
+		// content, processed_at). Use released_at as the primary date.
+		dateExpr = "COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR))"
+	default:
+		return "", fmt.Errorf("unsupported research source: %s", source)
+	}
+
+	// id: prefer seqno (kiwoom), then slug (mandiri), then NULL.
+	var idExpr string
+	switch source {
+	case "kiwoom":
+		idExpr = "CAST(seqno AS VARCHAR)"
+	case "mandiri":
+		idExpr = "COALESCE(slug, '')"
+	case "revalue", "samuel":
+		// Use row_number as a stable synthetic id since neither has a
+		// natural unique column. Filter rows with a non-empty title to
+		// avoid empty rows skewing the numbering.
+		idExpr = "CAST(row_number() OVER (ORDER BY processed_at DESC) AS VARCHAR)"
+	default:
+		idExpr = "CAST(row_number() OVER (ORDER BY processed_at DESC) AS VARCHAR)"
+	}
+
+	// pdf_url: most sources have it directly. samuel does NOT have a
+	// pdf_url column (its schema is url, title, released_at, content,
+	// processed_at) — emitting COALESCE(pdf_url, '') against samuel
+	// trips DuckDB's binder. Use a literal '' for samuel.
+	var pdfExpr string
+	switch source {
+	case "samuel":
+		pdfExpr = "''"
+	default:
+		pdfExpr = "COALESCE(pdf_url, '')"
+	}
+
+	return fmt.Sprintf(`
+		SELECT
+			%s                                          AS id,
+			'%s'                                        AS source,
+			COALESCE(title, '')                         AS title,
+			%s                                          AS date,
+			''                                          AS author,
+			CAST([] AS VARCHAR[])                       AS tickers,
+			COALESCE(content, '')                       AS markdown_body,
+			%s                                          AS pdf_url
+		FROM read_parquet('%s')
+		ORDER BY processed_at DESC NULLS LAST
+		LIMIT %d
+	`, idExpr, escSource, dateExpr, pdfExpr, escPath, limit), nil
+}
+
+// fetchLocalResearchReports reads up to `limit` research reports for the
+// given source from local parquet. Returns ([]map, nil) on success,
+// including an empty slice when the source has no data file (e.g. rk).
+// The empty-but-OK case is important: it means the request did not fail,
+// there's just no data to show — different from a 5xx.
+func fetchLocalResearchReports(source string, limit int) ([]map[string]any, error) {
+	if !validResearchSources[source] {
+		return nil, fmt.Errorf("invalid research source: %s", source)
+	}
+	if reportsDB == nil {
+		return nil, fmt.Errorf("reports DB not initialized")
+	}
+
+	parquetPath := researchSourceParquet(source)
+	if parquetPath == "" {
+		// Source is whitelisted but has no local data — return empty.
+		return []map[string]any{}, nil
+	}
+
+	query, err := buildResearchReportSelect(source, parquetPath, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := reportsDB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("duckdb query: %w", err)
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("duckdb columns: %w", err)
+	}
+
+	results := make([]map[string]any, 0, 16)
+	for rows.Next() {
+		raw := make([]any, len(cols))
+		ptrs := make([]any, len(cols))
+		for i := range raw {
+			ptrs[i] = &raw[i]
+		}
+		if err := rows.Scan(ptrs...); err != nil {
+			log.Printf("WARN: research report scan failed for %s: %v", source, err)
+			continue
+		}
+		row := make(map[string]any, len(cols))
+		for i, c := range cols {
+			row[c] = raw[i]
+		}
+		results = append(results, row)
+	}
+	return results, rows.Err()
+}
+
+// fetchAllLocalResearchReports aggregates research reports from every
+// whitelisted source that has a local parquet file, then sorts by date
+// DESC and trims to the requested limit. Used when the caller didn't
+// filter by source (the Flutter Research Reports home screen).
+//
+// Per-source queries may fail (e.g. schema drift) — those sources are
+// silently skipped so a single bad file doesn't break the whole feed.
+func fetchAllLocalResearchReports(limit int) []map[string]any {
+	all := make([]map[string]any, 0, 64)
+	for src := range validResearchSources {
+		items, err := fetchLocalResearchReports(src, limit)
+		if err != nil {
+			log.Printf("WARN: skipping %s in all-sources research fallback: %v", src, err)
+			continue
+		}
+		all = append(all, items...)
+	}
+	// Sort by date DESC. The date column is a string so lexical compare
+	// gives chronological order for ISO 8601 (YYYY-MM-DD) and "Mon DD,
+	// YYYY" lex order — good enough for a fallback feed.
+	sort.SliceStable(all, func(i, j int) bool {
+		di, _ := all[i]["date"].(string)
+		dj, _ := all[j]["date"].(string)
+		return di > dj
+	})
+	if len(all) > limit {
+		all = all[:limit]
+	}
+	return all
+}
+
+// fetchLocalResearchReportByID reads a single research report by id.
+// id format is "<source>:<seqno>" (e.g. "kiwoom:4815") — mirrors the
+// convention self-trade uses (e.g. "samuel:abc123"). Falls back to
+// "source:<row_no>" when the source has no native id column.
+func fetchLocalResearchReportByID(id string) (map[string]any, error) {
+	// Reject obviously bad ids before any disk access.
+	if strings.ContainsAny(id, "/\\\"'`;") {
+		return nil, fmt.Errorf("invalid id")
+	}
+
+	parts := strings.SplitN(id, ":", 2)
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid id format; expected <source>:<seq>")
+	}
+	source := parts[0]
+	seq := parts[1]
+	if !validResearchSources[source] {
+		return nil, fmt.Errorf("invalid research source: %s", source)
+	}
+
+	parquetPath := researchSourceParquet(source)
+	if parquetPath == "" {
+		return nil, fmt.Errorf("not found")
+	}
+
+	if reportsDB == nil {
+		return nil, fmt.Errorf("reports DB not initialized")
+	}
+
+	escPath := strings.ReplaceAll(parquetPath, "'", "''")
+	escSource := strings.ReplaceAll(source, "'", "''")
+	escSeq := strings.ReplaceAll(seq, "'", "''")
+
+	// Build a lookup query depending on which id column the source has.
+	var query string
+	switch source {
+	case "kiwoom":
+		query = fmt.Sprintf(`
+			SELECT
+				CAST(seqno AS VARCHAR) AS id,
+				'%s' AS source,
+				COALESCE(title, '') AS title,
+				COALESCE(CAST(released_at AS VARCHAR), '') AS date,
+				'' AS author,
+				CAST([] AS VARCHAR[]) AS tickers,
+				COALESCE(content, '') AS markdown_body,
+				COALESCE(pdf_url, '') AS pdf_url
+			FROM read_parquet('%s')
+			WHERE seqno = '%s'
+			LIMIT 1
+		`, escSource, escPath, escSeq)
+	case "mandiri":
+		query = fmt.Sprintf(`
+			SELECT
+				COALESCE(slug, '') AS id,
+				'%s' AS source,
+				COALESCE(title, '') AS title,
+				COALESCE(CAST(released_at AS VARCHAR), '') AS date,
+				'' AS author,
+				CAST([] AS VARCHAR[]) AS tickers,
+				COALESCE(content, '') AS markdown_body,
+				COALESCE(pdf_url, '') AS pdf_url
+			FROM read_parquet('%s')
+			WHERE slug = '%s'
+			LIMIT 1
+		`, escSource, escPath, escSeq)
+	case "revalue":
+		// revalue has no native id; row_number() over processed_at DESC.
+		// We accept numeric seq (1-indexed) and use it as the row offset.
+		query = fmt.Sprintf(`
+			WITH numbered AS (
+				SELECT *, row_number() OVER (ORDER BY processed_at DESC) AS _rn
+				FROM read_parquet('%s')
+			)
+			SELECT
+				CAST(_rn AS VARCHAR) AS id,
+				'%s' AS source,
+				COALESCE(title, '') AS title,
+				COALESCE(CAST(processed_at AS VARCHAR), '') AS date,
+				'' AS author,
+				CAST([] AS VARCHAR[]) AS tickers,
+				COALESCE(content, '') AS markdown_body,
+				COALESCE(pdf_url, '') AS pdf_url
+			FROM numbered
+			WHERE CAST(_rn AS VARCHAR) = '%s'
+			LIMIT 1
+		`, escPath, escSource, escSeq)
+	default:
+		return nil, fmt.Errorf("not found")
+	}
+
+	row := reportsDB.QueryRow(query)
+	cols := []string{"id", "source", "title", "date", "author", "tickers", "markdown_body", "pdf_url"}
+	raw := make([]any, len(cols))
+	ptrs := make([]any, len(cols))
+	for i := range raw {
+		ptrs[i] = &raw[i]
+	}
+	if err := row.Scan(ptrs...); err != nil {
+		return nil, err
+	}
+	result := make(map[string]any, len(cols))
+	for i, c := range cols {
+		result[c] = raw[i]
+	}
+	return result, nil
+}
+
+// fetchLocalReports reads daily reports (one per source, merged). The
+// self-trade upstream's /api/reports endpoint hardcodes `ORDER BY date`
+// and crashes on the broker parquet files because they have no `date`
+// column. We fix that by using `processed_at` consistently.
+func fetchLocalReports(dateFilter string, limit int) ([]map[string]any, error) {
+	if reportsDB == nil {
+		return nil, fmt.Errorf("reports DB not initialized")
+	}
+
+	// Per-source queries. Each parquet has a different column layout, so
+	// we can't share a single template (DuckDB's binder validates column
+	// names against the file's actual schema at parse time, not run time).
+	// Schemas (confirmed via DESCRIBE):
+	//   samuel:  url, title, released_at, content, processed_at
+	//   kiwoom:  seqno, title, released_at, pdf_url, content, processed_at
+	//   mandiri: url, title, released_at, content, pdf_url, slug, processed_at
+	//   revalue: title, pdf_url, processed_at, content
+	type srcFile struct {
+		source string
+		path   string
+	}
+	files := []srcFile{}
+	for src := range validResearchSources {
+		if src == "rk" {
+			continue // no local data
+		}
+		if p := researchSourceParquet(src); p != "" {
+			files = append(files, srcFile{src, p})
+		}
+	}
+
+	all := make([]map[string]any, 0, 64)
+	for _, sf := range files {
+		escPath := strings.ReplaceAll(sf.path, "'", "''")
+		escSrc := strings.ReplaceAll(sf.source, "'", "''")
+
+		var q string
+		switch sf.source {
+		case "kiwoom":
+			// kiwoom has seqno, title, released_at, pdf_url, content, processed_at
+			if dateFilter != "" {
+				esc := strings.ReplaceAll(dateFilter, "'", "''")
+				q = fmt.Sprintf(`
+					SELECT
+						COALESCE(CAST(seqno AS VARCHAR), '') AS id,
+						'%s' AS source,
+						COALESCE(title, '') AS title,
+						COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR), '') AS date,
+						COALESCE(content, '') AS preview,
+						COALESCE(pdf_url, '') AS url
+					FROM read_parquet('%s')
+					WHERE CAST(processed_at AS DATE) = DATE '%s'
+					ORDER BY processed_at DESC NULLS LAST
+					LIMIT %d
+				`, escSrc, escPath, esc, limit)
+			} else {
+				q = fmt.Sprintf(`
+					SELECT
+						COALESCE(CAST(seqno AS VARCHAR), '') AS id,
+						'%s' AS source,
+						COALESCE(title, '') AS title,
+						COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR), '') AS date,
+						COALESCE(content, '') AS preview,
+						COALESCE(pdf_url, '') AS url
+					FROM read_parquet('%s')
+					ORDER BY processed_at DESC NULLS LAST
+					LIMIT %d
+				`, escSrc, escPath, limit)
+			}
+		case "mandiri":
+			// mandiri has url, title, released_at, content, pdf_url, slug, processed_at
+			if dateFilter != "" {
+				esc := strings.ReplaceAll(dateFilter, "'", "''")
+				q = fmt.Sprintf(`
+					SELECT
+						COALESCE(slug, '') AS id,
+						'%s' AS source,
+						COALESCE(title, '') AS title,
+						COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR), '') AS date,
+						COALESCE(content, '') AS preview,
+						COALESCE(pdf_url, '') AS url
+					FROM read_parquet('%s')
+					WHERE CAST(processed_at AS DATE) = DATE '%s'
+					ORDER BY processed_at DESC NULLS LAST
+					LIMIT %d
+				`, escSrc, escPath, esc, limit)
+			} else {
+				q = fmt.Sprintf(`
+					SELECT
+						COALESCE(slug, '') AS id,
+						'%s' AS source,
+						COALESCE(title, '') AS title,
+						COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR), '') AS date,
+						COALESCE(content, '') AS preview,
+						COALESCE(pdf_url, '') AS url
+					FROM read_parquet('%s')
+					ORDER BY processed_at DESC NULLS LAST
+					LIMIT %d
+				`, escSrc, escPath, limit)
+			}
+		case "revalue":
+			// revalue has title, pdf_url, processed_at, content (no id column, no released_at)
+			q = fmt.Sprintf(`
+				SELECT
+					CAST(row_number() OVER (ORDER BY processed_at DESC) AS VARCHAR) AS id,
+					'%s' AS source,
+					COALESCE(title, '') AS title,
+					COALESCE(CAST(processed_at AS VARCHAR), '') AS date,
+					COALESCE(content, '') AS preview,
+					COALESCE(pdf_url, '') AS url
+				FROM read_parquet('%s')
+				%s
+				ORDER BY processed_at DESC NULLS LAST
+				LIMIT %d
+			`, escSrc, escPath, dateWhere(dateFilter), limit)
+		case "samuel":
+			// samuel has url, title, released_at, content, processed_at (no pdf_url, no slug/seqno)
+			q = fmt.Sprintf(`
+				SELECT
+					COALESCE(url, '') AS id,
+					'%s' AS source,
+					COALESCE(title, '') AS title,
+					COALESCE(CAST(released_at AS VARCHAR), CAST(processed_at AS VARCHAR), '') AS date,
+					COALESCE(content, '') AS preview,
+					'' AS url
+				FROM read_parquet('%s')
+				%s
+				ORDER BY processed_at DESC NULLS LAST
+				LIMIT %d
+			`, escSrc, escPath, dateWhere(dateFilter), limit)
+		default:
+			continue
+		}
+
+		rows, err := reportsDB.Query(q)
+		if err != nil {
+			log.Printf("WARN: local reports query failed for %s: %v", sf.source, err)
+			continue
+		}
+		cols, _ := rows.Columns()
+		for rows.Next() {
+			raw := make([]any, len(cols))
+			ptrs := make([]any, len(cols))
+			for i := range raw {
+				ptrs[i] = &raw[i]
+			}
+			if err := rows.Scan(ptrs...); err != nil {
+				continue
+			}
+			row := make(map[string]any, len(cols))
+			for i, c := range cols {
+				row[c] = raw[i]
+			}
+			all = append(all, row)
+		}
+		rows.Close()
+	}
+
+	// Sort by date DESC.
+	sort.SliceStable(all, func(i, j int) bool {
+		di, _ := all[i]["date"].(string)
+		dj, _ := all[j]["date"].(string)
+		return di > dj
+	})
+
+	if len(all) > limit {
+		all = all[:limit]
+	}
+	return all, nil
+}
+
+// dateWhere returns a WHERE clause fragment for a YYYY-MM-DD filter, or
+// the empty string if dateFilter is unset. Used by per-source daily
+// reports queries — extracted to avoid six near-identical fmt.Sprintf
+// branches.
+func dateWhere(dateFilter string) string {
+	if dateFilter == "" {
+		return ""
+	}
+	esc := strings.ReplaceAll(dateFilter, "'", "''")
+	return fmt.Sprintf("WHERE CAST(processed_at AS DATE) = DATE '%s'", esc)
 }
 
 // handlePlans proxies to the self-trade Python API plans endpoint.
@@ -349,24 +1257,6 @@ func handlePlansSummary(c *fiber.Ctx) error {
 	return proxyGet(selfTradeBase+"/api/plans/summary", c)
 }
 
-// handleNews proxies to the self-trade Python API news endpoint.
-// GET /api/v1/news?source=bloomberg_english&limit=20
-func handleNews(c *fiber.Ctx) error {
-	source := c.Query("source")
-	limitStr := c.Query("limit", "20")
-
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 1 {
-		limit = 20
-	}
-	if limit > 200 {
-		limit = 200
-	}
-
-	target := fmt.Sprintf("%s/api/news?source=%s&limit=%d", selfTradeBase, url.QueryEscape(source), limit)
-	return proxyGet(target, c)
-}
-
 // handleEvents proxies to the self-trade Python API events endpoint.
 // GET /api/v1/events
 func handleEvents(c *fiber.Ctx) error {
@@ -381,15 +1271,11 @@ func handleScrapersHealth(c *fiber.Ctx) error {
 	return proxyGet(selfTradeBase+"/api/scrapers/health", c)
 }
 
-// handleNewsStatus proxies to the self-trade news freshness endpoint.
-// Returns per-source last_updated, count, age, stale flag.
-// GET /api/v1/news/status
-func handleNewsStatus(c *fiber.Ctx) error {
-	return proxyGet(selfTradeBase+"/api/news/status", c)
-}
-
-// handleDailyReports proxies to the self-trade daily reports endpoint.
-// Supports filtering by date (YYYY-MM-DD) and limiting the result count.
+// handleDailyReports serves daily trading reports. Tries the self-trade
+// upstream first; on any failure (404, 5xx, network error, empty
+// payload) it falls back to local parquet files. The response shape is
+// always {"reports":[...], "count":N, "degraded":bool} so the Flutter
+// client can render identically regardless of where the data came from.
 // GET /api/v1/reports?date=YYYY-MM-DD&limit=20
 func handleDailyReports(c *fiber.Ctx) error {
 	date := strings.TrimSpace(c.Query("date"))
@@ -407,14 +1293,55 @@ func handleDailyReports(c *fiber.Ctx) error {
 	if date != "" {
 		target += "&date=" + url.QueryEscape(date)
 	}
-	return proxyGet(target, c)
+
+	// Try upstream first. Only short-circuit on 200 + non-empty list.
+	if body, status, perr := proxyGetRaw(target); perr == nil && status == 200 {
+		var probe struct {
+			Reports []map[string]any `json:"reports"`
+			Data    []map[string]any `json:"data"`
+			Count   int              `json:"count"`
+		}
+		if jerr := json.Unmarshal(body, &probe); jerr == nil {
+			if len(probe.Reports) > 0 || len(probe.Data) > 0 || probe.Count > 0 {
+				c.Status(status)
+				return c.Send(body)
+			}
+		}
+	}
+
+	// Local parquet fallback.
+	items, ferr := fetchLocalReports(date, limit)
+	if ferr == nil {
+		log.Printf("INFO: serving /api/v1/reports from local parquet fallback (%d items)", len(items))
+		return c.JSON(fiber.Map{
+			"reports":      items,
+			"count":        len(items),
+			"degraded":     true,
+			"source":       "local_parquet_fallback",
+			"date_filter":  date,
+		})
+	}
+	log.Printf("WARN: local reports fallback failed: %v", ferr)
+
+	// Both failed. Return a graceful empty list rather than a 5xx so the
+	// Flutter app renders an empty state, not an error widget.
+	return c.JSON(fiber.Map{
+		"reports":  []map[string]any{},
+		"count":    0,
+		"degraded": true,
+		"source":   "unavailable",
+	})
 }
 
-// handleResearchReports proxies to the self-trade research reports list.
-// Supports filtering by source and limiting the result count.
+// handleResearchReports serves broker research reports. Falls back to
+// local parquet when the self-trade upstream is unreachable or returns
+// 404 (the upstream does not implement this endpoint). For unknown
+// sources, returns a graceful empty list (200 OK) so the Flutter screen
+// shows the empty state, not the "Could not load research reports"
+// error widget.
 // GET /api/v1/research-reports?source=&limit=20
 func handleResearchReports(c *fiber.Ctx) error {
-	source := c.Query("source")
+	source := strings.TrimSpace(c.Query("source"))
 	limitStr := c.Query("limit", "20")
 
 	limit, err := strconv.Atoi(limitStr)
@@ -425,11 +1352,79 @@ func handleResearchReports(c *fiber.Ctx) error {
 		limit = 200
 	}
 
-	target := fmt.Sprintf("%s/api/research-reports?source=%s&limit=%d", selfTradeBase, url.QueryEscape(source), limit)
-	return proxyGet(target, c)
+	// Validate the source early. Unknown sources would 400 upstream
+	// and the Flutter app would render an ugly error. Treat as empty.
+	if source != "" && !validResearchSources[source] {
+		log.Printf("WARN: research-reports source=%q not in whitelist, returning empty", source)
+		return c.JSON(fiber.Map{
+			"research_reports": []map[string]any{},
+			"count":            0,
+			"source":           source,
+			"degraded":         true,
+		})
+	}
+
+	// Try upstream first.
+	target := fmt.Sprintf("%s/api/research-reports?source=%s&limit=%d",
+		selfTradeBase, url.QueryEscape(source), limit)
+	if body, status, perr := proxyGetRaw(target); perr == nil && status == 200 {
+		var probe struct {
+			Reports []map[string]any `json:"research_reports"`
+			Data    []map[string]any `json:"data"`
+			Count   int              `json:"count"`
+		}
+		if jerr := json.Unmarshal(body, &probe); jerr == nil {
+			if len(probe.Reports) > 0 || len(probe.Data) > 0 || probe.Count > 0 {
+				c.Status(status)
+				return c.Send(body)
+			}
+		}
+	}
+
+	// Local parquet fallback. If the caller didn't filter by source,
+	// aggregate across every whitelisted source so the Flutter Research
+	// Reports home screen can show a unified feed even when the upstream
+	// is down.
+	var items []map[string]any
+	if source == "" {
+		items = fetchAllLocalResearchReports(limit)
+		log.Printf("INFO: serving /api/v1/research-reports (all sources) from local parquet fallback (%d items)", len(items))
+		return c.JSON(fiber.Map{
+			"research_reports": items,
+			"count":            len(items),
+			"degraded":         true,
+			"source_filter":    source,
+			"source":           "local_parquet_fallback",
+		})
+	}
+	items, ferr := fetchLocalResearchReports(source, limit)
+	if ferr == nil {
+		log.Printf("INFO: serving /api/v1/research-reports source=%s from local parquet fallback (%d items)",
+			source, len(items))
+		return c.JSON(fiber.Map{
+			"research_reports": items,
+			"count":            len(items),
+			"degraded":         true,
+			"source_filter":    source,
+			"source":           "local_parquet_fallback",
+		})
+	}
+	log.Printf("WARN: local research-reports fallback failed: %v", ferr)
+
+	// Both failed. Return empty (200) so client renders empty state.
+	return c.JSON(fiber.Map{
+		"research_reports": []map[string]any{},
+		"count":            0,
+		"degraded":         true,
+		"source_filter":    source,
+		"source":           "unavailable",
+	})
 }
 
-// handleResearchReportByID proxies to the self-trade research report detail.
+// handleResearchReportByID serves a single broker research report by id.
+// Falls back to local parquet. Returns 404 with a clean body (not 5xx)
+// when the id does not exist anywhere, so the Flutter client can
+// gracefully render a "not found" UI.
 // GET /api/v1/research-reports/:id
 func handleResearchReportByID(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -437,11 +1432,61 @@ func handleResearchReportByID(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "id path parameter is required"})
 	}
 	// Reject obvious path-traversal attempts before forwarding to upstream
-	if strings.Contains(id, "/") || strings.Contains(id, "..") {
+	if strings.Contains(id, "/") || strings.Contains(id, "..") ||
+		strings.ContainsAny(id, "\\\"'`;") {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
 	}
+
+	// Try upstream first.
 	target := fmt.Sprintf("%s/api/research-reports/%s", selfTradeBase, url.PathEscape(id))
-	return proxyGet(target, c)
+	if body, status, perr := proxyGetRaw(target); perr == nil && status == 200 {
+		var probe struct {
+			ID string `json:"id"`
+		}
+		if jerr := json.Unmarshal(body, &probe); jerr == nil && probe.ID != "" {
+			c.Status(status)
+			return c.Send(body)
+		}
+	}
+
+	// Local parquet fallback.
+	if item, ferr := fetchLocalResearchReportByID(id); ferr == nil {
+		log.Printf("INFO: serving /api/v1/research-reports/%s from local parquet fallback", id)
+		return c.JSON(fiber.Map{
+			"data":     item,
+			"degraded": true,
+			"source":   "local_parquet_fallback",
+		})
+	}
+
+	// Not found anywhere — return 404 with a structured body so the
+	// Flutter client can show a clean "not found" message instead of
+	// "ReportsApiException(404): ...".
+	return c.Status(404).JSON(fiber.Map{
+		"error":      "research report not found",
+		"id":         id,
+		"degraded":   true,
+	})
+}
+
+// handleDecisionReflection is a graceful stub for
+// GET /api/v1/decisions/:id/reflection. The self-trade upstream does not
+// implement this route. We return 200 with reflection=null so the Flutter
+// Decision Journal screen renders normally (the decision_model.dart
+// already supports a null reflection field). If we ever implement LLM
+// reflections server-side, replace this stub.
+func handleDecisionReflection(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "id path parameter is required"})
+	}
+	return c.JSON(fiber.Map{
+		"id":         id,
+		"reflection": nil,
+		"available":  false,
+		"source":     "stub",
+		"message":    "AI reflections not yet implemented",
+	})
 }
 
 // handleSignals proxies to the self-trade signals endpoint.

@@ -138,7 +138,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 
     final filters = ref.watch(browseFiltersProvider);
 
-    return GradientBackground(
+    return AuroraMeshBackground(
       child: Column(
         children: [
           // â”€â”€ Search Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -397,7 +397,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '17 partner universities Â· 8 strategic fields',
+                    '17 partner universities \u00B7 8 strategic fields',
                     style: AppTextStyles.caption.copyWith(
                       fontSize: 10,
                       color: AppColors.stone,
@@ -437,7 +437,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.78,
         ),
         itemCount: _items.length + (_isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
@@ -523,105 +523,129 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   // â”€â”€â”€ Scholarship Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildCard(ScholarshipModel s) {
+    final urgency = s.deadline?.deadlineInfo;
+    final isUrgent = urgency?.isUrgent ?? false;
+
     return GlassCard(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       onTap: () => context.go(AppRoutes.scholarshipDetailFor(s.id)),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // Header: flag avatar + country + urgency badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Title
-              Padding(
-                padding: const EdgeInsets.only(right: 28),
+              // Flag avatar
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.elevated,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border),
+                ),
                 child: Text(
-                  s.title,
-                  style: AppTextStyles.body.copyWith(
+                  countryFlag(s.country),
+                  style: const TextStyle(fontSize: 18, height: 1.0),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Country name
+              Expanded(
+                child: Text(
+                  s.country,
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    fontSize: 12.5,
-                    color: AppColors.ink,
+                    color: AppColors.stone,
                   ),
-                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
-              const SizedBox(height: 4),
-
-              // Provider
-              Text(
-                s.provider,
-                style: AppTextStyles.caption.copyWith(
-                  fontSize: 10,
-                  color: AppColors.stone,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const Spacer(),
-
-              // Country
-              Row(
-                children: [
-                  Text(
-                    countryFlag(s.country),
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      s.country,
-                      style: AppTextStyles.caption.copyWith(
-                        fontSize: 10,
-                        color: AppColors.stone,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-
-              // Level badges + Funding badge
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  ...s.level.map(
-                    (l) => ScholarshipLevelBadge(level: l),
-                  ),
-                  const SizedBox(width: 2),
-                  ScholarshipFundingBadge(fundingType: s.fundingType),
-                ],
-              ),
-
-              // Deadline
-              if (s.deadline != null) ...[
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.schedule, size: 10, color: AppColors.hint),
-                    const SizedBox(width: 3),
-                    Text(
-                      'Due ${formatDate(s.deadline!)}',
-                      style: AppTextStyles.caption.copyWith(
-                        fontSize: 9,
-                        color: AppColors.hint,
-                      ),
-                    ),
-                  ],
-                ),
+              // Urgency badge (right of header)
+              if (isUrgent) ...[
+                const SizedBox(width: 4),
+                DeadlineUrgencyBadge(info: urgency!),
               ],
             ],
           ),
+          const SizedBox(height: 10),
 
-          // Deadline urgency badge (top-right)
-          if (s.deadline != null && s.deadline!.deadlineInfo.isUrgent)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: DeadlineUrgencyBadge(info: s.deadline!.deadlineInfo),
+          // Title
+          Text(
+            s.title,
+            style: AppTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: AppColors.ink,
+              height: 1.3,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+
+          // Provider
+          Text(
+            s.provider,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 11,
+              color: AppColors.stone,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Spacer(),
+
+          // Level + Funding badges
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              ...s.level.map((l) => ScholarshipLevelBadge(level: l)),
+              if (s.fundingType.isNotEmpty)
+                ScholarshipFundingBadge(fundingType: s.fundingType),
+            ],
+          ),
+
+          // Deadline chip (color-coded)
+          if (s.deadline != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: s.deadline!.deadlineInfo.color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color:
+                      s.deadline!.deadlineInfo.color.withValues(alpha: 0.30),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    s.deadline!.deadlineInfo.icon,
+                    size: 11,
+                    color: s.deadline!.deadlineInfo.color,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    s.deadline!.deadlineInfo.label,
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: s.deadline!.deadlineInfo.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -637,7 +661,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
         crossAxisCount: 2,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
-        childAspectRatio: 0.72,
+        childAspectRatio: 0.78,
       ),
       itemCount: 6,
       itemBuilder: (_, __) => Shimmer.fromColors(

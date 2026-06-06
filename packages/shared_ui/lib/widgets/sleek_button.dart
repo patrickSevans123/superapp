@@ -87,7 +87,7 @@ class SleekButton extends StatefulWidget {
 }
 
 class _SleekButtonState extends State<SleekButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _pressCtrl;
   late final Animation<double> _scale;
 

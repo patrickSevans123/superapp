@@ -1,0 +1,7 @@
+{
+  "version": "0.1.0",
+  "build_number": 1,
+  "download_url": "/api/v1/app/download/superapp-v0.1.0+1.apk",
+  "release_notes": "• Initial release with in-app update support\n• Trade dashboard\n• Scholarship browser\n• Fashion try-on",
+  "force_update": false
+}

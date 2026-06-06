@@ -30,6 +30,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Re-fetch whenever the userId becomes available (cold start race:
+    // this screen may mount before [loadToken] finishes hydrating the
+    // JWT from secure storage).
+    ref.listenManual<String?>(currentUserIdProvider, (prev, next) {
+      if (next != null && (prev == null || prev != next) && mounted) {
+        _loadProfile();
+      }
+    });
     _loadProfile();
   }
 

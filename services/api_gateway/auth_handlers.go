@@ -100,7 +100,8 @@ func authMiddleware(c *fiber.Ctx) error {
 	path := c.Path()
 	if strings.HasPrefix(path, "/api/v1/auth") ||
 		path == "/health" ||
-		strings.HasPrefix(path, "/api/v1/reference") {
+		strings.HasPrefix(path, "/api/v1/reference") ||
+		strings.HasPrefix(path, "/api/v1/app") {
 		return c.Next()
 	}
 

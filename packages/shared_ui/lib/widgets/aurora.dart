@@ -9,15 +9,15 @@ import '../theme/app_theme.dart';
 class AppAccent {
   AppAccent._();
 
-  // Module-specific accents
+  // Module-specific accents — shifted to Garuda Dark teal-blue palette
   static const Color cyan = Color(0xFF06B6D4); // cyan-500  – success / trade
-  static const Color orange = Color(0xFFF97316); // orange-500 – warnings
-  static const Color pink = Color(0xFFEC4899); // pink-500   – fashion module
+  static const Color orange = Color(0xFFF59E0B); // amber-500 – warnings (aligns with spec)
+  static const Color pink = Color(0xFFEC4899); // pink-500   – fashion module (unchanged)
 
-  // Aurora mesh alpha layers (pre-multiplied for performance)
-  static const Color auroraViolet = Color(0x338B5CF6); // ~20 % violet
-  static const Color auroraPink = Color(0x22EC4899); // ~13 % pink
-  static const Color auroraCyan = Color(0x2206B6D4); // ~13 % cyan
+  // Aurora mesh alpha layers — shifted from violet to teal-blue
+  static const Color auroraViolet = Color(0x330A84FF); // ~20 % teal-blue
+  static const Color auroraPink = Color(0x2206B6D4); // ~13 % cyan
+  static const Color auroraCyan = Color(0x2238BDF8); // ~13 % light-blue
 }
 
 // ─── MeshOrb ───────────────────────────────────────────────────────────────

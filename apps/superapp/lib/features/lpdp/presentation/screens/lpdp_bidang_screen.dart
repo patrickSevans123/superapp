@@ -199,7 +199,7 @@ class LpdpBidangScreen extends ConsumerWidget {
           child: _buildMiniStatCard(
             Icons.grade_outlined,
             '${magisterCount + doktorCount}',
-            'S2 Â· $magisterCount / S3 Â· $doktorCount',
+            'S2 \u00B7 $magisterCount / S3 \u00B7 $doktorCount',
             AppColors.warning,
           ),
         ),
@@ -354,7 +354,7 @@ class LpdpBidangScreen extends ConsumerWidget {
             color: AppColors.accent.withValues(alpha: 0.2)),
       ),
       child: Text(
-        '$level Â· $count',
+        '$level \u00B7 $count',
         style: AppTextStyles.caption.copyWith(
           fontSize: 9,
           fontWeight: FontWeight.w600,

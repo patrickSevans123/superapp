@@ -11,6 +11,8 @@ class AppRoutes {
   AppRoutes._();
 
   // ── Tab shell roots (must match app_router.dart paths) ──────────────
+  static const String launcher = '/';
+  static const String home = '/home';
   static const String scholarship = '/scholarship';
   static const String fashion = '/fashion';
   static const String trade = '/trade';

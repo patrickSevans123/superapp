@@ -583,15 +583,45 @@ func handleScholarshipStats(c *fiber.Ctx) error {
 	}
 
 	// ── 4. Deadlines this month ──────────────────────────────────────
+	// Compute the end-of-current-month in Go (DuckDB's `INTERVAL '1 month'`
+	// and `DATE_TRUNC('month', ... + INTERVAL '1 month')` syntax trips the
+	// binder — see github.com/marcboeker/go-duckdb issue with date math).
+	// Using precomputed Go dates keeps the query portable and bulletproof.
+	//
+	// Note: the `deadline` column in scholarships.duckdb is VARCHAR, not
+	// DATE — DuckDB refuses VARCHAR-vs-DATE comparisons without an explicit
+	// cast. Worse, the column contains a mix of ISO-8601 dates ("2026-12-15")
+	// and free-form text ("Oktober–November 2026 (bervariasi per program)").
+	// Plain `CAST(... AS DATE)` errors out on the free-form text. Use
+	// `TRY_CAST` which returns NULL on failure so the query still returns
+	// a count and the bad rows are silently excluded.
+	now := time.Now()
+	endOfMonth := time.Date(now.Year(), now.Month()+1, 0, 23, 59, 59, 0, now.Location())
 	var deadlinesThisMonth int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM scholarships WHERE deadline IS NOT NULL AND deadline >= CURRENT_DATE AND deadline <= DATE_TRUNC('month', CURRENT_DATE + INTERVAL '1 month')`).Scan(&deadlinesThisMonth); err != nil {
+	if err := db.QueryRow(
+		`SELECT COUNT(*) FROM scholarships
+		 WHERE deadline IS NOT NULL
+		   AND deadline != ''
+		   AND TRY_CAST(deadline AS DATE) IS NOT NULL
+		   AND TRY_CAST(deadline AS DATE) >= CURRENT_DATE
+		   AND TRY_CAST(deadline AS DATE) <= ?`,
+		endOfMonth,
+	).Scan(&deadlinesThisMonth); err != nil {
 		log.Printf("ERROR counting deadlines this month: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to count deadlines this month"})
 	}
 
 	// ── 5. Deadlines next 30 days ────────────────────────────────────
 	var deadlinesNext30 int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM scholarships WHERE deadline IS NOT NULL AND deadline >= CURRENT_DATE AND deadline <= CURRENT_DATE + INTERVAL '30 days'`).Scan(&deadlinesNext30); err != nil {
+	if err := db.QueryRow(
+		`SELECT COUNT(*) FROM scholarships
+		 WHERE deadline IS NOT NULL
+		   AND deadline != ''
+		   AND TRY_CAST(deadline AS DATE) IS NOT NULL
+		   AND TRY_CAST(deadline AS DATE) >= CURRENT_DATE
+		   AND TRY_CAST(deadline AS DATE) <= ?`,
+		now.AddDate(0, 0, 30),
+	).Scan(&deadlinesNext30); err != nil {
 		log.Printf("ERROR counting deadlines next 30 days: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to count deadlines next 30 days"})
 	}

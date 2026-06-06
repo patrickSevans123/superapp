@@ -9,7 +9,6 @@ export 'core_auth_notifier.dart'
         CoreAuthSession,
         CoreAuthState,
         CoreAuthNotifier,
-        coreAuthApiProvider,
         coreAuthNotifierProvider,
         authRefreshListenable,
         kAuthTokenKey,

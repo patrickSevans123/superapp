@@ -13,13 +13,13 @@ class GradientBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Container(color: AppColors.canvas),
+        Container(color: AppAdaptive.canvas(context)),
         Positioned(
           top: -100, right: -100,
           child: Container(
             width: 320, height: 320,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: AppColors.orbLight,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle, color: AppAdaptive.orbLight(context),
             ),
           ),
         ),
@@ -27,8 +27,8 @@ class GradientBackground extends StatelessWidget {
           bottom: -120, left: -120,
           child: Container(
             width: 380, height: 380,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: AppColors.orbMid,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle, color: AppAdaptive.orbMid(context),
             ),
           ),
         ),
@@ -63,7 +63,7 @@ class GlassScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: AppAdaptive.canvas(context),
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
@@ -95,9 +95,9 @@ class GlassBox extends StatelessWidget {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppAdaptive.surface(context),
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppAdaptive.border(context)),
         boxShadow: shadow
             ? [BoxShadow(color: Colors.black.withOpacity(0.20), blurRadius: 12, offset: const Offset(0, 4))]
             : null,
@@ -154,9 +154,9 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
         child: Container(
           margin: widget.margin,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppAdaptive.surface(context),
             borderRadius: BorderRadius.circular(widget.radius),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppAdaptive.border(context)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(widget.radius),
@@ -204,12 +204,12 @@ class _GlassButtonState extends State<GlassButton> with SingleTickerProviderStat
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
 
-  Color get _fgColor {
+  Color _fgColor(BuildContext context) {
     if (_disabled) {
       return switch (widget.variant) {
         GlassButtonVariant.primary => Colors.white.withOpacity(0.5),
         GlassButtonVariant.danger  => AppColors.error.withOpacity(0.5),
-        _                          => AppColors.hint,
+        _                          => AppAdaptive.hint(context),
       };
     }
     return switch (widget.variant) {
@@ -227,8 +227,8 @@ class _GlassButtonState extends State<GlassButton> with SingleTickerProviderStat
     Color bgColor;
     Color? borderColor;
     switch (widget.variant) {
-      case GlassButtonVariant.primary:   bgColor = _disabled ? AppColors.accent.withOpacity(0.4) : AppColors.accent; borderColor = null;
-      case GlassButtonVariant.secondary: bgColor = AppColors.elevated; borderColor = AppColors.borderHover;
+      case GlassButtonVariant.primary:   bgColor = _disabled ? AppAdaptive.accent(context).withOpacity(0.4) : AppAdaptive.accent(context); borderColor = null;
+      case GlassButtonVariant.secondary: bgColor = AppAdaptive.elevated(context); borderColor = AppAdaptive.borderHover(context);
       case GlassButtonVariant.ghost:     bgColor = Colors.transparent; borderColor = null;
       case GlassButtonVariant.danger:    bgColor = AppColors.error.withOpacity(_disabled ? 0.08 : 0.12); borderColor = AppColors.error.withOpacity(0.3);
     }
@@ -251,12 +251,12 @@ class _GlassButtonState extends State<GlassButton> with SingleTickerProviderStat
               border: borderColor != null ? Border.all(color: borderColor) : null,
             ),
             child: widget.isLoading
-                ? SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: widget.variant == GlassButtonVariant.primary ? Colors.white : AppColors.accent))
+                ? SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: widget.variant == GlassButtonVariant.primary ? Colors.white : AppAdaptive.accent(context)))
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (widget.icon != null) ...[Icon(widget.icon, size: widget.small ? 15 : 17, color: _fgColor), SizedBox(width: widget.small ? 6 : 8)],
-                      Text(widget.label, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600, color: _fgColor, letterSpacing: -0.1)),
+                      if (widget.icon != null) ...[Icon(widget.icon, size: widget.small ? 15 : 17, color: _fgColor(context)), SizedBox(width: widget.small ? 6 : 8)],
+                      Text(widget.label, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600, color: _fgColor(context), letterSpacing: -0.1)),
                     ],
                   ),
           ),
@@ -290,18 +290,18 @@ class GlassTextField extends StatelessWidget {
     return TextFormField(
       controller: controller, obscureText: obscureText, keyboardType: keyboardType,
       validator: validator, onChanged: onChanged,
-      style: AppTextStyles.body.copyWith(color: AppColors.ink),
-      cursorColor: AppColors.accent, cursorWidth: 1.5,
+      style: AppTextStyles.body.copyWith(color: AppAdaptive.ink(context)),
+      cursorColor: AppAdaptive.accent(context), cursorWidth: 1.5,
       decoration: InputDecoration(
         labelText: label, hintText: hintText,
-        hintStyle: AppTextStyles.body.copyWith(color: AppColors.hint),
-        labelStyle: AppTextStyles.body.copyWith(color: AppColors.stone),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: AppColors.hint) : null,
+        hintStyle: AppTextStyles.body.copyWith(color: AppAdaptive.hint(context)),
+        labelStyle: AppTextStyles.body.copyWith(color: AppAdaptive.stone(context)),
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: AppAdaptive.hint(context)) : null,
         suffixIcon: suffixIcon,
-        filled: true, fillColor: AppColors.elevated,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.accent, width: 1.5)),
+        filled: true, fillColor: AppAdaptive.elevated(context),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppAdaptive.border(context))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppAdaptive.border(context))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppAdaptive.accent(context), width: 1.5)),
         errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.error)),
         focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.error, width: 1.5)),
         errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
@@ -329,11 +329,11 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: titleWidget ?? (title != null ? Text(title!, style: AppTextStyles.title.copyWith(color: AppColors.ink, fontWeight: FontWeight.w600)) : null),
+      title: titleWidget ?? (title != null ? Text(title!, style: AppTextStyles.title.copyWith(color: AppAdaptive.ink(context), fontWeight: FontWeight.w600)) : null),
       leading: leading, actions: actions, centerTitle: centerTitle,
-      backgroundColor: AppColors.canvas, elevation: 0, scrolledUnderElevation: 0,
-      iconTheme: const IconThemeData(color: AppColors.ink),
-      bottom: bottom ?? PreferredSize(preferredSize: const Size.fromHeight(1), child: Container(height: 1, color: AppColors.border)),
+      backgroundColor: AppAdaptive.canvas(context), elevation: 0, scrolledUnderElevation: 0,
+      iconTheme: IconThemeData(color: AppAdaptive.ink(context)),
+      bottom: bottom ?? PreferredSize(preferredSize: const Size.fromHeight(1), child: Container(height: 1, color: AppAdaptive.border(context))),
     );
   }
 }
@@ -347,15 +347,15 @@ class GlassDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (vertical) return Container(width: 1, color: AppColors.border);
+    if (vertical) return Container(width: 1, color: AppAdaptive.border(context));
     if (label != null) {
       return Row(children: [
-        Expanded(child: Container(height: 1, color: AppColors.border)),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(label!, style: AppTextStyles.caption.copyWith(color: AppColors.hint))),
-        Expanded(child: Container(height: 1, color: AppColors.border)),
+        Expanded(child: Container(height: 1, color: AppAdaptive.border(context))),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(label!, style: AppTextStyles.caption.copyWith(color: AppAdaptive.hint(context)))),
+        Expanded(child: Container(height: 1, color: AppAdaptive.border(context))),
       ]);
     }
-    return Container(height: 1, color: AppColors.border);
+    return Container(height: 1, color: AppAdaptive.border(context));
   }
 }
 
@@ -371,11 +371,11 @@ class GlassBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: accent ? AppColors.accent.withOpacity(0.15) : AppColors.elevated,
+        color: accent ? AppAdaptive.accent(context).withOpacity(0.15) : AppAdaptive.elevated(context),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: accent ? AppColors.accent.withOpacity(0.30) : AppColors.borderHover),
+        border: Border.all(color: accent ? AppAdaptive.accent(context).withOpacity(0.30) : AppAdaptive.borderHover(context)),
       ),
-      child: Text(label.toUpperCase(), style: AppTextStyles.caption.copyWith(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: accent ? AppColors.accent : AppColors.stone), maxLines: 1, overflow: TextOverflow.ellipsis),
+      child: Text(label.toUpperCase(), style: AppTextStyles.caption.copyWith(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: accent ? AppAdaptive.accent(context) : AppAdaptive.stone(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 }
@@ -393,7 +393,7 @@ class GlassFieldLabel extends StatelessWidget {
       style: AppTextStyles.caption.copyWith(
         fontWeight: FontWeight.w600,
         letterSpacing: 0.6,
-        color: AppColors.hint,
+        color: AppAdaptive.hint(context),
         fontSize: 11,
       ),
     );

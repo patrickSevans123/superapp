@@ -5,7 +5,6 @@ import 'package:shared_ui/shared_ui.dart';
 
 import '../../../../core/errors/friendly_error.dart';
 import '../../../../core/router/app_routes.dart';
-import '../../data/models/briefing_model.dart';
 import '../../data/models/models.dart';
 import '../providers/trade_providers.dart';
 import '../widgets/charts/charts.dart';
@@ -25,7 +24,8 @@ class TradeDashboardScreen extends ConsumerStatefulWidget {
       _TradeDashboardScreenState();
 }
 
-class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
+class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   String? _error;
   PlansSummary? _summary;
@@ -34,10 +34,28 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
   List<AppEvent> _events = [];
   bool _dismissed = false;
 
+  // Animation for staggered section entry
+  late final AnimationController _staggerCtrl;
+  late final Animation<double> _staggerFade;
+
   @override
   void initState() {
     super.initState();
+    _staggerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _staggerFade = CurvedAnimation(
+      parent: _staggerCtrl,
+      curve: Curves.easeOutCubic,
+    );
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _staggerCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -60,6 +78,8 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
         _closedPlans = results[3] as List<TradingPlan>;
         _isLoading = false;
       });
+      // Trigger staggered entrance animation
+      _staggerCtrl.forward();
     } catch (e) {
       setState(() {
         _error = friendlyError(e);
@@ -70,7 +90,7 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
+    return AuroraMeshBackground(
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildContent(),
@@ -79,278 +99,305 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
 
   Widget _buildContent() {
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                'Could not load dashboard',
-                style: AppTextStyles.title,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _error!,
-                style: AppTextStyles.caption,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              GlassButton(
-                label: 'Retry',
-                onPressed: _loadData,
-                icon: Icons.refresh,
-                small: true,
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorState();
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          _buildHeader(),
-          _buildStaleBanner(),
-          const SizedBox(height: 12),
+      child: FadeTransition(
+        opacity: _staggerFade,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 6),
+            _buildStaleBanner(),
+            const SizedBox(height: 6),
 
-          // ── Today's Report banner (gated by `new_report` preference) ───
-          const LatestReportBanner(),
-          const SizedBox(height: 12),
+            // ── Today's Report banner ────────────────────────────────
+            const LatestReportBanner(),
+            const SizedBox(height: 8),
 
-          if (_summary != null)
-            Row(
-              children: [
-                Expanded(
-                  child: StatCard(
-                    label: 'Active',
-                    value: '${_summary!.active}',
-                    color: AppColors.accent,
-                    icon: Icons.trending_up,
-                  ),
-                ),
-                Expanded(
-                  child: StatCard(
-                    label: 'Win Rate',
-                    value:
-                        '${_summary!.winRatePct.toStringAsFixed(0)}%',
-                    color: AppColors.success,
-                    icon: Icons.check_circle,
-                  ),
-                ),
-                Expanded(
-                  child: StatCard(
-                    label: 'Avg Return',
-                    value:
-                        '${_summary!.avgReturnPct.toStringAsFixed(1)}%',
-                    color: _summary!.avgReturnPct >= 0
-                        ? AppColors.success
-                        : AppColors.error,
-                    icon: Icons.show_chart,
-                  ),
-                ),
-                Expanded(
-                  child: StatCard(
-                    label: 'Total',
-                    value: '${_summary!.total}',
-                    icon: Icons.list,
-                  ),
-                ),
-              ],
-            ),
+            // ── Stat Cards Row ───────────────────────────────────────
+            if (_summary != null) _buildStatCardsRow(),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-          // ── Quick Actions ──────────────────────────────────────────────────
-          Text(
-            'Quick Actions',
-            style: AppTextStyles.title.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildQuickActionsGrid(),
+            // ── Quick Actions ────────────────────────────────────────
+            _buildSectionHeader('Aksi Cepat'),
+            const SizedBox(height: 10),
+            _buildQuickActionsGrid(),
 
-          // ── Performance Analytics ──────────────────────────────────────────
-          const SizedBox(height: 16),
-          Text(
-            'Performance Analytics',
-            style: AppTextStyles.title.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (_closedPlans.length >= 2) ...[
-            PnlCurveChart(closedPlans: _closedPlans),
-            const SizedBox(height: 16),
-            DrawdownChart(closedPlans: _closedPlans),
-            const SizedBox(height: 16),
-            WinRateDonut(closedPlans: _closedPlans),
-          ] else
-            const EmptyChartPlaceholder(
-              message: 'Charts appear after your first 2 closed trades.',
-              height: 200,
-            ),
-
-          const SizedBox(height: 16),
-          Text(
-            'Active Plans',
-            style: AppTextStyles.title.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (_activePlans.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text(
-                'No active plans',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.hint),
+            // ── Performance Analytics ────────────────────────────────
+            const SizedBox(height: 24),
+            _buildSectionHeader('Analisis Performa'),
+            const SizedBox(height: 10),
+            if (_closedPlans.length >= 2) ...[
+              PnlCurveChart(closedPlans: _closedPlans),
+              const SizedBox(height: 12),
+              DrawdownChart(closedPlans: _closedPlans),
+              const SizedBox(height: 12),
+              WinRateDonut(closedPlans: _closedPlans),
+            ] else
+              const EmptyChartPlaceholder(
+                message: 'Chart muncul setelah 2 trade tertutup.',
+                height: 200,
               ),
-            )
-          else
-            ..._activePlans.map((p) => PlanCard(plan: p)),
 
-          const SizedBox(height: 16),
-          Text(
-            'Recent Events',
-            style: AppTextStyles.title.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ..._events.take(5).map(_buildEventTile),
-        ],
+            const SizedBox(height: 24),
+            _buildSectionHeader('Rencana Aktif'),
+            const SizedBox(height: 10),
+            if (_activePlans.isEmpty)
+              _buildEmptyState(
+                icon: Icons.assignment_outlined,
+                message: 'Belum ada rencana aktif',
+              )
+            else
+              ..._activePlans.map((p) => PlanCard(plan: p)),
+
+            const SizedBox(height: 24),
+            _buildSectionHeader('Event Terbaru'),
+            const SizedBox(height: 10),
+            if (_events.isEmpty)
+              _buildEmptyState(
+                icon: Icons.notifications_none,
+                message: 'Belum ada event',
+              )
+            else
+              ..._events.take(5).map(_buildEventTile),
+          ],
+        ),
       ),
     );
   }
 
-  /// 2x2 grid of trade-section entry points.  The first cell stays
-  /// gradient-styled (Trading Plans is the most-trafficked action);
-  /// the other three use the secondary variant for visual rhythm.
-  Widget _buildQuickActionsGrid() {
-    return Column(
+  // ── Error State ───────────────────────────────────────────────────────
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                size: 40,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Gagal memuat dashboard',
+              style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: AppTextStyles.caption.copyWith(color: AppColors.stone),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            GlassButton(
+              label: 'Coba Lagi',
+              onPressed: _loadData,
+              icon: Icons.refresh,
+              small: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Section Header ────────────────────────────────────────────────────
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: AppTextStyles.title.copyWith(
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
+        letterSpacing: -0.2,
+      ),
+    );
+  }
+
+  // ── Stat Cards Row ────────────────────────────────────────────────────
+
+  Widget _buildStatCardsRow() {
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: SleekButton.gradient(
-                label: 'Live Signals',
-                onPressed: () => context.go(AppRoutes.tradeSignals),
-                icon: Icons.signal_cellular_alt,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SleekButton(
-                label: 'Market Regime',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradeRegime),
-                icon: Icons.analytics_outlined,
-              ),
-            ),
-          ],
+        Expanded(
+          child: _PolishedStatCard(
+            label: 'Aktif',
+            value: '${_summary!.active}',
+            color: AppColors.accent,
+            icon: Icons.trending_up_rounded,
+          ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: SleekButton(
-                label: 'Trading Plans',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradePlans),
-                icon: Icons.assignment,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SleekButton(
-                label: 'Market News',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradeNews),
-                icon: Icons.newspaper,
-              ),
-            ),
-          ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: _PolishedStatCard(
+            label: 'Win Rate',
+            value: '${_summary!.winRatePct.toStringAsFixed(0)}%',
+            color: AppColors.success,
+            icon: Icons.check_circle_rounded,
+          ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: SleekButton(
-                label: 'AI Journal',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradeDecisions),
-                icon: Icons.psychology_outlined,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SleekButton(
-                label: 'Research',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradeResearch),
-                icon: Icons.menu_book_outlined,
-              ),
-            ),
-          ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: _PolishedStatCard(
+            label: 'Avg Return',
+            value: '${_summary!.avgReturnPct.toStringAsFixed(1)}%',
+            color: _summary!.avgReturnPct >= 0
+                ? AppColors.bullish
+                : AppColors.bearish,
+            icon: _summary!.avgReturnPct >= 0
+                ? Icons.arrow_upward_rounded
+                : Icons.arrow_downward_rounded,
+          ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: SleekButton(
-                label: 'Factor Lab',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradeFactorLab),
-                icon: Icons.science_outlined,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SleekButton(
-                label: 'Portfolio',
-                variant: SleekButtonVariant.secondary,
-                onPressed: () => context.go(AppRoutes.tradePortfolioOptimize),
-                icon: Icons.pie_chart_outline,
-              ),
-            ),
-          ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: _PolishedStatCard(
+            label: 'Total',
+            value: '${_summary!.total}',
+            color: AppColors.stone,
+            icon: Icons.list_rounded,
+          ),
         ),
       ],
     );
   }
 
+  // ── Quick Actions Grid (2×4) ──────────────────────────────────────────
+
+  Widget _buildQuickActionsGrid() {
+    final actions = [
+      _QuickAction('Live Signals', Icons.signal_cellular_alt_rounded,
+          () => context.go(AppRoutes.tradeSignals), highlighted: true),
+      _QuickAction('Market Regime', Icons.analytics_outlined,
+          () => context.go(AppRoutes.tradeRegime)),
+      _QuickAction('Trading Plans', Icons.assignment_rounded,
+          () => context.go(AppRoutes.tradePlans)),
+      _QuickAction('Market News', Icons.newspaper_rounded,
+          () => context.go(AppRoutes.tradeNews)),
+      _QuickAction('AI Journal', Icons.psychology_outlined,
+          () => context.go(AppRoutes.tradeDecisions)),
+      _QuickAction('Research', Icons.menu_book_outlined,
+          () => context.go(AppRoutes.tradeResearch)),
+      _QuickAction('Factor Lab', Icons.science_outlined,
+          () => context.go(AppRoutes.tradeFactorLab)),
+      _QuickAction('Portfolio', Icons.pie_chart_outline_rounded,
+          () => context.go(AppRoutes.tradePortfolioOptimize)),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: actions.length,
+      itemBuilder: (context, i) {
+        final action = actions[i];
+        return _QuickActionTile(
+          label: action.label,
+          icon: action.icon,
+          onTap: action.onTap,
+          highlighted: action.highlighted,
+        );
+      },
+    );
+  }
+
+  // ── Empty State ───────────────────────────────────────────────────────
+
+  Widget _buildEmptyState({required IconData icon, required String message}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        children: [
+          Icon(icon, size: 32, color: AppColors.hint),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: AppTextStyles.body.copyWith(color: AppColors.hint),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Header ────────────────────────────────────────────────────────────
+
   Widget _buildHeader() {
     return Column(
       children: [
         GlassBox(
-          radius: 14,
+          radius: 12,
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                'Self-Trade',
-                style: AppTextStyles.headline.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.ink,
+              // Brand mark
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.accent,
+                      AppColors.accent.withOpacity(0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.show_chart_rounded,
+                  color: Colors.white,
+                  size: 22,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                'AI Trading Intelligence',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.stone,
+              const SizedBox(width: 12),
+              // Title + subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Self-Trade',
+                      style: AppTextStyles.headline.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'AI Trading Intelligence',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.stone,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              // Live indicator
+              PulseDot(color: AppColors.success, size: 8),
             ],
           ),
         ),
@@ -374,7 +421,8 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.wb_sunny_outlined, size: 16, color: AppColors.accent),
+                  const Icon(Icons.wb_sunny_outlined,
+                      size: 16, color: AppColors.accent),
                   const SizedBox(width: 6),
                   Text(
                     'Morning Briefing',
@@ -389,7 +437,9 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                b.body.length > 200 ? '${b.body.substring(0, 200)}...' : b.body,
+                b.body.length > 200
+                    ? '${b.body.substring(0, 200)}...'
+                    : b.body,
                 style: AppTextStyles.body.copyWith(fontSize: 13),
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
@@ -401,10 +451,8 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
     );
   }
 
-  /// Compact "data stale" banner that surfaces the worst offending source
-  /// across all scrapers (news + MSCI + plans). Hidden on load/error or
-  /// when every source is healthy, and dismissible per-session via
-  /// setState. Mirrors the colour scheme used by `news_freshness_banner.dart`.
+  // ── Stale Banner ──────────────────────────────────────────────────────
+
   Widget _buildStaleBanner() {
     final health = ref.watch(scrapersHealthProvider);
     return health.when(
@@ -416,24 +464,24 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
         if (worst == null) return const SizedBox.shrink();
         final age = worst.ageLabel ?? '${worst.ageSeconds ?? 0}s';
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.12),
-            border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.warning.withValues(alpha: 0.10),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
                 color: AppColors.warning,
-                size: 18,
+                size: 16,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '⚠️ ${_humaniseSource(worst.source)} data stale — last update $age ago',
+                  '${_humaniseSource(worst.source)} data stale — update terakhir $age lalu',
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 12,
                     color: AppColors.ink,
@@ -444,10 +492,10 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
               ),
               InkWell(
                 onTap: () => setState(() => _dismissed = true),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
                 child: const Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(Icons.close, size: 16, color: AppColors.stone),
+                  child: Icon(Icons.close, size: 14, color: AppColors.stone),
                 ),
               ),
             ],
@@ -470,6 +518,8 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
     }
   }
 
+  // ── Event Tile ────────────────────────────────────────────────────────
+
   Widget _buildEventTile(AppEvent event) {
     final colors = {
       'success': AppColors.success,
@@ -478,24 +528,197 @@ class _TradeDashboardScreenState extends ConsumerState<TradeDashboardScreen> {
     };
     return GlassCard(
       margin: const EdgeInsets.symmetric(vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          Icons.notifications,
-          color: colors[event.severity] ?? AppColors.hint,
-          size: 20,
-        ),
-        title: Text(
-          event.title,
-          style: AppTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: (colors[event.severity] ?? AppColors.hint).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.notifications_rounded,
+              color: colors[event.severity] ?? AppColors.hint,
+              size: 18,
+            ),
+          ),
+          title: Text(
+            event.title,
+            style: AppTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+          subtitle: Text(
+            event.body,
+            style: AppTextStyles.caption.copyWith(fontSize: 11),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        subtitle: Text(
-          event.body,
-          style: AppTextStyles.caption.copyWith(fontSize: 11),
+      ),
+    );
+  }
+}
+
+// ─── Private helpers ─────────────────────────────────────────────────────────
+
+class _QuickAction {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool highlighted;
+
+  const _QuickAction(this.label, this.icon, this.onTap, {this.highlighted = false});
+}
+
+/// Polished stat card with icon, value, and label — aligned with Garuda Dark spec.
+class _PolishedStatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  const _PolishedStatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: AppTextStyles.monoBody.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 10,
+              color: AppColors.stone,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Quick-action tile — icon + label in a compact grid cell.
+class _QuickActionTile extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool highlighted;
+
+  const _QuickActionTile({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.highlighted = false,
+  });
+
+  @override
+  State<_QuickActionTile> createState() => _QuickActionTileState();
+}
+
+class _QuickActionTileState extends State<_QuickActionTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressCtrl;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      reverseDuration: const Duration(milliseconds: 180),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.94).animate(
+      CurvedAnimation(parent: _pressCtrl, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _pressCtrl.forward(),
+      onTapUp: (_) {
+        _pressCtrl.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _pressCtrl.reverse(),
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (_, child) => Transform.scale(scale: _scale.value, child: child),
+        child: Container(
+          decoration: BoxDecoration(
+            color: widget.highlighted
+                ? AppColors.accent.withOpacity(0.12)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: widget.highlighted
+                  ? AppColors.accent.withOpacity(0.30)
+                  : AppColors.border,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                widget.icon,
+                size: 20,
+                color: widget.highlighted ? AppColors.accent : AppColors.stone,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                widget.label,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: widget.highlighted ? AppColors.accent : AppColors.stone,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

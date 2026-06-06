@@ -278,10 +278,12 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: GlassAppBar(
-        title: _isSearching ? null : 'Wardrobe',
+    return AuroraMeshBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
+          title: _isSearching ? null : 'Wardrobe',
         titleWidget: _isSearching
             ? TextField(
                 controller: _searchController,
@@ -336,6 +338,7 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
       body: _buildBody(),
       floatingActionButton: _AddFab(
         onPressed: () => context.go(AppRoutes.fashionAdd),
+      ),
       ),
     );
   }

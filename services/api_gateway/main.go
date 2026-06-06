@@ -58,9 +58,45 @@ func main() {
 				log.Printf("WARN: DuckDB ping failed (scholarship queries disabled): %v", err)
 				db.Close()
 				db = nil
-			} else {
-				log.Println("Connected to DuckDB (read-only)")
-			}
+		} else {
+			log.Println("Connected to DuckDB (read-only)")
+		}
+	}
+
+	// ── In-memory DuckDB for local news parquet fallback ────────────
+	// Set automatically when NEWS_PARQUET_DIR is configured. This is the
+	// safety net for the Flutter News screen: when the self-trade backend
+	// (saham-agentic) is down, the gateway reads the most recent
+	// <source>/<YYYY-MM>.parquet files directly via DuckDB's read_parquet().
+	if err := initNewsDB(); err != nil {
+		log.Printf("WARN: news parquet fallback disabled (initNewsDB: %v)", err)
+	} else {
+		defer newsDB.Close()
+		dir := newsParquetDir
+		if st, statErr := os.Stat(dir); statErr == nil && st.IsDir() {
+			log.Printf("News parquet fallback enabled (dir: %s)", dir)
+		} else {
+			log.Printf("WARN: NEWS_PARQUET_DIR=%s not accessible (%v) — fallback queries will fail at runtime",
+				dir, statErr)
+		}
+	}
+	}
+
+	// ── In-memory DuckDB for local research/daily reports fallback ──
+	// Serves the Flutter Research Reports + Daily Reports screens when
+	// the self-trade upstream's /api/reports DuckDB query crashes (no
+	// `date` column on sekuritas parquet) and /api/research-reports
+	// doesn't exist. Reads from REPORTS_PARQUET_DIR env var.
+	if err := initReportsDB(); err != nil {
+		log.Printf("WARN: reports parquet fallback disabled (initReportsDB: %v)", err)
+	} else {
+		defer reportsDB.Close()
+		dir := reportsParquetDir
+		if st, statErr := os.Stat(dir); statErr == nil && st.IsDir() {
+			log.Printf("Reports parquet fallback enabled (dir: %s)", dir)
+		} else {
+			log.Printf("WARN: REPORTS_PARQUET_DIR=%s not accessible (%v) — fallback queries will fail at runtime",
+				dir, statErr)
 		}
 	}
 
@@ -198,6 +234,7 @@ func main() {
 	v1.Get("/sentiment", handleSentiment)
 	v1.Get("/technical/:ticker", handleTechnical)
 	v1.Get("/decisions", handleDecisions)
+	v1.Get("/decisions/:id/reflection", handleDecisionReflection)
 
 	// ─── P2: Strategy Performance & Factor Lab ───
 	v1.Get("/strategy-performance", handleStrategyPerformance)
@@ -280,6 +317,10 @@ func main() {
 	// ─── Settings endpoints ───
 	v1.Get("/settings", handleGetSettings)
 	v1.Patch("/settings", handleUpdateSettings)
+
+	// ─── App Update endpoints (public — no auth required) ───
+	v1.Get("/app/version", handleAppVersion)
+	v1.Get("/app/download/:filename", handleAppDownload)
 
 	// ─── Upload endpoints ───
 	v1.Post("/upload/photo", handleUploadPhoto)
@@ -425,6 +466,29 @@ func handleReadiness(c *fiber.Ctx) error {
 	} else {
 		resp.Body.Close()
 		deps["self_trade"] = depStatus{OK: resp.StatusCode < 500, Required: false, Detail: fmt.Sprintf("status %d", resp.StatusCode)}
+	}
+
+	// news_parquet: optional — local fallback for /api/v1/news*.
+	if newsDB != nil {
+		if st, err := os.Stat(newsParquetDir); err == nil && st.IsDir() {
+			deps["news_parquet"] = depStatus{OK: true, Required: false, Detail: newsParquetDir}
+		} else {
+			deps["news_parquet"] = depStatus{OK: false, Required: false, Detail: fmt.Sprintf("%s not accessible: %v", newsParquetDir, err)}
+		}
+	} else {
+		deps["news_parquet"] = depStatus{OK: false, Required: false, Detail: "news DB not initialized"}
+	}
+
+	// reports_parquet: optional — local fallback for /api/v1/reports and
+	// /api/v1/research-reports*.
+	if reportsDB != nil {
+		if st, err := os.Stat(reportsParquetDir); err == nil && st.IsDir() {
+			deps["reports_parquet"] = depStatus{OK: true, Required: false, Detail: reportsParquetDir}
+		} else {
+			deps["reports_parquet"] = depStatus{OK: false, Required: false, Detail: fmt.Sprintf("%s not accessible: %v", reportsParquetDir, err)}
+		}
+	} else {
+		deps["reports_parquet"] = depStatus{OK: false, Required: false, Detail: "reports DB not initialized"}
 	}
 
 	// Required deps must all be OK for the overall check to pass.

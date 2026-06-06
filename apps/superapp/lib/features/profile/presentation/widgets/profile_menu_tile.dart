@@ -23,25 +23,28 @@ class ProfileMenuTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 4),
       onTap: onTap,
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: iconColor ?? AppColors.accent,
-          size: 22,
-        ),
-        title: Text(
-          title,
-          style: AppTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          leading: Icon(
+            icon,
+            color: iconColor ?? AppColors.accent,
+            size: 22,
           ),
+          title: Text(
+            title,
+            style: AppTextStyles.body.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.chevron_right,
+            color: AppColors.hint,
+            size: 20,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          dense: true,
         ),
-        trailing: const Icon(
-          Icons.chevron_right,
-          color: AppColors.hint,
-          size: 20,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-        dense: true,
       ),
     );
   }
