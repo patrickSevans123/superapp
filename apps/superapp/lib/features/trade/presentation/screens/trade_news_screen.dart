@@ -11,9 +11,9 @@ import '../widgets/news_freshness_banner.dart';
 
 /// News screen for the trade feature.
 ///
-/// TabController for Bloomberg EN / Bloomberg Technoz tabs. Each tab caches
-/// its own `NewsResult` so swapping tabs is instant and re-selecting a tab
-/// shows the cached list (pull-to-refresh re-fetches).
+/// TabController for all available news-source tabs. Each tab caches its own
+/// `NewsResult` so swapping tabs is instant and re-selecting a tab shows the
+/// cached list (pull-to-refresh re-fetches).
 class TradeNewsScreen extends ConsumerStatefulWidget {
   const TradeNewsScreen({super.key});
 
@@ -28,10 +28,13 @@ class _TradeNewsScreenState extends ConsumerState<TradeNewsScreen>
   final Map<String, bool> _loading = {};
   final Map<String, String?> _errors = {};
 
-  // Source tabs in display order
+  // Source tabs in display order — all available newsletter scrapers
   static const _tabs = <_SourceTab>[
     _SourceTab(key: 'bloomberg_english', label: 'Bloomberg EN'),
     _SourceTab(key: 'bloomberg_technoz', label: 'Bloomberg Technoz'),
+    _SourceTab(key: 'reuters', label: 'Reuters'),
+    _SourceTab(key: 'cnbc_indonesia', label: 'CNBC Indonesia'),
+    _SourceTab(key: 'kontan', label: 'Kontan'),
   ];
 
   @override
@@ -130,13 +133,61 @@ class _TradeNewsScreenState extends ConsumerState<TradeNewsScreen>
     if (result == null || result.items.isEmpty) {
       return RefreshIndicator(
         onRefresh: () => _load(source),
+        color: AppColors.accent,
+        backgroundColor: AppColors.elevated,
         child: ListView(
-          children: const [
-            SizedBox(height: 120),
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            const SizedBox(height: 100),
             Center(
-              child: Text(
-                'No news',
-                style: TextStyle(color: AppColors.hint),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.newspaper_outlined,
+                        size: 36,
+                        color: AppColors.accent.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'No news yet',
+                      style: AppTextStyles.title.copyWith(
+                        fontSize: 16,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Articles from this source will appear here\nonce the scraper fetches them.',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.stone,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    GlassButton(
+                      label: 'Refresh',
+                      icon: Icons.refresh,
+                      small: true,
+                      onPressed: () => _load(source),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
