@@ -27,7 +27,7 @@ class ScholarshipModel with _$ScholarshipModel {
     @Default('') String url,
     @JsonKey(name: 'source_url') @Default('') String sourceUrl,
     @Default([]) List<String> requirements,
-    @Default([]) List<String> fieldOfStudy,
+    @JsonKey(name: 'field_of_study') @Default([]) List<String> fieldOfStudy,
     @Default([]) List<String> tags,
     @JsonKey(name: 'funding_type') @Default('') String fundingType,
     @Default([]) List<String> tips,

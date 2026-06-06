@@ -33,7 +33,7 @@ _$ScholarshipModelImpl _$$ScholarshipModelImplFromJson(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      fieldOfStudy: (json['fieldOfStudy'] as List<dynamic>?)
+      fieldOfStudy: (json['field_of_study'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -74,7 +74,7 @@ Map<String, dynamic> _$$ScholarshipModelImplToJson(
       'url': instance.url,
       'source_url': instance.sourceUrl,
       'requirements': instance.requirements,
-      'fieldOfStudy': instance.fieldOfStudy,
+      'field_of_study': instance.fieldOfStudy,
       'tags': instance.tags,
       'funding_type': instance.fundingType,
       'tips': instance.tips,

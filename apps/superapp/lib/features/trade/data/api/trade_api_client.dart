@@ -150,6 +150,13 @@ class TradeApiClient {
       if (json is! Map<String, dynamic>) {
         return PlansSummary.fromJson({});
       }
+      // API returns {plans: [...], summary: {total, active, ...}}.
+      // Unwrap the summary sub-object so the model finds its fields.
+      final summaryRaw = json['summary'];
+      if (summaryRaw is Map<String, dynamic>) {
+        return PlansSummary.fromJson(summaryRaw);
+      }
+      // Legacy / fallback: tolerate either {data: {…}} envelope or flat object.
       final dataRaw = json['data'];
       final dataJson = (dataRaw is Map<String, dynamic>) ? dataRaw : json;
       return PlansSummary.fromJson(dataJson);
@@ -383,7 +390,7 @@ class TradeApiClient {
       }
       final json = response.data;
       if (json is! Map<String, dynamic>) {
-        return const BriefingModel(date: '', body: '', sizeBytes: 0);
+        return const BriefingModel(date: '', body: '');
       }
       return BriefingModel.fromJson(json);
     } on DioException catch (e) {

@@ -2,21 +2,21 @@
 class BriefingModel {
   final String date;
   final String body;
-  final int sizeBytes;
 
   const BriefingModel({
     required this.date,
     required this.body,
-    required this.sizeBytes,
   });
 
   factory BriefingModel.fromJson(Map<String, dynamic> json) {
     return BriefingModel(
       date: json['date'] as String? ?? '',
       body: json['body'] as String? ?? '',
-      sizeBytes: (json['size_bytes'] as num?)?.toInt() ?? 0,
     );
   }
 
-  bool get isEmpty => body.isEmpty || sizeBytes == 0;
+  /// A briefing is considered empty only when the body has no content.
+  /// (The previous version also required `size_bytes > 0`, but the API
+  /// never sends that field — it caused every real briefing to look empty.)
+  bool get isEmpty => body.isEmpty;
 }

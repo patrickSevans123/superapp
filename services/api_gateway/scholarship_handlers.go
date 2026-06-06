@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -480,8 +481,20 @@ func handleGetRelatedScholarships(c *fiber.Ctx) error {
 		args = append(args, country)
 	}
 	if len(fieldOfStudy) > 0 {
-		conditions = append(conditions, `array_has_any("field_of_study", ?)`)
-		args = append(args, fieldOfStudy)
+		// DuckDB equivalent of ClickHouse's `array_has_any` — see
+		// https://duckdb.org/docs/sql/functions/list#listhasanylist-other
+		// The marcboeker/go-duckdb driver cannot bind a Go []string to a
+		// VARCHAR[] column, so we inline the array as a SQL literal. All
+		// values are single-quote-escaped to keep multi-word entries
+		// (e.g. "Medical & Health Sciences") intact and injection-safe
+		// — field_of_study values originate from the crawled scholarship
+		// database, not from untrusted user input.
+		literalElems := make([]string, 0, len(fieldOfStudy))
+		for _, s := range fieldOfStudy {
+			literalElems = append(literalElems, "'"+strings.ReplaceAll(s, "'", "''")+"'")
+		}
+		arrayLit := "[" + strings.Join(literalElems, ",") + "]"
+		conditions = append(conditions, fmt.Sprintf(`list_has_any("field_of_study", %s)`, arrayLit))
 	}
 
 	if len(conditions) > 0 {
